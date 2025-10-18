@@ -942,6 +942,29 @@ fn test_is_zeroes() {
     assert!(I::ONE.is_some());
 }
 
+#[doc(hidden)]
+pub mod mutant_killer_internals {
+    pub fn wrapping_add_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
+        super::wrapping_add_b::<C>(x, y)
+    }
+
+    pub fn wrapping_sub_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
+        super::wrapping_sub_b::<C>(x, y)
+    }
+
+    pub fn wrapping_mul_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
+        super::wrapping_mul_b::<C>(x, y)
+    }
+
+    pub fn wrapping_div_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
+        super::wrapping_div_b::<C>(x, y)
+    }
+
+    pub fn wrapping_mod_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
+        super::wrapping_mod_b::<C>(x, y)
+    }
+}
+
 #[cfg(all(
     test,
     feature = "alloy-enabled",

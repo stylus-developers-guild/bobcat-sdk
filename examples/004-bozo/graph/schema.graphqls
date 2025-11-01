@@ -6,6 +6,7 @@ type GameInfo {
 type Comment {
     wallet: String!
     content: String!
+    txHash: String!
 }
 
 type Player {

@@ -196,8 +196,6 @@ html {
 }
 
 /* Retro/Gaming font style for headers */
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
-
 body {
   font-family: 'Space Mono', monospace;
 }

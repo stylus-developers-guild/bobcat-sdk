@@ -1,5 +1,5 @@
 // Mock API for local development
-import { GameState, Deposit, Winners, RouteQuote, LeaderboardEntry, RoundWinner } from '../types';
+import { GameState, Winners, RouteQuote, LeaderboardEntry, RoundWinner } from '../types';
 
 import { config } from './config';
 
@@ -19,76 +19,6 @@ const mockGame: GameState = {
   chain: 'base',
   nextGameStartsAt: new Date(Date.now() + 300000).toISOString() // 5 minutes from now
 };
-
-const mockDeposits: Deposit[] = [
-  {
-    ts: new Date(Date.now() - 120000).toISOString(),
-    address: '0x1234567890123456789012345678901234567890',
-    fid: 12345,
-    handle: 'alice',
-    amountToken: '0.25',
-    amountUsd: 800.00,
-    potAfterUsd: 10450.00,
-    comment: 'RIP BOZO 🤡'
-  },
-  {
-    ts: new Date(Date.now() - 300000).toISOString(),
-    address: '0x9876543210987654321098765432109876543210',
-    fid: 987,
-    handle: 'bob',
-    amountToken: '0.50',
-    amountUsd: 1600.00,
-    potAfterUsd: 9650.00,
-    comment: 'not this time'
-  },
-  {
-    ts: new Date(Date.now() - 480000).toISOString(),
-    address: '0xaabbccddaabbccddaabbccddaabbccddaabbccdd',
-    fid: 456,
-    handle: 'carol',
-    amountToken: '0.15',
-    amountUsd: 480.00,
-    potAfterUsd: 8050.00,
-    comment: 'Third time\'s the charm'
-  },
-  {
-    ts: new Date(Date.now() - 720000).toISOString(),
-    address: '0x1111222233334444555566667777888899990000',
-    handle: 'dave',
-    amountToken: '1.00',
-    amountUsd: 3200.00,
-    potAfterUsd: 7570.00,
-    comment: 'lfg 🚀'
-  },
-  {
-    ts: new Date(Date.now() - 900000).toISOString(),
-    address: '0x0000999988887777666655554444333322221111',
-    fid: 789,
-    handle: 'eve',
-    amountToken: '0.35',
-    amountUsd: 1120.00,
-    potAfterUsd: 4370.00,
-    comment: 'All in on this one'
-  },
-  {
-    ts: new Date(Date.now() - 1200000).toISOString(),
-    address: '0xfedcba0987654321fedcba0987654321fedcba09',
-    fid: 321,
-    handle: 'frank',
-    amountToken: '0.25',
-    amountUsd: 800.00,
-    potAfterUsd: 3570.00
-  },
-  {
-    ts: new Date(Date.now() - 1500000).toISOString(),
-    address: '0x9876543210fedcba9876543210fedcba98765432',
-    handle: 'grace',
-    amountToken: '0.60',
-    amountUsd: 1920.00,
-    potAfterUsd: 2770.00,
-    comment: 'Bozo szn'
-  }
-];
 
 const mockRoundWinners: RoundWinner[] = [
   // Round 6 (most recent)
@@ -300,11 +230,6 @@ export const mockApi = {
         chainId: 8453
       }
     };
-  },
-
-  async getDeposits(): Promise<Deposit[]> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return mockDeposits;
   },
 
   async getRouteQuote(params: {

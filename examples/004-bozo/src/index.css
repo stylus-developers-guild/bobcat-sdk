@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap");
 /*! tailwindcss v4.1.3 | MIT License | https://tailwindcss.com */
 @layer properties {
   @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
@@ -2728,7 +2727,6 @@ body {
   }
 }
 
-@import url(https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap);
 /* virtual-fs:file:///styles/globals.css */
 @custom-variant dark (&:is(.dark *));
 :root {

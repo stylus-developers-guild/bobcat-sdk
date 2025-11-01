@@ -1,3 +1,7 @@
+// 004-bozo: A game of chicken played with deposit amounts. Every
+// hardcoded address is a contract deployed on Arbitrum One, the network
+// this contract lives on.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![no_main]
 
@@ -39,9 +43,9 @@ const SLOT_ADMIN: U = const_slot_off_curve(b"eip1967.proxy.admin");
 const SLOT_IMPL: U = const_slot_off_curve(b"eip1967.proxy.implementation");
 
 /// Operator that's able to trigger the reset cron.
-const ADDR_OPERATOR: [u8; 20] = address!(b"7FA9385bE102ac3EAc297483Dd6233D62b3e1496");
+const ADDR_OPERATOR: [u8; 20] = address!(b"6221a9c005f6e47eb398fd867784cacfdcfff4e7");
 
-/// Asset that assets are converted to, to be used in the game.
+/// Asset that assets are converted to, to be used in the game. This is USDC.
 const ADDR_ASSET: [u8; 20] = address!(b"af88d065e77c8cC2239327C5EDb3A432268e5831");
 
 /// Swap router that we use with Camelot to get the asset into the one we support here.
@@ -55,9 +59,11 @@ const EXTRA_TIME: U = U::from_u32(3600);
 
 // ~~~~~ View functions: ~~~~
 //
-const SEL_DEADLINE: [u8; 4] = const_keccak_sel(b"deadline()");
 const SEL_POOL_SIZE: [u8; 4] = const_keccak_sel(b"poolSize()");
 const SEL_POOL_ASSET: [u8; 4] = const_keccak_sel(b"poolAsset()");
+const SEL_LAST_BETTOR_AMOUNT: [u8; 4] = const_keccak_sel(b"lastBettorAmount()");
+const SEL_LAST_BETTOR_ADDRESS: [u8; 4] = const_keccak_sel(b"lastBettorAddress()");
+const SEL_DEADLINE: [u8; 4] = const_keccak_sel(b"deadline()");
 const SEL_PLAYER_COUNT: [u8; 4] = const_keccak_sel(b"playerCount()");
 const SEL_TICKET_COUNT: [u8; 4] = const_keccak_sel(b"ticketCount()");
 
@@ -81,6 +87,16 @@ fn view_pool_size() -> usize {
 
 fn view_pool_asset() -> usize {
     write_result_word(&U::from(ADDR_ASSET));
+    0
+}
+
+fn view_last_bettor_amount() -> usize {
+    write_result_word(&storage::last_bettor_amt::get(&storage::epoch::get()));
+    0
+}
+
+fn view_last_bettor_address() -> usize {
+    write_result_word(&storage::last_bettor_addr::get(&storage::epoch::get()));
     0
 }
 
@@ -328,6 +344,8 @@ pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
         SEL_DEADLINE => view_deadline(),
         SEL_POOL_SIZE => view_pool_size(),
         SEL_POOL_ASSET => view_pool_asset(),
+        SEL_LAST_BETTOR_AMOUNT => view_last_bettor_amount(),
+        SEL_LAST_BETTOR_ADDRESS => view_last_bettor_address(),
         SEL_PLAYER_COUNT => view_player_count(),
         SEL_TICKET_COUNT => view_ticket_count(),
         // Side effect generating functions:

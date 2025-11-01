@@ -7,3 +7,4 @@ src/.ipynb_checkpoints
 src/.hypothesis
 node_modules
 build
+bozo.out

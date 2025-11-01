@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { GameState, Deposit, Winners, RoundWinner } from '../types';
 import { mockApi } from '../lib/mock-api';
 import { formatAddress, formatTokenAmount, formatUsd, getTimeRemaining } from '../lib/utils';
-import { Loader2, Trophy, AlertTriangle, Settings, HelpCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, Settings, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
 import { useAccount, usePublicClient } from 'wagmi';
@@ -29,14 +29,16 @@ const DEPOSIT_LOOKBACK_BLOCKS = 200_000n;
 
 export function Game() {
   const navigate = useNavigate();
-  const [game, setGame] = useState<GameState | null>(null);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [loading, setLoading] = useState(true);
   const [bozoModalOpen, setBozoModalOpen] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
-  const [winners, setWinners] = useState<Winners | null>(null);
+  const [winners] = useState<Winners | null>(null);
   const [roundWinners, setRoundWinners] = useState<RoundWinner[]>([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [poolAssetAddress, setPoolAssetAddress] = useState<`0x${string}` | null>(null);
+  const [assetDecimals, setAssetDecimals] = useState<number>(18);
+  const [homeToken, setHomeToken] = useState<string>(DEFAULT_HOME_TOKEN);
 
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
@@ -47,17 +49,21 @@ export function Game() {
       const result = await mockApi.getGame();
       setGame(result);
 
-      if (result.status === 'Closed') {
-        const winnersData = await mockApi.getWinners();
-        setWinners(winnersData);
-      } else {
-        // Clear winners if game is active
-        setWinners(null);
+  const poolSizeUsd = useMemo(() => {
+    const numericAmount = parseFloat(poolSizeTokens);
+    if (Number.isFinite(numericAmount)) {
+      return numericAmount * HARD_CODED_TOKEN_PRICE_USD;
+    }
+    return 0;
+  }, [poolSizeTokens]);
+
+  const lastBettorAmountTokens = useMemo(() => {
+    if (typeof lastBettorAmountData === 'bigint') {
+      try {
+        return formatUnits(lastBettorAmountData, assetDecimals);
+      } catch (error) {
+        console.error('Failed to format last bettor amount:', error);
       }
-    } catch (error) {
-      console.error('Failed to load game:', error);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -258,7 +264,7 @@ export function Game() {
     return result;
   };
 
-  if (loading || !game) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[#FF4B4B]" />
@@ -267,7 +273,7 @@ export function Game() {
   }
 
   // Show end game screen if game is closed
-  if (game.status === 'Closed' && winners) {
+  if (isGameClosed && winners) {
     return (
       <div className="min-h-screen bg-background relative overflow-hidden">
         {/* Decorative elements */}
@@ -319,16 +325,14 @@ export function Game() {
 
         <EndGameScreen
           winners={winners}
-          nextGameStartsAt={game.nextGameStartsAt ? new Date(game.nextGameStartsAt) : new Date(Date.now() + 300000)}
-          homeToken={game.homeToken}
+          nextGameStartsAt={new Date(Date.now() + 300000)}
+          homeToken={homeToken}
         />
 
         <HowItWorksDialog open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
       </div>
     );
   }
-
-  const timeRemaining = getTimeRemaining(game.deadline);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -384,7 +388,7 @@ export function Game() {
       </header>
 
       {/* Game Status Alert */}
-      {game.status === 'Paused' && (
+      {isGamePaused && (
         <div className="container mx-auto px-4 mt-4 max-w-6xl">
           <Alert className="bg-[#FF4B4B]/10 border-[#FF4B4B]">
             <AlertTriangle className="h-4 w-4 text-[#FF4B4B]" />
@@ -405,9 +409,7 @@ export function Game() {
               <div className="w-2 h-2 rounded-full bg-[#2ED4B7] animate-pulse"></div>
               <span className="text-sm text-muted-foreground tracking-wider">LOTTERY POOL</span>
             </div>
-            <div className="font-mono text-6xl text-[#F6C445] tracking-tight">
-              {(game.potUsd / 1000).toFixed(1)}K ${game.homeToken}
-            </div>
+            <div className="font-mono text-6xl text-[#F6C445] tracking-tight">{displayPot}</div>
             <div className="text-sm text-muted-foreground mt-1">
               AWARDED ACROSS TEN RANDOM BOZOS
             </div>
@@ -421,16 +423,14 @@ export function Game() {
             }`}>
               {timeRemaining.formatted}
             </div>
-            <div className="text-sm text-muted-foreground mt-1">
-              UNTIL THE GAME ENDS AND THE LAST BOZO WINS
-            </div>
+            <div className="text-sm text-muted-foreground mt-1">UNTIL THE GAME STARTS</div>
           </div>
         </div>
 
         {/* BOZO Button */}
         <Button
           onClick={() => setBozoModalOpen(true)}
-          disabled={!isConnected || game.status !== 'Active'}
+          disabled={!isConnected || !isGameActive}
           className="w-full h-16 bg-[#F6C445] hover:bg-[#F6C445]/90 text-[#0E1020] text-xl tracking-widest mb-12"
         >
           {isConnected ? 'BOZO' : 'CONNECT TO BOZO'}
@@ -505,7 +505,7 @@ export function Game() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <div className="text-sm font-mono text-foreground">
-                          {formatTokenAmount(deposit.amountToken, 2)} ${game.homeToken}
+                          {formatTokenAmount(deposit.amountToken, 2)} ${homeToken}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {formatTime(deposit.ts)}
@@ -547,7 +547,7 @@ export function Game() {
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-mono text-foreground">
-                            {formatTokenAmount(winner.amountToken, 1)} ${game.homeToken}
+                            {formatTokenAmount(winner.amountToken, 1)} ${homeToken}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {formatTime(winner.ts)}
@@ -574,19 +574,17 @@ export function Game() {
 
         {/* Info Footer */}
         <div className="mt-8 text-center text-xs text-muted-foreground">
-          Min deposit: {formatUsd(game.minToResetUsd)} • 80% to winner • 20% to 10 random bozos
+          Min deposit: {formatUsd(minToResetUsd)} • Pool asset: {homeToken} ({poolAssetDisplay}) • 80% to winner • 20% to 10 random bozos
         </div>
       </div>
 
       {/* Bozo Modal */}
-      {game && (
-        <BozoModal
-          open={bozoModalOpen}
-          onOpenChange={setBozoModalOpen}
-          game={game}
-          isConnected={isConnected}
-        />
-      )}
+      <BozoModal
+        open={bozoModalOpen}
+        onOpenChange={setBozoModalOpen}
+        game={game}
+        isConnected={isConnected}
+      />
 
       <HowItWorksDialog open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
     </div>

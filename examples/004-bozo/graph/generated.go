@@ -49,6 +49,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Comment struct {
 		Content func(childComplexity int) int
+		TxHash  func(childComplexity int) int
 		Wallet  func(childComplexity int) int
 	}
 
@@ -106,6 +107,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Comment.Content(childComplexity), true
+	case "Comment.txHash":
+		if e.complexity.Comment.TxHash == nil {
+			break
+		}
+
+		return e.complexity.Comment.TxHash(childComplexity), true
 	case "Comment.wallet":
 		if e.complexity.Comment.Wallet == nil {
 			break
@@ -434,6 +441,35 @@ func (ec *executionContext) fieldContext_Comment_content(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Comment_txHash(ctx context.Context, field graphql.CollectedField, obj *model.Comment) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Comment_txHash,
+		func(ctx context.Context) (any, error) {
+			return obj.TxHash, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Comment_txHash(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Comment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _GameInfo_asset(ctx context.Context, field graphql.CollectedField, obj *model.GameInfo) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -623,6 +659,8 @@ func (ec *executionContext) fieldContext_Query_comments(_ context.Context, field
 				return ec.fieldContext_Comment_wallet(ctx, field)
 			case "content":
 				return ec.fieldContext_Comment_content(ctx, field)
+			case "txHash":
+				return ec.fieldContext_Comment_txHash(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Comment", field.Name)
 		},
@@ -2245,6 +2283,11 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "content":
 			out.Values[i] = ec._Comment_content(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "txHash":
+			out.Values[i] = ec._Comment_txHash(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

@@ -2,6 +2,8 @@
 pragma solidity 0.8.20;
 
 interface IBozo {
+    event DepositMade(address indexed recipient, uint256 indexed amount, uint256 indexed currentPool);
+
     function play(
         address asset,
         uint256 camelotMinAssetOut,

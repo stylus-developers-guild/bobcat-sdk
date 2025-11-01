@@ -29,12 +29,13 @@ export interface Deposit {
   amountToken: string;
   amountUsd: number;
   potAfterUsd: number;
-  comment?: string;
+  txHash: string;
 }
 
 export interface BozoComment {
   wallet: string;
   content: string;
+  txHash: string;
 }
 
 export interface RouteQuote {

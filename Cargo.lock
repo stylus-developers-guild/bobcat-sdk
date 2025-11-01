@@ -445,6 +445,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bobcat-events"
+version = "0.1.0"
+dependencies = [
+ "array-concat",
+ "bobcat-maths",
+]
+
+[[package]]
 name = "bobcat-interfaces"
 version = "0.6.3"
 dependencies = [

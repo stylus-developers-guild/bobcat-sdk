@@ -7,7 +7,7 @@ type CommentsContextValue = {
   loading: boolean;
   error: Error | null;
   refresh: () => Promise<BozoComment[]>;
-  getCommentForWallet: (wallet?: string | null) => string | undefined;
+  getCommentForTxHash: (txHash?: string | null) => string | undefined;
 };
 
 const CommentsContext = createContext<CommentsContextValue | undefined>(undefined);
@@ -17,6 +17,7 @@ const COMMENTS_QUERY = `
     comments {
       wallet
       content
+      txHash
     }
   }
 `;
@@ -49,11 +50,15 @@ async function performFetch(signal?: AbortSignal): Promise<BozoComment[]> {
 
   return commentData
     .filter((entry: any): entry is BozoComment =>
-      entry && typeof entry.wallet === 'string' && typeof entry.content === 'string'
+      entry &&
+      typeof entry.wallet === 'string' &&
+      typeof entry.content === 'string' &&
+      typeof entry.txHash === 'string'
     )
     .map((entry) => ({
       wallet: entry.wallet,
       content: entry.content,
+      txHash: entry.txHash,
     }));
 }
 
@@ -104,27 +109,27 @@ export function CommentsProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const commentsByWallet = useMemo(() => {
+  const commentsByTxHash = useMemo(() => {
     const map = new Map<string, string>();
     for (const comment of comments) {
-      map.set(comment.wallet.toLowerCase(), comment.content);
+      map.set(comment.txHash.toLowerCase(), comment.content);
     }
     return map;
   }, [comments]);
 
-  const getCommentForWallet = useCallback(
-    (wallet?: string | null) => {
-      if (!wallet) {
+  const getCommentForTxHash = useCallback(
+    (txHash?: string | null) => {
+      if (!txHash) {
         return undefined;
       }
-      return commentsByWallet.get(wallet.toLowerCase());
+      return commentsByTxHash.get(txHash.toLowerCase());
     },
-    [commentsByWallet]
+    [commentsByTxHash]
   );
 
   const value = useMemo<CommentsContextValue>(
-    () => ({ comments, loading, error, refresh, getCommentForWallet }),
-    [comments, loading, error, refresh, getCommentForWallet]
+    () => ({ comments, loading, error, refresh, getCommentForTxHash }),
+    [comments, loading, error, refresh, getCommentForTxHash]
   );
 
   return <CommentsContext.Provider value={value}>{children}</CommentsContext.Provider>;

@@ -145,7 +145,9 @@ export function BozoModal({ open, onOpenChange, game, isConnected }: BozoModalPr
     );
   }
 
-  const tokenEquiv = amountUsd ? (parseFloat(amountUsd) / (game.potUsd / parseFloat(game.potTokenAmount))).toFixed(4) : '0.0000';
+  const tokenEquiv = amountUsd && game.potUsd > 0 && parseFloat(game.potTokenAmount) > 0
+    ? (parseFloat(amountUsd) / (game.potUsd / parseFloat(game.potTokenAmount))).toFixed(4)
+    : '0.0000';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

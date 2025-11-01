@@ -23,7 +23,9 @@ func (r *queryResolver) GameInfo(ctx context.Context) (*model.GameInfo, error) {
 
 // Comments is the resolver for the comments field.
 func (r *queryResolver) Comments(ctx context.Context) ([]*model.Comment, error) {
-	panic(fmt.Errorf("not implemented: Comments - comments"))
+	return []*model.Comment{
+		{"Hello", "world", "0x8b62653ba29d21922e140f9df6747eea6f2e6cf8facba3e96469d4931269b57f"},
+	}, nil
 }
 
 // Players is the resolver for the players field.

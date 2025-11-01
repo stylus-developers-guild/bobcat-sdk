@@ -3,20 +3,21 @@
 package model
 
 type Comment struct {
-	Wallet  string `json:"wallet"`
-	Content string `json:"content"`
+        Wallet  string `json:"wallet"`
+        Content string `json:"content"`
+        TxHash  string `json:"txHash"`
 }
 
 type GameInfo struct {
-	Asset string `json:"asset"`
+        Asset string `json:"asset"`
 }
 
 type Mutation struct {
 }
 
 type Player struct {
-	Wallet          string `json:"wallet"`
-	AmountDeposited string `json:"amountDeposited"`
+        Wallet          string `json:"wallet"`
+        AmountDeposited string `json:"amountDeposited"`
 }
 
 type Query struct {

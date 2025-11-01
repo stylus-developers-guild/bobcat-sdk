@@ -11,7 +11,7 @@ members = [
 	"bobcat-interfaces",
 	"bobcat-call",
 	"bobcat-console"
-]
+, "bobcat-events"]
 exclude = ["fuzz"]
 
 [workspace.dependencies]

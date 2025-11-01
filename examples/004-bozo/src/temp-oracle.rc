@@ -1,0 +1,18 @@
+#!/usr/bin/env -S rc -e
+
+# Until we're able to shift to using Chainlink (I don't understand their
+# VRF product now), we'll use this approach to resolve the markets.
+
+for(n in BOZO_PRIVATE_KEY BOZO_ENDPOINT BOZO_ADDR) if(~ $$n '') exit 2
+
+fn rand_word {
+	dd if=/dev/urandom bs=1 count=32 status=none | xxd -p -c32
+}
+
+cast send \
+	--private-key $BOZO_PRIVATE_KEY \
+	--rpc-url $BOZO_ENDPOINT \
+	$BOZO_ADDR \
+	'distributeRewards(address,uint256)' \
+	0x0000000000000000000000000000000000000000 \
+	`{rand_word}

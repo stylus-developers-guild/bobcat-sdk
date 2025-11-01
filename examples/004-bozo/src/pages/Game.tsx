@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -14,10 +14,18 @@ import { formatAddress, formatTokenAmount, formatUsd, getTimeRemaining } from '.
 import { Loader2, Trophy, AlertTriangle, Settings, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
-import { useAccount } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
+import { parseAbi, formatEther } from 'viem';
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useComments } from '../providers/CommentsProvider';
+import { config } from '../lib/config';
+
+const depositEventAbi = parseAbi([
+  'event DepositMade(address indexed recipient, uint256 indexed amount, uint256 indexed currentPool)'
+]);
+
+const DEPOSIT_LOOKBACK_BLOCKS = 200_000n;
 
 export function Game() {
   const navigate = useNavigate();
@@ -31,31 +39,10 @@ export function Game() {
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   const { address, isConnected } = useAccount();
-  const { getCommentForWallet, refresh: refreshComments } = useComments();
+  const publicClient = usePublicClient();
+  const { getCommentForTxHash, refresh: refreshComments } = useComments();
 
-  useEffect(() => {
-    loadGame();
-    loadDeposits();
-    loadRoundWinners();
-
-    // Poll for updates every 5 seconds
-    const interval = setInterval(() => {
-      loadGame();
-      loadDeposits();
-    }, 5000);
-
-    // Update timer every second
-    const timerInterval = setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(timerInterval);
-    };
-  }, []);
-
-  const loadGame = async () => {
+  const loadGame = useCallback(async () => {
     try {
       const result = await mockApi.getGame();
       setGame(result);
@@ -72,29 +59,144 @@ export function Game() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadDeposits = async () => {
-    try {
-      await refreshComments().catch((err) => {
-        console.error('Failed to refresh comments:', err);
-      });
-
-      const result = await mockApi.getDeposits();
-      setDeposits(result);
-    } catch (error) {
-      console.error('Failed to load deposits:', error);
+  const loadDeposits = useCallback(() => {
+    if (!publicClient) {
+      return;
     }
-  };
 
-  const loadRoundWinners = async () => {
+    const run = async () => {
+      try {
+        try {
+          await refreshComments();
+        } catch (err) {
+          console.error('Failed to refresh comments:', err);
+        }
+
+        const latestBlock = await publicClient.getBlockNumber();
+        const fromBlock =
+          latestBlock > DEPOSIT_LOOKBACK_BLOCKS ? latestBlock - DEPOSIT_LOOKBACK_BLOCKS : 0n;
+
+        const events = await publicClient.getContractEvents({
+          address: config.contracts.bozo as `0x${string}`,
+          abi: depositEventAbi,
+          eventName: 'DepositMade',
+          fromBlock,
+          toBlock: latestBlock,
+        });
+
+        const recentEvents = events.slice(-100);
+        const blockNumbers = Array.from(
+          new Set(
+            recentEvents
+              .map((event) => event.blockNumber)
+              .filter((blockNumber): blockNumber is bigint => typeof blockNumber === 'bigint')
+          )
+        );
+
+        if (blockNumbers.length === 0) {
+          setDeposits([]);
+          return;
+        }
+
+        const blocks = await Promise.all(
+          blockNumbers.map((blockNumber) => publicClient.getBlock({ blockNumber }))
+        );
+
+        const blockTimestamps = new Map<bigint, string>();
+        blocks.forEach((block, index) => {
+          const timestamp = Number(block.timestamp) * 1000;
+          blockTimestamps.set(blockNumbers[index], new Date(timestamp).toISOString());
+        });
+
+        const depositsFromEvents = [...recentEvents]
+          .reverse()
+          .map((event) => {
+            if (!event.transactionHash || !event.blockNumber) {
+              return null;
+            }
+
+            const recipient = event.args?.recipient as string | undefined;
+            const amountRaw = event.args?.amount;
+            const poolRaw = event.args?.currentPool;
+            if (!recipient) {
+              return null;
+            }
+
+            const timestampIso = blockTimestamps.get(event.blockNumber);
+            if (!timestampIso) {
+              return null;
+            }
+
+            const amount = typeof amountRaw === 'bigint' ? amountRaw : 0n;
+            const pool = typeof poolRaw === 'bigint' ? poolRaw : 0n;
+
+            const amountToken = formatEther(amount);
+            const potAfterToken = formatEther(pool);
+
+            return {
+              ts: timestampIso,
+              address: recipient,
+              amountToken,
+              amountUsd: parseFloat(amountToken),
+              potAfterUsd: parseFloat(potAfterToken),
+              txHash: event.transactionHash,
+            } satisfies Deposit;
+          })
+          .filter((deposit): deposit is Deposit => deposit !== null);
+
+        setDeposits(depositsFromEvents);
+      } catch (error) {
+        console.error('Failed to load deposits:', error);
+      }
+    };
+
+    void run();
+  }, [publicClient, refreshComments]);
+
+  const loadRoundWinners = useCallback(async () => {
     try {
       const result = await mockApi.getRoundWinners();
       setRoundWinners(result);
     } catch (error) {
       console.error('Failed to load round winners:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadGame();
+    loadRoundWinners();
+
+    const gameInterval = setInterval(() => {
+      loadGame();
+    }, 5000);
+
+    const timerInterval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => {
+      clearInterval(gameInterval);
+      clearInterval(timerInterval);
+    };
+  }, [loadGame, loadRoundWinners]);
+
+  useEffect(() => {
+    if (!publicClient) {
+      return;
+    }
+
+    loadDeposits();
+
+    const interval = setInterval(() => {
+      loadDeposits();
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [publicClient, loadDeposits]);
 
   const handleShare = async () => {
     const text = 'RIP BOZO 🤡';
@@ -363,58 +465,58 @@ export function Game() {
               </div>
             </div>
 
-            <TabsContent value="latest" className="mt-0">
-              <div className="divide-y divide-border/30">
-                {deposits.slice(0, 10).map((deposit, index) => {
-                  const commentText = deposit.comment ?? getCommentForWallet(deposit.address);
-                  return (
-                  <div
-                    key={`${deposit.address}-${deposit.ts}-${index}`}
-                    className="px-6 py-4 hover:bg-[#252840]/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="text-sm font-mono text-muted-foreground w-6 mt-1">
-                          #{deposits.length - index}
-                        </div>
-                        <Avatar className="w-8 h-8 mt-1">
-                          <AvatarFallback className="bg-[#FF4B4B] text-[#FFF2E1] text-xs">
-                            {deposit.handle?.[0]?.toUpperCase() || deposit.address.slice(2, 4).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="text-sm text-foreground font-mono">
-                              {deposit.handle || formatAddress(deposit.address)}
+              <TabsContent value="latest" className="mt-0">
+                <div className="divide-y divide-border/30">
+                  {deposits.slice(0, 10).map((deposit, index) => {
+                    const commentText = getCommentForTxHash(deposit.txHash);
+                    return (
+                      <div
+                        key={deposit.txHash}
+                        className="px-6 py-4 hover:bg-[#252840]/50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className="text-sm font-mono text-muted-foreground w-6 mt-1">
+                              #{deposits.length - index}
                             </div>
-                            {index === 0 && (
-                              <div className="flex items-center gap-1">
-                                <div className="w-2 h-2 rounded-full bg-[#2ED4B7]"></div>
-                                <span className="text-xs text-[#2ED4B7] tracking-wider">LEADER</span>
+                            <Avatar className="w-8 h-8 mt-1">
+                              <AvatarFallback className="bg-[#FF4B4B] text-[#FFF2E1] text-xs">
+                                {deposit.handle?.[0]?.toUpperCase() || deposit.address.slice(2, 4).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="text-sm text-foreground font-mono">
+                                  {deposit.handle || formatAddress(deposit.address)}
+                                </div>
+                                {index === 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-2 h-2 rounded-full bg-[#2ED4B7]"></div>
+                                    <span className="text-xs text-[#2ED4B7] tracking-wider">LEADER</span>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                          {commentText && (
-                            <div className="text-sm text-foreground/90 bg-[#252840]/80 rounded px-3 py-2 mb-2 mt-2">
-                              &quot;{commentText}&quot;
+                              {commentText && (
+                                <div className="text-sm text-foreground/90 bg-[#252840]/80 rounded px-3 py-2 mb-2 mt-2">
+                                  &quot;{commentText}&quot;
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-sm font-mono text-foreground">
+                              {formatTokenAmount(deposit.amountToken, 2)} ${game.homeToken}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatTime(deposit.ts)}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-sm font-mono text-foreground">
-                          {formatTokenAmount(deposit.amountToken, 2)} ${game.homeToken}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatTime(deposit.ts)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            </TabsContent>
+                    );
+                  })}
+                </div>
+              </TabsContent>
 
             <TabsContent value="winners" className="mt-0">
               {roundWinners.length > 0 ? (

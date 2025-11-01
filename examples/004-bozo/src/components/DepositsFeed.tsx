@@ -11,7 +11,7 @@ interface DepositsFeedProps {
 }
 
 export function DepositsFeed({ deposits, homeToken }: DepositsFeedProps) {
-  const { getCommentForWallet } = useComments();
+  const { getCommentForTxHash } = useComments();
 
   const formatTime = (ts: string) => {
     const date = new Date(ts);
@@ -36,11 +36,11 @@ export function DepositsFeed({ deposits, homeToken }: DepositsFeedProps) {
       <CardContent>
         <ScrollArea className="h-[600px] pr-4">
           <div className="space-y-3">
-            {deposits.map((deposit, index) => {
-              const commentText = deposit.comment ?? getCommentForWallet(deposit.address);
+            {deposits.map((deposit) => {
+              const commentText = getCommentForTxHash(deposit.txHash);
               return (
                 <div
-                  key={`${deposit.address}-${deposit.ts}-${index}`}
+                  key={deposit.txHash}
                   className="flex items-start gap-3 p-4 rounded-lg bg-[#252840] hover:bg-[#252840]/80 transition-colors"
                 >
                   <Avatar className="w-10 h-10 mt-1">

@@ -36,6 +36,10 @@ export const config = {
     ethereum: 'https://eth.llamarpc.com',
     polygon: 'https://polygon-rpc.com'
   },
+
+  contracts: {
+    bozo: (env.VITE_BOZO_CONTRACT as `0x${string}`) || '0x6221a9c005f6e47eb398fd867784cacfdcfff4e7',
+  },
   
   // Testing flags
   testEndGameScreen: false // Set to true to preview the end game screen

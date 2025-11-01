@@ -20,7 +20,7 @@ import { arbitrum } from 'wagmi/chains';
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useComments } from '../providers/CommentsProvider';
-import { formatUnits, formatEther } from 'viem';
+import { formatUnits } from 'viem';
 import { DEPOSIT_LOOKBACK_BLOCKS, depositEventAbi } from '../lib/depositEvents';
 
 const BOZO_CONTRACT_ADDRESS = '0x3421264e413489b1e69ae84ace8c33c6cb7809ff' as const;
@@ -30,6 +30,20 @@ const HARD_CODED_MIN_RESET_USD = 100;
 const DEFAULT_HOME_TOKEN = 'ETH';
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
 const MIN_RESET_PREMIUM_MULTIPLIER = 1.05;
+const STABLECOIN_SYMBOLS = new Set([
+  'USDC',
+  'USDCE',
+  'USDBC',
+  'USDT',
+  'USDTE',
+  'DAI',
+  'FRAX',
+  'USDS',
+  'USDL',
+]);
+
+const normalizeTokenSymbol = (symbol: string) =>
+  symbol.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 const bozoAbi = [
   {
@@ -204,21 +218,25 @@ export function Game() {
     return '0';
   }, [assetDecimals, poolSizeData]);
 
-  const poolSizeUsd = useMemo(() => {
+  const poolSizeTokensNumber = useMemo(() => {
     const numericAmount = parseFloat(poolSizeTokens);
-    if (Number.isFinite(numericAmount)) {
-      return numericAmount * HARD_CODED_TOKEN_PRICE_USD;
-    }
-    return 0;
+    return Number.isFinite(numericAmount) ? numericAmount : 0;
   }, [poolSizeTokens]);
 
   const tokenPriceUsd = useMemo(() => {
-    const tokens = parseFloat(poolSizeTokens);
-    if (Number.isFinite(tokens) && tokens > 0 && poolSizeUsd > 0) {
-      return poolSizeUsd / tokens;
+    const normalizedSymbol = normalizeTokenSymbol(homeToken);
+    if (STABLECOIN_SYMBOLS.has(normalizedSymbol)) {
+      return 1;
     }
     return HARD_CODED_TOKEN_PRICE_USD;
-  }, [poolSizeTokens, poolSizeUsd]);
+  }, [homeToken]);
+
+  const poolSizeUsd = useMemo(() => {
+    if (poolSizeTokensNumber > 0 && tokenPriceUsd > 0) {
+      return poolSizeTokensNumber * tokenPriceUsd;
+    }
+    return 0;
+  }, [poolSizeTokensNumber, tokenPriceUsd]);
 
   const lastBettorAmountTokens = useMemo(() => {
     if (typeof lastBettorAmountData === 'bigint') {
@@ -233,11 +251,11 @@ export function Game() {
 
   const lastBettorAmountUsd = useMemo(() => {
     const numericAmount = parseFloat(lastBettorAmountTokens);
-    if (Number.isFinite(numericAmount)) {
-      return numericAmount * HARD_CODED_TOKEN_PRICE_USD;
+    if (Number.isFinite(numericAmount) && tokenPriceUsd > 0) {
+      return numericAmount * tokenPriceUsd;
     }
     return 0;
-  }, [lastBettorAmountTokens]);
+  }, [lastBettorAmountTokens, tokenPriceUsd]);
 
   const minToResetUsd = useMemo(() => {
     if (lastBettorAmountUsd > 0) {
@@ -270,15 +288,17 @@ export function Game() {
   }, [deadlineData, fallbackDeadline]);
 
   const displayPot = useMemo(() => {
-    if (poolSizeUsd > 0) {
-      return `${(poolSizeUsd / 1000).toFixed(1)}K ${homeToken}`;
+    if (poolSizeTokensNumber >= 1000) {
+      return `${(poolSizeTokensNumber / 1000).toFixed(1)}K ${homeToken}`;
     }
-    const numericAmount = parseFloat(poolSizeTokens);
-    if (Number.isFinite(numericAmount)) {
-      return `${numericAmount.toFixed(2)} ${homeToken}`;
+    if (poolSizeTokensNumber >= 1) {
+      return `${poolSizeTokensNumber.toFixed(2)} ${homeToken}`;
+    }
+    if (poolSizeTokensNumber > 0) {
+      return `${poolSizeTokensNumber.toFixed(4)} ${homeToken}`;
     }
     return `0 ${homeToken}`;
-  }, [homeToken, poolSizeTokens, poolSizeUsd]);
+  }, [homeToken, poolSizeTokensNumber]);
 
   const timeRemaining = useMemo(() => getTimeRemaining(deadlineIso), [deadlineIso, currentTime]);
   const gameStatus: GameState['status'] = 'Active';
@@ -378,15 +398,40 @@ export function Game() {
             const amount = typeof amountRaw === 'bigint' ? amountRaw : 0n;
             const pool = typeof poolRaw === 'bigint' ? poolRaw : 0n;
 
-            const amountToken = formatEther(amount);
-            const potAfterToken = formatEther(pool);
+            let amountToken = '0';
+            let potAfterToken = '0';
+
+            try {
+              amountToken = formatUnits(amount, assetDecimals);
+            } catch (error) {
+              console.error('Failed to format deposit amount:', error);
+            }
+
+            try {
+              potAfterToken = formatUnits(pool, assetDecimals);
+            } catch (error) {
+              console.error('Failed to format pool amount:', error);
+            }
+
+            const amountTokenNumber = parseFloat(amountToken);
+            const potAfterTokenNumber = parseFloat(potAfterToken);
+
+            const amountUsd =
+              Number.isFinite(amountTokenNumber) && tokenPriceUsd > 0
+                ? amountTokenNumber * tokenPriceUsd
+                : 0;
+
+            const potAfterUsd =
+              Number.isFinite(potAfterTokenNumber) && tokenPriceUsd > 0
+                ? potAfterTokenNumber * tokenPriceUsd
+                : 0;
 
             return {
               ts: timestampIso,
               address: recipient,
               amountToken,
-              amountUsd: parseFloat(amountToken),
-              potAfterUsd: parseFloat(potAfterToken),
+              amountUsd,
+              potAfterUsd,
               txHash: event.transactionHash,
             } satisfies Deposit;
           })
@@ -401,7 +446,7 @@ export function Game() {
         }
       }
     },
-    [publicClient, refreshComments]
+    [assetDecimals, publicClient, refreshComments, tokenPriceUsd]
   );
 
   const loadRoundWinners = useCallback(async () => {

@@ -21,6 +21,7 @@ bobcat-cd = { version = "0.6.3", path = "../bobcat-cd" }
 bobcat-interfaces = { version = "0.6.3", path = "../bobcat-interfaces" }
 bobcat-call = { version = "0.6.3", path = "../bobcat-call" }
 bobcat-console = { version = "0.6.3", path = "../bobcat-console", optional = true }
+bobcat-events = { version = "0.6.3", path = "../bobcat-events" }
 
 [features]
 std = [
@@ -37,7 +38,8 @@ alloc = [
 	"bobcat-maths/alloc",
 	"bobcat-call/alloc",
 	"bobcat-console",
-	"bobcat-panic/alloc"
+	"bobcat-panic/alloc",
+	"bobcat-events/alloc"
 ]
 console = ["bobcat-panic/console"]
 arbitrary-enabled = ["bobcat-maths/arbitrary-enabled"]

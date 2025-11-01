@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -11,148 +11,387 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { GameState, Deposit, Winners, RoundWinner } from '../types';
 import { mockApi } from '../lib/mock-api';
 import { formatAddress, formatTokenAmount, formatUsd, getTimeRemaining } from '../lib/utils';
-import { Loader2, Trophy, AlertTriangle, Settings, HelpCircle } from 'lucide-react';
+import { Loader2, AlertTriangle, Settings, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 
-import { useAccount, usePublicClient } from 'wagmi';
-import { parseAbi, formatEther } from 'viem';
+import { useAccount, useReadContract } from 'wagmi';
+import { arbitrum } from 'wagmi/chains';
 
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useComments } from '../providers/CommentsProvider';
-import { config } from '../lib/config';
+import { formatUnits } from 'viem';
 
-const depositEventAbi = parseAbi([
-  'event DepositMade(address indexed recipient, uint256 indexed amount, uint256 indexed currentPool)'
-]);
+const BOZO_CONTRACT_ADDRESS = '0x6221a9c005f6e47eb398fd867784cacfdcfff4e7' as const;
+const GAME_START_DELAY_MINUTES = 45;
+const HARD_CODED_TOKEN_PRICE_USD = 3200;
+const HARD_CODED_MIN_RESET_USD = 100;
+const DEFAULT_HOME_TOKEN = 'ETH';
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const;
+const MIN_RESET_PREMIUM_MULTIPLIER = 1.05;
 
-const DEPOSIT_LOOKBACK_BLOCKS = 200_000n;
+const bozoAbi = [
+  {
+    type: 'function',
+    name: 'poolSize',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+  {
+    type: 'function',
+    name: 'poolAsset',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'address' }],
+  },
+  {
+    type: 'function',
+    name: 'lastBettorAmount',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+  {
+    type: 'function',
+    name: 'lastBettorAddress',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+  {
+    type: 'function',
+    name: 'deadline',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+] as const;
+
+const erc20Abi = [
+  {
+    type: 'function',
+    name: 'symbol',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'string' }],
+  },
+  {
+    type: 'function',
+    name: 'decimals',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint8' }],
+  },
+] as const;
 
 export function Game() {
   const navigate = useNavigate();
-  const [game, setGame] = useState<GameState | null>(null);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [loading, setLoading] = useState(true);
   const [bozoModalOpen, setBozoModalOpen] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
-  const [winners, setWinners] = useState<Winners | null>(null);
+  const [winners] = useState<Winners | null>(null);
   const [roundWinners, setRoundWinners] = useState<RoundWinner[]>([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [poolAssetAddress, setPoolAssetAddress] = useState<`0x${string}` | null>(null);
+  const [assetDecimals, setAssetDecimals] = useState<number>(18);
+  const [homeToken, setHomeToken] = useState<string>(DEFAULT_HOME_TOKEN);
 
-  const { address, isConnected } = useAccount();
-  const publicClient = usePublicClient();
-  const { getCommentForTxHash, refresh: refreshComments } = useComments();
+  const { isConnected } = useAccount();
+  const { getCommentForWallet, refresh: refreshComments } = useComments();
 
-  const loadGame = useCallback(async () => {
-    try {
-      const result = await mockApi.getGame();
-      setGame(result);
+  const fallbackDeadline = useMemo(
+    () => new Date(Date.now() + GAME_START_DELAY_MINUTES * 60 * 1000).toISOString(),
+    []
+  );
 
-      if (result.status === 'Closed') {
-        const winnersData = await mockApi.getWinners();
-        setWinners(winnersData);
-      } else {
-        // Clear winners if game is active
-        setWinners(null);
+  const { data: poolSizeData } = useReadContract({
+    address: BOZO_CONTRACT_ADDRESS,
+    abi: bozoAbi,
+    functionName: 'poolSize',
+    chainId: arbitrum.id,
+    query: {
+      refetchInterval: 15000,
+    },
+  });
+
+  const { data: poolAssetData } = useReadContract({
+    address: BOZO_CONTRACT_ADDRESS,
+    abi: bozoAbi,
+    functionName: 'poolAsset',
+    chainId: arbitrum.id,
+  });
+
+  const { data: lastBettorAmountData } = useReadContract({
+    address: BOZO_CONTRACT_ADDRESS,
+    abi: bozoAbi,
+    functionName: 'lastBettorAmount',
+    chainId: arbitrum.id,
+    query: {
+      refetchInterval: 15000,
+    },
+  });
+
+  const { data: lastBettorAddressData } = useReadContract({
+    address: BOZO_CONTRACT_ADDRESS,
+    abi: bozoAbi,
+    functionName: 'lastBettorAddress',
+    chainId: arbitrum.id,
+    query: {
+      refetchInterval: 15000,
+    },
+  });
+
+  const { data: deadlineData } = useReadContract({
+    address: BOZO_CONTRACT_ADDRESS,
+    abi: bozoAbi,
+    functionName: 'deadline',
+    chainId: arbitrum.id,
+    query: {
+      refetchInterval: 15000,
+    },
+  });
+
+  const { data: assetSymbolData } = useReadContract({
+    address: poolAssetAddress ?? ZERO_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'symbol',
+    chainId: arbitrum.id,
+    query: {
+      enabled: Boolean(poolAssetAddress),
+    },
+  });
+
+  const { data: assetDecimalsData } = useReadContract({
+    address: poolAssetAddress ?? ZERO_ADDRESS,
+    abi: erc20Abi,
+    functionName: 'decimals',
+    chainId: arbitrum.id,
+    query: {
+      enabled: Boolean(poolAssetAddress),
+    },
+  });
+
+  useEffect(() => {
+    if (typeof poolAssetData === 'string') {
+      setPoolAssetAddress(poolAssetData as `0x${string}`);
+    }
+  }, [poolAssetData]);
+
+  useEffect(() => {
+    if (typeof assetSymbolData === 'string' && assetSymbolData.length > 0) {
+      setHomeToken(assetSymbolData);
+    }
+  }, [assetSymbolData]);
+
+  useEffect(() => {
+    if (typeof assetDecimalsData === 'number') {
+      setAssetDecimals(assetDecimalsData);
+    }
+  }, [assetDecimalsData]);
+
+  useEffect(() => {
+    loadDeposits();
+    loadRoundWinners();
+
+    // Poll for updates every 5 seconds
+    const interval = setInterval(() => {
+      loadDeposits();
+    }, 5000);
+
+    // Update timer every second
+    const timerInterval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(timerInterval);
+    };
+  }, []);
+
+  const poolSizeTokens = useMemo(() => {
+    if (typeof poolSizeData === 'bigint') {
+      try {
+        return formatUnits(poolSizeData, assetDecimals);
+      } catch (error) {
+        console.error('Failed to format pool size:', error);
       }
+    }
+    return '0';
+  }, [assetDecimals, poolSizeData]);
+
+  const poolSizeUsd = useMemo(() => {
+    const numericAmount = parseFloat(poolSizeTokens);
+    if (Number.isFinite(numericAmount)) {
+      return numericAmount * HARD_CODED_TOKEN_PRICE_USD;
+    }
+    return 0;
+  }, [poolSizeTokens]);
+
+  const lastBettorAmountTokens = useMemo(() => {
+    if (typeof lastBettorAmountData === 'bigint') {
+      try {
+        return formatUnits(lastBettorAmountData, assetDecimals);
+      } catch (error) {
+        console.error('Failed to format last bettor amount:', error);
+      }
+    }
+    return '0';
+  }, [assetDecimals, lastBettorAmountData]);
+
+  const lastBettorAmountUsd = useMemo(() => {
+    const numericAmount = parseFloat(lastBettorAmountTokens);
+    if (Number.isFinite(numericAmount)) {
+      return numericAmount * HARD_CODED_TOKEN_PRICE_USD;
+    }
+    return 0;
+  }, [lastBettorAmountTokens]);
+
+  const minToResetUsd = useMemo(() => {
+    if (lastBettorAmountUsd > 0) {
+      return lastBettorAmountUsd * MIN_RESET_PREMIUM_MULTIPLIER;
+    }
+    return HARD_CODED_MIN_RESET_USD;
+  }, [lastBettorAmountUsd]);
+
+  const lastBettorAddress = useMemo(() => {
+    if (typeof lastBettorAddressData === 'string' && lastBettorAddressData.length > 0) {
+      return lastBettorAddressData as `0x${string}`;
+    }
+
+    if (typeof lastBettorAddressData === 'bigint') {
+      const hex = lastBettorAddressData.toString(16).padStart(40, '0');
+      return `0x${hex.slice(-40)}` as `0x${string}`;
+    }
+
+    return ZERO_ADDRESS;
+  }, [lastBettorAddressData]);
+
+  const deadlineIso = useMemo(() => {
+    if (typeof deadlineData === 'bigint') {
+      const deadlineMs = Number(deadlineData) * 1000;
+      if (Number.isFinite(deadlineMs) && deadlineMs > 0) {
+        return new Date(deadlineMs).toISOString();
+      }
+    }
+    return fallbackDeadline;
+  }, [deadlineData, fallbackDeadline]);
+
+  const displayPot = useMemo(() => {
+    if (poolSizeUsd > 0) {
+      return `${(poolSizeUsd / 1000).toFixed(1)}K ${homeToken}`;
+    }
+    const numericAmount = parseFloat(poolSizeTokens);
+    if (Number.isFinite(numericAmount)) {
+      return `${numericAmount.toFixed(2)} ${homeToken}`;
+    }
+    return `0 ${homeToken}`;
+  }, [homeToken, poolSizeTokens, poolSizeUsd]);
+
+  const timeRemaining = useMemo(() => getTimeRemaining(deadlineIso), [deadlineIso, currentTime]);
+  const gameStatus: GameState['status'] = 'Active';
+  const isGameClosed = gameStatus === 'Closed';
+  const isGameActive = gameStatus === 'Active';
+  const isGamePaused = false;
+  const poolAssetDisplay = poolAssetAddress ? formatAddress(poolAssetAddress) : 'Unknown';
+
+  const game: GameState = useMemo(
+    () => ({
+      potTokenAmount: poolSizeTokens,
+      potUsd: poolSizeUsd,
+      minPct: 0.01,
+      minToResetUsd,
+      deadline: deadlineIso,
+      lastDepositor: {
+        address: lastBettorAddress,
+      },
+      status: gameStatus,
+      homeToken,
+      chain: 'arbitrum',
+      nextGameStartsAt: undefined,
+    }),
+    [deadlineIso, homeToken, minToResetUsd, poolSizeTokens, poolSizeUsd, gameStatus, lastBettorAddress]
+  );
+
+    try {
+      await refreshComments().catch((err) => {
+        console.error('Failed to refresh comments:', err);
+      });
+
+      const latestBlock = await publicClient.getBlockNumber();
+      const fromBlock =
+        latestBlock > DEPOSIT_LOOKBACK_BLOCKS ? latestBlock - DEPOSIT_LOOKBACK_BLOCKS : 0n;
+
+      const events = await publicClient.getContractEvents({
+        address: config.contracts.bozo as `0x${string}`,
+        abi: depositEventAbi,
+        eventName: 'DepositMade',
+        fromBlock,
+        toBlock: latestBlock,
+      });
+
+      const recentEvents = events.slice(-100);
+      const blockNumbers = Array.from(
+        new Set(
+          recentEvents
+            .map((event) => event.blockNumber)
+            .filter((blockNumber): blockNumber is bigint => typeof blockNumber === 'bigint')
+        )
+      );
+
+      const blocks = await Promise.all(
+        blockNumbers.map((blockNumber) => publicClient.getBlock({ blockNumber }))
+      );
+
+      const blockTimestamps = new Map<bigint, string>();
+      blocks.forEach((block, index) => {
+        const timestamp = Number(block.timestamp) * 1000;
+        blockTimestamps.set(blockNumbers[index], new Date(timestamp).toISOString());
+      });
+
+      const depositsFromEvents = [...recentEvents]
+        .reverse()
+        .map((event) => {
+          if (!event.transactionHash || !event.blockNumber) {
+            return null;
+          }
+
+          const recipient = event.args?.recipient as string | undefined;
+          const amountRaw = event.args?.amount;
+          const poolRaw = event.args?.currentPool;
+          if (!recipient) {
+            return null;
+          }
+
+          const timestampIso = blockTimestamps.get(event.blockNumber);
+          if (!timestampIso) {
+            return null;
+          }
+
+          const amount = typeof amountRaw === 'bigint' ? amountRaw : 0n;
+          const pool = typeof poolRaw === 'bigint' ? poolRaw : 0n;
+
+          const amountToken = formatEther(amount);
+          const potAfterToken = formatEther(pool);
+
+          return {
+            ts: timestampIso,
+            address: recipient,
+            amountToken,
+            amountUsd: parseFloat(amountToken),
+            potAfterUsd: parseFloat(potAfterToken),
+            txHash: event.transactionHash,
+          } satisfies Deposit;
+        })
+        .filter((deposit): deposit is Deposit => deposit !== null);
+
+      setDeposits(depositsFromEvents);
     } catch (error) {
-      console.error('Failed to load game:', error);
+      console.error('Failed to load deposits:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const loadDeposits = useCallback(() => {
-    if (!publicClient) {
-      return;
-    }
-
-    const run = async () => {
-      try {
-        try {
-          await refreshComments();
-        } catch (err) {
-          console.error('Failed to refresh comments:', err);
-        }
-
-        const latestBlock = await publicClient.getBlockNumber();
-        const fromBlock =
-          latestBlock > DEPOSIT_LOOKBACK_BLOCKS ? latestBlock - DEPOSIT_LOOKBACK_BLOCKS : 0n;
-
-        const events = await publicClient.getContractEvents({
-          address: config.contracts.bozo as `0x${string}`,
-          abi: depositEventAbi,
-          eventName: 'DepositMade',
-          fromBlock,
-          toBlock: latestBlock,
-        });
-
-        const recentEvents = events.slice(-100);
-        const blockNumbers = Array.from(
-          new Set(
-            recentEvents
-              .map((event) => event.blockNumber)
-              .filter((blockNumber): blockNumber is bigint => typeof blockNumber === 'bigint')
-          )
-        );
-
-        if (blockNumbers.length === 0) {
-          setDeposits([]);
-          return;
-        }
-
-        const blocks = await Promise.all(
-          blockNumbers.map((blockNumber) => publicClient.getBlock({ blockNumber }))
-        );
-
-        const blockTimestamps = new Map<bigint, string>();
-        blocks.forEach((block, index) => {
-          const timestamp = Number(block.timestamp) * 1000;
-          blockTimestamps.set(blockNumbers[index], new Date(timestamp).toISOString());
-        });
-
-        const depositsFromEvents = [...recentEvents]
-          .reverse()
-          .map((event) => {
-            if (!event.transactionHash || !event.blockNumber) {
-              return null;
-            }
-
-            const recipient = event.args?.recipient as string | undefined;
-            const amountRaw = event.args?.amount;
-            const poolRaw = event.args?.currentPool;
-            if (!recipient) {
-              return null;
-            }
-
-            const timestampIso = blockTimestamps.get(event.blockNumber);
-            if (!timestampIso) {
-              return null;
-            }
-
-            const amount = typeof amountRaw === 'bigint' ? amountRaw : 0n;
-            const pool = typeof poolRaw === 'bigint' ? poolRaw : 0n;
-
-            const amountToken = formatEther(amount);
-            const potAfterToken = formatEther(pool);
-
-            return {
-              ts: timestampIso,
-              address: recipient,
-              amountToken,
-              amountUsd: parseFloat(amountToken),
-              potAfterUsd: parseFloat(potAfterToken),
-              txHash: event.transactionHash,
-            } satisfies Deposit;
-          })
-          .filter((deposit): deposit is Deposit => deposit !== null);
-
-        setDeposits(depositsFromEvents);
-      } catch (error) {
-        console.error('Failed to load deposits:', error);
-      }
-    };
-
-    void run();
   }, [publicClient, refreshComments]);
 
   const loadRoundWinners = useCallback(async () => {
@@ -258,7 +497,7 @@ export function Game() {
     return result;
   };
 
-  if (loading || !game) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[#FF4B4B]" />
@@ -267,7 +506,7 @@ export function Game() {
   }
 
   // Show end game screen if game is closed
-  if (game.status === 'Closed' && winners) {
+  if (isGameClosed && winners) {
     return (
       <div className="min-h-screen bg-background relative overflow-hidden">
         {/* Decorative elements */}
@@ -319,16 +558,14 @@ export function Game() {
 
         <EndGameScreen
           winners={winners}
-          nextGameStartsAt={game.nextGameStartsAt ? new Date(game.nextGameStartsAt) : new Date(Date.now() + 300000)}
-          homeToken={game.homeToken}
+          nextGameStartsAt={new Date(Date.now() + 300000)}
+          homeToken={homeToken}
         />
 
         <HowItWorksDialog open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
       </div>
     );
   }
-
-  const timeRemaining = getTimeRemaining(game.deadline);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -384,7 +621,7 @@ export function Game() {
       </header>
 
       {/* Game Status Alert */}
-      {game.status === 'Paused' && (
+      {isGamePaused && (
         <div className="container mx-auto px-4 mt-4 max-w-6xl">
           <Alert className="bg-[#FF4B4B]/10 border-[#FF4B4B]">
             <AlertTriangle className="h-4 w-4 text-[#FF4B4B]" />
@@ -405,9 +642,7 @@ export function Game() {
               <div className="w-2 h-2 rounded-full bg-[#2ED4B7] animate-pulse"></div>
               <span className="text-sm text-muted-foreground tracking-wider">LOTTERY POOL</span>
             </div>
-            <div className="font-mono text-6xl text-[#F6C445] tracking-tight">
-              {(game.potUsd / 1000).toFixed(1)}K ${game.homeToken}
-            </div>
+            <div className="font-mono text-6xl text-[#F6C445] tracking-tight">{displayPot}</div>
             <div className="text-sm text-muted-foreground mt-1">
               AWARDED ACROSS TEN RANDOM BOZOS
             </div>
@@ -421,16 +656,14 @@ export function Game() {
             }`}>
               {timeRemaining.formatted}
             </div>
-            <div className="text-sm text-muted-foreground mt-1">
-              UNTIL THE GAME ENDS AND THE LAST BOZO WINS
-            </div>
+            <div className="text-sm text-muted-foreground mt-1">UNTIL THE GAME STARTS</div>
           </div>
         </div>
 
         {/* BOZO Button */}
         <Button
           onClick={() => setBozoModalOpen(true)}
-          disabled={!isConnected || game.status !== 'Active'}
+          disabled={!isConnected || !isGameActive}
           className="w-full h-16 bg-[#F6C445] hover:bg-[#F6C445]/90 text-[#0E1020] text-xl tracking-widest mb-12"
         >
           {isConnected ? 'BOZO' : 'CONNECT TO BOZO'}
@@ -505,7 +738,7 @@ export function Game() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <div className="text-sm font-mono text-foreground">
-                          {formatTokenAmount(deposit.amountToken, 2)} ${game.homeToken}
+                          {formatTokenAmount(deposit.amountToken, 2)} ${homeToken}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {formatTime(deposit.ts)}
@@ -547,7 +780,7 @@ export function Game() {
                         </div>
                         <div className="text-right">
                           <div className="text-sm font-mono text-foreground">
-                            {formatTokenAmount(winner.amountToken, 1)} ${game.homeToken}
+                            {formatTokenAmount(winner.amountToken, 1)} ${homeToken}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {formatTime(winner.ts)}
@@ -574,19 +807,17 @@ export function Game() {
 
         {/* Info Footer */}
         <div className="mt-8 text-center text-xs text-muted-foreground">
-          Min deposit: {formatUsd(game.minToResetUsd)} • 80% to winner • 20% to 10 random bozos
+          Min deposit: {formatUsd(minToResetUsd)} • Pool asset: {homeToken} ({poolAssetDisplay}) • 80% to winner • 20% to 10 random bozos
         </div>
       </div>
 
       {/* Bozo Modal */}
-      {game && (
-        <BozoModal
-          open={bozoModalOpen}
-          onOpenChange={setBozoModalOpen}
-          game={game}
-          isConnected={isConnected}
-        />
-      )}
+      <BozoModal
+        open={bozoModalOpen}
+        onOpenChange={setBozoModalOpen}
+        game={game}
+        isConnected={isConnected}
+      />
 
       <HowItWorksDialog open={howItWorksOpen} onOpenChange={setHowItWorksOpen} />
     </div>

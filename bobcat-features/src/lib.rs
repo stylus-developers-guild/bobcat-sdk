@@ -8,7 +8,7 @@ macro_rules! bobcat_feature {
         paste::paste! {
             #[allow(unused)]
             macro_rules! [<IF_FEATURE_ $feature_name:upper>] {
-                ($on_block:block, $off_block:block) => {
+                ($on_block:block else $off_block:block) => {
                     if $crate::storage_load(&$crate::const_keccak256_two_off_curve(
                         b"bobcat.features.",
                         stringify!($feature_name).as_bytes()
@@ -43,6 +43,6 @@ mod test {
     #[test]
     fn test_feature() {
         FEATURE_SET_TEST123!(true);
-        assert!(IF_FEATURE_TEST123!({ true }, { false }));
+        assert!(IF_FEATURE_TEST123!({ true } else { false }));
     }
 }

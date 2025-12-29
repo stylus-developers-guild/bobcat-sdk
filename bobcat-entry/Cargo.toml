@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-entry"
-version = "0.7.11"
+version = "0.7.12"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for building contract entrypoints on Arbitrum Stylus."
@@ -16,6 +16,6 @@ std = ["alloc"]
 dont-define-symbols = []
 
 [dependencies]
-bobcat-cd = { version = "0.7.11", path = "../bobcat-cd" }
-bobcat-maths = { version = "0.7.11", path = "../bobcat-maths" }
+bobcat-cd = { version = "0.7.12", path = "../bobcat-cd" }
+bobcat-maths = { version = "0.7.12", path = "../bobcat-maths" }
 const-hex = { workspace = true }

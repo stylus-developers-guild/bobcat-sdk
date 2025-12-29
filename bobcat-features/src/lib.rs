@@ -7,7 +7,6 @@ macro_rules! bobcat_feature {
     ($feature_name:ident) => {
         paste::paste! {
             #[allow(unused)]
-            #[macro_export]
             macro_rules! [<IF_FEATURE_ $feature_name:upper>] {
                 ($on_block:block, $off_block:block) => {
                     if $crate::storage_load(&$crate::const_keccak256_two_off_curve(
@@ -22,7 +21,6 @@ macro_rules! bobcat_feature {
             }
 
             #[allow(unused)]
-            #[macro_export]
             macro_rules! [<FEATURE_SET_ $feature_name:upper>] {
                 ($value:expr) => {
                     $crate::storage_store(

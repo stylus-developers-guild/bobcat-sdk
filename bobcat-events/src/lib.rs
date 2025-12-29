@@ -79,7 +79,6 @@ impl Default for ShadowTableVec {
     }
 }
 
-// Shadow functions
 pub fn shadow_log_0_slice<const D: usize, const ALL: usize>(t0: &U, d: [u8; D]) {
     let mut t = ShadowTable {
         data_len: D,
@@ -157,7 +156,6 @@ pub fn shadow_log_count(topics: [U; 4], topics_len: usize, data: &[u8]) {
     }
 }
 
-// Emit functions (no feature flags)
 #[cfg(not(feature = "shadow"))]
 pub fn emit_log_0_slice<const D: usize, const ALL: usize>(t0: &U, d: [u8; D]) {
     assert_eq!(ALL, D + 32, "not properly sized: {}", D + 32);

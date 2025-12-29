@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-sdk"
-version = "0.7.10"
+version = "0.7.11"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk is a codesize efficient Arbitrum Stylus SDK"
@@ -11,20 +11,20 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_sdk"
 
 [dependencies]
-bobcat-create = { version = "0.7.10", path = "../bobcat-create" }
-bobcat-entry = { version = "0.7.10", path = "../bobcat-entry" }
-bobcat-maths = { version = "0.7.10", path = "../bobcat-maths" }
-bobcat-panic = { version = "0.7.10", path = "../bobcat-panic", optional = true }
-bobcat-proxy = { version = "0.7.10", path = "../bobcat-proxy" }
-bobcat-storage = { version = "0.7.10", path = "../bobcat-storage" }
-bobcat-cd = { version = "0.7.10", path = "../bobcat-cd" }
-bobcat-interfaces = { version = "0.7.10", path = "../bobcat-interfaces" }
-bobcat-call = { version = "0.7.10", path = "../bobcat-call" }
-bobcat-console = { version = "0.7.10", path = "../bobcat-console", optional = true }
-bobcat-events = { version = "0.7.10", path = "../bobcat-events" }
-bobcat-precompiles = { version = "0.7.10", path = "../bobcat-precompiles" }
-bobcat-maths-zone = { version = "0.7.10", path = "../bobcat-maths-zone" }
-bobcat-features = { version = "0.7.10", path = "../bobcat-features" }
+bobcat-create = { version = "0.7.11", path = "../bobcat-create" }
+bobcat-entry = { version = "0.7.11", path = "../bobcat-entry" }
+bobcat-maths = { version = "0.7.11", path = "../bobcat-maths" }
+bobcat-panic = { version = "0.7.11", path = "../bobcat-panic", optional = true }
+bobcat-proxy = { version = "0.7.11", path = "../bobcat-proxy" }
+bobcat-storage = { version = "0.7.11", path = "../bobcat-storage" }
+bobcat-cd = { version = "0.7.11", path = "../bobcat-cd" }
+bobcat-interfaces = { version = "0.7.11", path = "../bobcat-interfaces" }
+bobcat-call = { version = "0.7.11", path = "../bobcat-call" }
+bobcat-console = { version = "0.7.11", path = "../bobcat-console", optional = true }
+bobcat-events = { version = "0.7.11", path = "../bobcat-events" }
+bobcat-precompiles = { version = "0.7.11", path = "../bobcat-precompiles" }
+bobcat-maths-zone = { version = "0.7.11", path = "../bobcat-maths-zone" }
+bobcat-features = { version = "0.7.11", path = "../bobcat-features" }
 
 [features]
 std = [

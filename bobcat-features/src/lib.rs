@@ -1,3 +1,5 @@
+#![no_std]
+
 pub use bobcat_storage::{const_keccak256_two_off_curve, storage_load, storage_store, U};
 
 #[macro_export]

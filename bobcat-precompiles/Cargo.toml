@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-precompiles"
-version = "0.7.9"
+version = "0.7.10"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for using precompiles with Arbitrum Stylus."
@@ -12,9 +12,9 @@ ed25519-dalek = ["dep:ed25519-dalek"]
 
 [dependencies]
 array-concat.workspace = true
-bobcat-call = { version = "0.7.9", path = "../bobcat-call" }
-bobcat-cd = { version = "0.7.9", path = "../bobcat-cd" }
-bobcat-maths = { version = "0.7.9", path = "../bobcat-maths" }
-bobcat-storage = { version = "0.7.9", path = "../bobcat-storage" }
+bobcat-call = { version = "0.7.10", path = "../bobcat-call" }
+bobcat-cd = { version = "0.7.10", path = "../bobcat-cd" }
+bobcat-maths = { version = "0.7.10", path = "../bobcat-maths" }
+bobcat-storage = { version = "0.7.10", path = "../bobcat-storage" }
 ed25519-dalek = { version = "2.2.0", default-features = false, features = ["digest"], optional = true }
 sha2 = { version = "0.10.9", default-features = false }

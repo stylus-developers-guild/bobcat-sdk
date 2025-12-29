@@ -6,6 +6,8 @@ use array_concat::concat_arrays;
 
 pub use bobcat_maths::U;
 
+use bobcat_maths::wrapping_sub;
+
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
 #[link(wasm_import_module = "vm_hooks")]
 unsafe extern "C" {
@@ -335,7 +337,7 @@ pub fn reentrancy_guard_sel<R>(k: &[u8; 4], f: impl FnOnce() -> R) -> R {
 /// Compute the slot for a slice, and take it off the curve. Useful for
 /// storage slot accesses (and more).
 pub const fn const_slot_off_curve(b: &[u8]) -> U {
-    bobcat_maths::wrapping_sub(&const_keccak256(b), &U::ONE)
+    wrapping_sub(&const_keccak256(b), &U::ONE)
 }
 
 pub fn slot_off_curve(b: &[u8]) -> U {
@@ -355,6 +357,14 @@ pub fn keccak256(b: &[u8]) -> U {
 
 pub const fn const_keccak256(b: &[u8]) -> U {
     U(Keccak256::new().update(b).finalize())
+}
+
+pub const fn const_keccak256_two(x: &[u8], y: &[u8]) -> U {
+    U(Keccak256::new().update(x).update(y).finalize())
+}
+
+pub const fn const_keccak256_two_off_curve(x: &[u8], y: &[u8]) -> U {
+    wrapping_sub(&const_keccak256_two(x, y), &U::ONE)
 }
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]

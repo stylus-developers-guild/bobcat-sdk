@@ -10,6 +10,7 @@ pub use bobcat_maths as maths;
 pub use bobcat_precompiles as precompiles;
 pub use bobcat_proxy as proxy;
 pub use bobcat_storage as storage;
+pub use bobcat_features as features;
 
 #[cfg(any(feature = "panic", feature = "panic-revert"))]
 pub use bobcat_panic as panic;

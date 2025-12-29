@@ -13,7 +13,8 @@ members = [
 	"bobcat-console",
 	"bobcat-events",
 	"bobcat-precompiles",
-	"bobcat-maths-zone"
+	"bobcat-maths-zone",
+	"bobcat-features"
 ]
 exclude = ["fuzz"]
 

@@ -1,0 +1,20 @@
+[package]
+name = "bobcat-features"
+version = "0.7.8"
+edition = "2024"
+license = "MIT"
+description = "bobcat-sdk utilities for feature flagged release on Arbitrum Stylus."
+homepage = "https://bobcat.so"
+repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
+
+[lib]
+name = "bobcat_features"
+
+[dependencies]
+bobcat-storage = { version = "0.7.8", path = "../bobcat-storage" }
+paste.workspace = true
+
+[features]
+std = ["bobcat-storage/std"]
+proptest = ["bobcat-storage/proptest"]
+mutex = ["bobcat-storage/mutex"]

@@ -105,6 +105,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bobcat-features"
+version = "0.7.8"
+dependencies = [
+ "bobcat-storage",
+ "paste",
+]
+
+[[package]]
 name = "bobcat-interfaces"
 version = "0.7.8"
 dependencies = [
@@ -127,6 +135,17 @@ dependencies = [
  "mutants",
  "num-traits",
  "paste",
+]
+
+[[package]]
+name = "bobcat-maths-zone"
+version = "0.7.8"
+dependencies = [
+ "bobcat-maths",
+ "bobcat-panic",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -169,8 +188,10 @@ dependencies = [
  "bobcat-create",
  "bobcat-entry",
  "bobcat-events",
+ "bobcat-features",
  "bobcat-interfaces",
  "bobcat-maths",
+ "bobcat-maths-zone",
  "bobcat-panic",
  "bobcat-precompiles",
  "bobcat-proxy",
@@ -346,6 +367,13 @@ version = "0.1.0"
 dependencies = [
  "bobcat-sdk",
  "mini-alloc",
+]
+
+[[package]]
+name = "features"
+version = "0.1.0"
+dependencies = [
+ "bobcat-sdk",
 ]
 
 [[package]]

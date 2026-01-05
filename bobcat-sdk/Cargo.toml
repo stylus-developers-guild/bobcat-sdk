@@ -47,7 +47,10 @@ borsh = ["bobcat-maths/borsh"]
 console = ["dep:bobcat-console", "bobcat-panic/console"]
 arbitrary = ["bobcat-maths/arbitrary"]
 proptest = ["bobcat-maths/proptest", "bobcat-storage/proptest"]
-alloy-enabled = ["bobcat-maths/alloy-enabled"]
+alloy-enabled = [
+	"bobcat-maths/alloy-enabled",
+	"bobcat-entry/alloy-enabled"
+]
 panic = ["bobcat-panic/panic"]
 panic-revert = ["panic", "bobcat-panic/panic-revert"]
 panic-loc = ["panic", "bobcat-panic/panic-loc"]

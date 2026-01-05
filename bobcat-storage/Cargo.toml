@@ -24,3 +24,4 @@ const-hex = { workspace = true }
 std = []
 proptest = ["dep:proptest"]
 mutex = []
+alloy-enabled = ["bobcat-maths/alloy-enabled"]

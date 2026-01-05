@@ -18,3 +18,4 @@ paste.workspace = true
 [features]
 std = ["bobcat-storage/std", "bobcat-entry/std"]
 mutex = ["bobcat-storage/mutex"]
+alloy-enabled = ["bobcat-entry/alloy-enabled", "bobcat-storage/alloy-enabled"]

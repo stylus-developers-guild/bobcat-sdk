@@ -3,4 +3,4 @@
 
 Calling features for
 [https://github.com/fluidity-money/superposition-precompiles](Superposition), Arbitrum,
-and Ethereum. An offline implementation for Superposition's.
+and Ethereum.

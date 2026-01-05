@@ -57,7 +57,8 @@ panic-loc = ["panic", "bobcat-panic/panic-loc"]
 panic-trace = ["panic", "bobcat-panic/panic-trace"]
 dont-define-symbols = [
 	"bobcat-entry/dont-define-symbols",
-	"bobcat-call/dont-define-symbols"
+	"bobcat-call/dont-define-symbols",
+	"bobcat-features/dont-define-symbols"
 ]
 ruint-enabled = ["bobcat-maths/ruint-enabled"]
 msg-on-sdk-err = ["bobcat-panic/msg-on-sdk-err"]

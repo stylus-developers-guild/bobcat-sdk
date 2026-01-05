@@ -29,7 +29,10 @@ pub fn edphverify(digest: [u8; 64], pub_key: U, sig: [u8; 64]) -> bool {
     static_call_unit(ADDR_EDVERIFY, &cd, GAS_EDPHVERIFY)
 }
 
-#[cfg(all(not(all(target_family = "wasm", target_os = "unknown")), feature = "ed25519-dalek"))]
+#[cfg(all(
+    not(all(target_family = "wasm", target_os = "unknown")),
+    feature = "ed25519-dalek"
+))]
 pub use const_edphverify as edphverify;
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]

@@ -454,7 +454,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-call"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "bobcat-entry",
  "bobcat-maths",
@@ -464,7 +464,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-cd"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "array-concat",
  "bobcat-maths",
@@ -475,11 +475,11 @@ dependencies = [
 
 [[package]]
 name = "bobcat-console"
-version = "0.7.12"
+version = "0.7.13"
 
 [[package]]
 name = "bobcat-create"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "array-concat",
  "bobcat-maths",
@@ -489,7 +489,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-entry"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "bobcat-cd",
  "bobcat-maths",
@@ -498,7 +498,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-events"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "array-concat",
  "bobcat-maths",
@@ -506,16 +506,18 @@ dependencies = [
 
 [[package]]
 name = "bobcat-features"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
+ "bobcat-call",
  "bobcat-entry",
+ "bobcat-interfaces",
  "bobcat-storage",
  "paste",
 ]
 
 [[package]]
 name = "bobcat-interfaces"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-macro",
@@ -530,7 +532,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "alloy-primitives",
  "arbitrary",
@@ -551,7 +553,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths-zone"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "bobcat-maths",
  "bobcat-panic",
@@ -562,7 +564,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-panic"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "const-hex",
  "paste",
@@ -571,7 +573,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-precompiles"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "array-concat",
  "bobcat-call",
@@ -584,7 +586,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-proxy"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "array-concat",
  "bobcat-interfaces",
@@ -594,7 +596,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-sdk"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "bobcat-call",
  "bobcat-cd",
@@ -614,7 +616,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-storage"
-version = "0.7.12"
+version = "0.7.13"
 dependencies = [
  "array-concat",
  "bobcat-maths",

@@ -11,7 +11,9 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_features"
 
 [dependencies]
+bobcat-call = { version = "0.7.13", path = "../bobcat-call" }
 bobcat-entry = { version = "0.7.13", path = "../bobcat-entry" }
+bobcat-interfaces = { version = "0.7.13", path = "../bobcat-interfaces" }
 bobcat-storage = { version = "0.7.13", path = "../bobcat-storage" }
 paste.workspace = true
 
@@ -19,3 +21,7 @@ paste.workspace = true
 std = ["bobcat-storage/std", "bobcat-entry/std"]
 mutex = ["bobcat-storage/mutex"]
 alloy-enabled = ["bobcat-entry/alloy-enabled", "bobcat-storage/alloy-enabled"]
+dont-define-symbols = ["bobcat-entry/dont-define-symbols"]
+msg-on-sdk-err = ["bobcat-call/msg-on-sdk-err"]
+panic = ["bobcat-call/panic"]
+panic-rever = ["bobcat-call/panic-revert"]

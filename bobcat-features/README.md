@@ -5,7 +5,7 @@ bobcat-features can be used for feature-driven development using a macro with
 `bobcat-storage`:
 
 ```rust
-bobcat_feature!(internal_balances);
+bobcat_features!(internal_balances);
 ```
 
 Would create a macro that accesses the storage slot for the feature

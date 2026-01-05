@@ -11,10 +11,10 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_features"
 
 [dependencies]
+bobcat-entry = { version = "0.7.12", path = "../bobcat-entry" }
 bobcat-storage = { version = "0.7.12", path = "../bobcat-storage" }
 paste.workspace = true
 
 [features]
-std = ["bobcat-storage/std"]
-proptest = ["bobcat-storage/proptest"]
+std = ["bobcat-storage/std", "bobcat-entry/std"]
 mutex = ["bobcat-storage/mutex"]

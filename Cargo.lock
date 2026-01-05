@@ -508,6 +508,7 @@ dependencies = [
 name = "bobcat-features"
 version = "0.7.12"
 dependencies = [
+ "bobcat-entry",
  "bobcat-storage",
  "paste",
 ]

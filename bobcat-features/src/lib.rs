@@ -53,7 +53,6 @@ macro_rules! BOBCAT_FEATURES {
         #[allow(unused)]
         pub fn feature_pack() -> $crate::U {
             let mut r = $crate::U::default();
-            #[allow(unused_assignments)]
             let mut i = 0;
             $(
                 $crate::paste! {
@@ -65,6 +64,7 @@ macro_rules! BOBCAT_FEATURES {
                     i += 1;
                 }
             )*
+            let _ = i;
             r
         }
     };
@@ -89,6 +89,8 @@ macro_rules! FEATURE_PICK {
                     }
                 }
             )*
+            let _ = cum;
+            let _ = found;
         }
     };
 }
@@ -138,7 +140,6 @@ macro_rules! FEATURE_COPY {
                 remote_count, COUNT,
                 "features {remote_count} != {COUNT}"
             );
-            #[allow(unused_assignments)]
             let mut i = 0;
             $(
                 $crate::paste! {
@@ -154,6 +155,7 @@ macro_rules! FEATURE_COPY {
                     i += 1;
                 }
             )*
+            let _ = i;
         }
     };
 }
@@ -175,6 +177,7 @@ macro_rules! FEATURE_PACK {
                     i += 1;
                 }
             )*
+            let _ = i;
             r
         }
     };

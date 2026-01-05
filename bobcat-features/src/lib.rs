@@ -8,6 +8,8 @@ pub use bobcat_entry::block_timestamp;
 
 pub use bobcat_interfaces::superposition::make_fn_features;
 
+pub use bobcat_call::static_call_word;
+
 #[macro_export]
 macro_rules! bobcat_features {
     ($($feature_name:ident),* $(,)?) => {
@@ -121,15 +123,19 @@ macro_rules! FEATURE_MATCH {
 macro_rules! FEATURE_COPY {
     ($address:expr, $($feature_name:ident),* $(,)?) => {
         {
-            let r = $crate::static_call_word($address, &$crate::make_fn_features());
-            let remote_count = r[0];
-            assert_eq!(
-                remote_count, _FEATURE_COUNT,
-                "features {} != {}",
-                remote_count,
-                _FEATURE_COUNT
+            let (rc, r) = $crate::static_call_word(
+                $address,
+                &$crate::make_fn_features(),
+                u64::MAX,
+                0
             );
-
+            assert!(rc, "features revert");
+            let remote_count = r[0];
+            const COUNT: u8 = 0 $(+ { let _ = stringify!($feature_name); 1 })*;
+            assert_eq!(
+                remote_count, COUNT,
+                "features {remote_count} != {COUNT}"
+            );
             #[allow(unused_assignments)]
             let mut i = 0;
             $(
@@ -137,12 +143,37 @@ macro_rules! FEATURE_COPY {
                     let byte_index = 31 - (i / 8);
                     let bit_position = i % 8;
                     $crate::storage_store(
-                        &[<FEATURE_ID_ $feature_name:upper>],
+                        &$crate::const_keccak256_two_off_curve(
+                            b"bobcat.features.",
+                            stringify!($feature_name).as_bytes()
+                        ),
                         &$crate::U::from((r[byte_index] & (1 << bit_position)) != 0)
                     );
                     i += 1;
                 }
             )*
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! FEATURE_PACK {
+    ($($feature_name:ident),* $(,)?) => {
+        {
+            let mut r = $crate::U::default();
+            #[allow(unused_assignments)]
+            let mut i = 0;
+            $(
+                paste::paste! {
+                    if [<feature_is_ $feature_name:lower>]() {
+                        let byte_index = 31 - (i / 8);
+                        let bit_position = i % 8;
+                        r[byte_index] |= 1 << bit_position;
+                    }
+                    i += 1;
+                }
+            )*
+            r
         }
     };
 }

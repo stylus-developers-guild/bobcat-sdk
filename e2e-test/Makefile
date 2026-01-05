@@ -19,7 +19,8 @@ PROJECTS := \
 	safe-erc20 \
 	tracing-counter \
 	panic-trace \
-	shadow
+	shadow \
+	features
 
 all: wasm
 
@@ -44,7 +45,8 @@ wasm: \
 	safe-erc20.wasm \
 	tracing-counter.wasm \
 	panic-trace.wasm \
-	shadow.wasm
+	shadow.wasm \
+	features.wasm
 
 chainlink-vrf-test.wasm: ${BUILT}
 	@rm -f chainlink-vrf-test.wasm
@@ -110,6 +112,10 @@ shadow.wasm: $(shell find shadow/src -type f)
 	@cd shadow && cargo build --release --target wasm32-unknown-unknown
 	@./wasm-post.sh shadow/target/wasm32-unknown-unknown/release/shadow.wasm shadow.wasm
 
+features.wasm: ${BUILT}
+	@rm -f features.wasm
+	@./wasm-post.sh ${RELEASE}/features.wasm features.wasm
+
 clean:
 	@rm -rf \
 		target \
@@ -128,4 +134,5 @@ clean:
 		safe-erc20.wasm \
 		tracing-counter.wasm \
 		panic-trace.wasm \
-		shadow.wasm
+		shadow.wasm \
+		features.wasm

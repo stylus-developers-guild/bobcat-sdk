@@ -13,7 +13,7 @@ pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
     write_result_word(
         &safe_call_bool(
             target.into(),
-            &eip20::make_fn_transfer(msg_sender(), &U::from(100u32)),
+            &interfaces::eip20::make_fn_transfer(msg_sender(), &U::from(100u32)),
             &U::ZERO,
             u64::MAX,
         )

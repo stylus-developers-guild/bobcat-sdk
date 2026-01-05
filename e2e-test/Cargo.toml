@@ -14,7 +14,8 @@ members = [
 	"precompiles",
 	"slot-map",
 	"safe-erc20",
-	"tracing-counter"
+	"tracing-counter",
+	"features"
 ]
 
 [workspace.dependencies]

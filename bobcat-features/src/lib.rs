@@ -10,13 +10,15 @@ pub use bobcat_interfaces::superposition::make_fn_features;
 
 pub use bobcat_call::static_call_word;
 
+pub use paste::paste;
+
 #[macro_export]
-macro_rules! bobcat_features {
+macro_rules! BOBCAT_FEATURES {
     ($($feature_name:ident),* $(,)?) => {
         pub const _FEATURE_COUNT: u8 = 0 $(+ { let _ = stringify!($feature_name); 1 })*;
 
         $(
-            paste::paste! {
+            $crate::paste! {
                 pub const [<FEATURE_ID_ $feature_name:upper>]: $crate::U =
                     $crate::const_keccak256_two_off_curve(
                         b"bobcat.features.",
@@ -54,7 +56,7 @@ macro_rules! bobcat_features {
             #[allow(unused_assignments)]
             let mut i = 0;
             $(
-                paste::paste! {
+                $crate::paste! {
                     if [<feature_is_ $feature_name:lower>]() {
                         let byte_index = 31 - (i / 8);
                         let bit_position = i % 8;
@@ -78,7 +80,7 @@ macro_rules! FEATURE_PICK {
             $(
                 if !found {
                     if choice < cum + $weight {
-                        paste::paste! {
+                        $crate::paste! {
                             [<feature_set_ $feature_name:lower>](true);
                         }
                         found = true;
@@ -94,7 +96,7 @@ macro_rules! FEATURE_PICK {
 #[macro_export]
 macro_rules! FEATURE_MATCH {
     ($($feature:ident => $expr:expr),+ , * => $default:expr $(,)?) => {
-        paste::paste! {
+        $crate::paste! {
             $(
                 if [<feature_is_ $feature:lower>]() {
                     $expr
@@ -139,7 +141,7 @@ macro_rules! FEATURE_COPY {
             #[allow(unused_assignments)]
             let mut i = 0;
             $(
-                paste::paste! {
+                $crate::paste! {
                     let byte_index = 31 - (i / 8);
                     let bit_position = i % 8;
                     $crate::storage_store(
@@ -164,7 +166,7 @@ macro_rules! FEATURE_PACK {
             #[allow(unused_assignments)]
             let mut i = 0;
             $(
-                paste::paste! {
+                $crate::paste! {
                     if [<feature_is_ $feature_name:lower>]() {
                         let byte_index = 31 - (i / 8);
                         let bit_position = i % 8;
@@ -184,7 +186,7 @@ mod test_1 {
 
     use bobcat_storage::storage_host::storage_clear;
 
-    bobcat_features!(test123, swag);
+    BOBCAT_FEATURES!(test123, swag);
 
     #[test]
     fn test_features_1() {
@@ -227,7 +229,7 @@ mod test_2 {
 
     use bobcat_storage::storage_host::storage_clear;
 
-    bobcat_features!(
+    BOBCAT_FEATURES!(
         F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20,
         F21, F22, F23, F24, F25, F26, F27, F28, F29, F30, F31, F32, F33, F34, F35, F36, F37, F38,
         F39, F40, F41, F42, F43, F44, F45, F46, F47, F48, F49, F50, F51, F52, F53, F54, F55, F56,

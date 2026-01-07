@@ -17,6 +17,9 @@ macro_rules! BOBCAT_FEATURES {
     ($($feature_name:ident),* $(,)?) => {
         pub const _FEATURE_COUNT: u8 = 0 $(+ { let _ = stringify!($feature_name); 1 })*;
 
+        // We need the first slot of the word to be the length:
+        const _: [(); 0] = [(); (_FEATURE_COUNT < 255) as usize - 1];
+
         $(
             $crate::paste! {
                 pub const [<FEATURE_ID_ $feature_name:upper>]: $crate::U =
@@ -140,7 +143,7 @@ macro_rules! FEATURE_COPY {
                 remote_count, COUNT,
                 "features {remote_count} != {COUNT}"
             );
-            let mut i = 0;
+            let mut i = 1;
             $(
                 $crate::paste! {
                     let byte_index = 31 - (i / 8);
@@ -161,12 +164,54 @@ macro_rules! FEATURE_COPY {
 }
 
 #[macro_export]
+macro_rules! FEATURE_COPY_NON_ZEROES {
+    ($address:expr, $($feature_name:ident),* $(,)?) => {
+        {
+            let (rc, r) = $crate::static_call_word(
+                $address,
+                &$crate::make_fn_features(),
+                u64::MAX,
+                0
+            );
+            assert!(rc, "features revert");
+            let remote_count = r[0];
+            const COUNT: u8 = 0 $(+ { let _ = stringify!($feature_name); 1 })*;
+            assert_eq!(
+                remote_count, COUNT,
+                "features {remote_count} != {COUNT}"
+            );
+            let mut i = 1;
+            $(
+                $crate::paste! {
+                    let byte_index = 31 - (i / 8);
+                    let bit_position = i % 8;
+                    let setting = (r[byte_index] & (1 << bit_position)) != 0;
+                    if setting {
+                    $crate::storage_store(
+                        &$crate::const_keccak256_two_off_curve(
+                            b"bobcat.features.",
+                            stringify!($feature_name).as_bytes()
+                        ),
+                        &$crate::U::from(setting)
+                    );
+                    }
+                    i += 1;
+                }
+            )*
+            let _ = i;
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! FEATURE_PACK {
     ($($feature_name:ident),* $(,)?) => {
         {
             let mut r = $crate::U::default();
             #[allow(unused_assignments)]
-            let mut i = 0;
+            let mut i = 1;
+            const COUNT: u8 = 0 $(+ { let _ = stringify!($feature_name); 1 })*;
+            r[0] = COUNT;
             $(
                 $crate::paste! {
                     if [<feature_is_ $feature_name:lower>]() {
@@ -248,7 +293,7 @@ mod test_2 {
         F199, F200, F201, F202, F203, F204, F205, F206, F207, F208, F209, F210, F211, F212, F213,
         F214, F215, F216, F217, F218, F219, F220, F221, F222, F223, F224, F225, F226, F227, F228,
         F229, F230, F231, F232, F233, F234, F235, F236, F237, F238, F239, F240, F241, F242, F243,
-        F244, F245, F246, F247, F248, F249, F250, F251, F252, F253, F254, F255,
+        F244, F245, F246, F247, F248, F249, F250, F251, F252, F253, F254,
     );
 
     #[test]
@@ -507,7 +552,6 @@ mod test_2 {
         feature_set_f252(true);
         feature_set_f253(true);
         feature_set_f254(true);
-        feature_set_f255(true);
         assert_eq!(
             U::from_str(
                 "57896044618658097711785492504343953926634992332820282019728792003956564819967"

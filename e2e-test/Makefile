@@ -114,7 +114,8 @@ shadow.wasm: $(shell find shadow/src -type f)
 
 features.wasm: ${BUILT}
 	@rm -f features.wasm
-	@./wasm-post.sh ${RELEASE}/features.wasm features.wasm
+	@# We don't post process features since wat2wasm hangs due to some kind of bug:
+	@cp ${RELEASE}/features.wasm features.wasm
 
 clean:
 	@rm -rf \

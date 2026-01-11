@@ -493,6 +493,7 @@ version = "0.7.13"
 dependencies = [
  "bobcat-cd",
  "bobcat-maths",
+ "bobcat-storage",
  "const-hex",
 ]
 

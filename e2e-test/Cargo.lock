@@ -74,10 +74,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bobcat-console"
-version = "0.7.13"
-
-[[package]]
 name = "bobcat-create"
 version = "0.7.13"
 dependencies = [
@@ -187,7 +183,6 @@ version = "0.7.13"
 dependencies = [
  "bobcat-call",
  "bobcat-cd",
- "bobcat-console",
  "bobcat-create",
  "bobcat-entry",
  "bobcat-events",

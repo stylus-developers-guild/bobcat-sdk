@@ -12,11 +12,12 @@ name = "bobcat_entry"
 
 [features]
 alloc = ["const-hex/alloc"]
-std = ["alloc"]
+std = ["alloc", "bobcat-maths/std", "bobcat-storage/std"]
 dont-define-symbols = []
 alloy-enabled = ["bobcat-maths/alloy-enabled"]
 
 [dependencies]
 bobcat-cd = { version = "0.7.13", path = "../bobcat-cd" }
 bobcat-maths = { version = "0.7.13", path = "../bobcat-maths" }
+bobcat-storage = { version = "0.7.13", path = "../bobcat-storage" }
 const-hex = { workspace = true }

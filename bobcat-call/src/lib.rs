@@ -48,6 +48,22 @@ mod impls {
     }
 }
 
+pub fn read_return_data_slice<const CAP: usize>(offset: usize, size: usize) -> ([u8; CAP], usize) {
+    let mut b = [0u8; CAP];
+    let rd = unsafe { impls::read_return_data(b.as_mut_ptr(), offset, size) };
+    (b, rd)
+}
+
+#[cfg(feature = "alloc")]
+pub fn read_return_data_vec(offset: usize, size: usize) -> Vec<u8> {
+    let mut b = Vec::with_capacity(size);
+    let rd = unsafe { impls::read_return_data(b.as_mut_ptr(), offset, size) };
+    unsafe {
+        b.set_len(rd);
+    }
+    b
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 mod impls {
     pub(crate) unsafe fn call_contract(

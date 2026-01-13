@@ -35,6 +35,8 @@ mod impls {
         pub(crate) fn account_codehash(address: *const u8, dest: *mut u8);
         pub(crate) fn block_timestamp() -> u64;
         pub(crate) fn block_basefee(out: *mut u8);
+        pub(crate) fn evm_gas_left() -> u64;
+        pub(crate) fn evm_ink_left() -> u64;
     }
 }
 
@@ -217,6 +219,14 @@ pub mod entry_host {
     }
 
     pub(crate) unsafe fn block_basefee(out: *mut u8) {}
+
+    pub(crate) unsafe fn evm_gas_left() -> u64 {
+        0
+    }
+
+    pub(crate) fn evm_ink_left() -> u64 {
+        0
+    }
 }
 
 #[cfg(all(
@@ -264,6 +274,13 @@ mod impls {
     }
 
     pub(crate) unsafe fn block_basefee(out: *mut u8) {}
+
+    pub(crate) unsafe fn evm_gas_left() -> u64 {
+        0
+    }
+    pub(crate) fn evm_ink_left() -> u64 {
+        0
+    }
 }
 
 pub fn balance(addr: Address) -> U {
@@ -473,4 +490,12 @@ pub fn block_basefee() -> U {
     let mut out = U::ZERO;
     unsafe { impls::block_basefee(out.as_mut_ptr()) }
     out
+}
+
+pub fn evm_gas_left() -> u64 {
+    unsafe { impls::evm_gas_left() }
+}
+
+pub fn evm_ink_left() -> u64 {
+    unsafe { impls::evm_ink_left() }
 }

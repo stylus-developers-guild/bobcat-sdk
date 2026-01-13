@@ -16,7 +16,7 @@ mod impls {
     #[link(wasm_import_module = "vm_hooks")]
     #[allow(unused)]
     unsafe extern "C" {
-        pub(crate) fn emit_log(data: *const u8, len: usize, topics: usize);
+        pub fn emit_log(data: *const u8, len: usize, topics: usize);
         pub(crate) fn write_result(ptr: *const u8, len: usize);
     }
 }
@@ -26,6 +26,12 @@ mod impls {
 mod impls {
     pub(crate) unsafe fn emit_log(_: *const u8, _: usize, _: usize) {}
     pub(crate) unsafe fn write_result(_: *const u8, _: usize) {}
+}
+
+pub fn emit_log(data: &[u8], topics: usize) {
+    unsafe {
+        impls::emit_log(data.as_ptr(), data.len(), topics)
+    }
 }
 
 // ShadowTable that's intended for the 32 wasm machine to do shadow event

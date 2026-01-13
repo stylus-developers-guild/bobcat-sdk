@@ -20,6 +20,7 @@ mod impls {
         #[allow(unused)]
         pub(crate) fn pay_for_memory_grow(pages: u16);
         pub(crate) fn write_result(d: *const u8, l: usize);
+        pub(crate) fn return_data_size() -> usize;
         pub(crate) fn read_args(out: *mut u8);
         pub(crate) fn msg_sender(addr: *mut u8);
         pub(crate) fn contract_address(addr: *mut u8);
@@ -89,6 +90,10 @@ pub mod entry_host {
 
     pub(crate) unsafe fn write_result(d: *const u8, l: usize) {
         println!("{}", const_hex::encode(unsafe { from_raw_parts(d, l) }));
+    }
+
+    pub(crate) fn return_data_size() -> usize {
+        0
     }
 
     pub fn set_args(x: Vec<u8>) {
@@ -247,6 +252,8 @@ mod impls {
 
     pub(crate) unsafe fn write_result(_: *const u8, _: usize) {}
 
+    pub(crate) unsafe fn return_data_size() -> usize { 0 }
+
     pub(crate) unsafe fn read_args(_out: *mut u8) {}
 
     pub(crate) unsafe fn msg_sender(_: *mut u8) {}
@@ -310,6 +317,10 @@ pub fn write_result_word(s: &U) {
 
 pub fn write_result_bool(v: bool) {
     write_result_slice(&U::from(v).0)
+}
+
+pub fn return_data_size() -> usize {
+    unsafe { impls::return_data_size() }
 }
 
 pub use bobcat_cd::leftpad_addr;

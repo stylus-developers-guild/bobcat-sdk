@@ -16,6 +16,7 @@ pub use bobcat_cd::read_words;
 mod impls {
     #[link(wasm_import_module = "vm_hooks")]
     unsafe extern "C" {
+        pub(crate) fn account_balance(addr: *const u8, dest: *mut u8);
         #[allow(unused)]
         pub(crate) fn pay_for_memory_grow(pages: u16);
         pub(crate) fn write_result(d: *const u8, l: usize);
@@ -24,7 +25,7 @@ mod impls {
         pub(crate) fn contract_address(addr: *mut u8);
         pub(crate) fn msg_value(value: *mut u8);
         pub fn chainid() -> u64;
-        pub fn account_code_size(address: *const u8) -> usize;
+        pub(crate) fn account_code_size(address: *const u8) -> usize;
         pub(crate) fn account_code(
             address: *const u8,
             offset: usize,
@@ -33,6 +34,7 @@ mod impls {
         ) -> usize;
         pub(crate) fn account_codehash(address: *const u8, dest: *mut u8);
         pub(crate) fn block_timestamp() -> u64;
+        pub(crate) fn block_basefee(out: *mut u8);
     }
 }
 
@@ -50,6 +52,7 @@ pub mod entry_host {
     use bobcat_storage::keccak256;
 
     thread_local! {
+        static ACCOUNT_BALANCE: RefCell<HashMap<Address, U>> = RefCell::default();
         static ARGS: RefCell<Vec<u8>> = RefCell::default();
         static MSG_SENDER: RefCell<[u8; 20]> = RefCell::default();
         static CONTRACT_ADDRESS: RefCell<Address> = RefCell::default();
@@ -65,6 +68,20 @@ pub mod entry_host {
         0xa4, 0x70,
     ]);
 
+    pub(crate) unsafe fn account_balance(addr_: *const u8, out: *mut u8) {
+        ACCOUNT_BALANCE.with(|s| {
+            let mut addr = [0u8; 20];
+            unsafe {
+                copy_nonoverlapping(addr_, addr.as_mut_ptr(), 32);
+            }
+            let h = s.borrow();
+            let amt = h.get(&addr).unwrap_or(&U::ZERO);
+            unsafe {
+                copy_nonoverlapping(amt.as_ptr(), out, 32);
+            }
+        })
+    }
+
     #[allow(unused)]
     pub(crate) unsafe fn pay_for_memory_grow(_: u16) {}
 
@@ -74,6 +91,10 @@ pub mod entry_host {
 
     pub fn set_args(x: Vec<u8>) {
         ARGS.with(|s| *s.borrow_mut() = x)
+    }
+
+    pub fn args_len() -> usize {
+        ARGS.with(|s| s.borrow().len())
     }
 
     pub(crate) unsafe fn read_args(out: *mut u8) {
@@ -194,6 +215,8 @@ pub mod entry_host {
     pub(crate) unsafe fn block_timestamp() -> u64 {
         BLOCK_TIMESTAMP.with(|s| *s.borrow())
     }
+
+    pub(crate) unsafe fn block_basefee(out: *mut u8) {}
 }
 
 #[cfg(all(
@@ -207,6 +230,8 @@ pub use entry_host as impls;
     not(feature = "std")
 ))]
 mod impls {
+    pub(crate) fn account_balance(_: *const u8, _: *mut u8) {}
+
     #[allow(unused)]
     pub(crate) unsafe fn pay_for_memory_grow(_: u16) {}
 
@@ -224,17 +249,27 @@ mod impls {
         0
     }
 
-    pub fn account_code_size(_: *const u8) -> usize {
+    pub unsafe fn account_code_size(_: *const u8) -> usize {
         0
     }
 
-    pub(crate) unsafe fn account_code(_: *const u8, _: usize, _: usize, _: *mut u8) -> usize {}
+    pub(crate) unsafe fn account_code(_: *const u8, _: usize, _: usize, _: *mut u8) -> usize {
+        0
+    }
 
     pub(crate) unsafe fn account_codehash(_: *const u8, _: *mut u8) {}
 
     pub(crate) unsafe fn block_timestamp() -> u64 {
         0
     }
+
+    pub(crate) unsafe fn block_basefee(out: *mut u8) {}
+}
+
+pub fn balance(addr: Address) -> U {
+    let mut out = U::ZERO;
+    unsafe { impls::account_balance(addr.as_ptr(), out.as_mut_ptr()) }
+    out
 }
 
 #[unsafe(no_mangle)]
@@ -432,4 +467,10 @@ pub fn chain_id() -> u64 {
 
 pub fn block_timestamp() -> u64 {
     unsafe { impls::block_timestamp() }
+}
+
+pub fn block_basefee() -> U {
+    let mut out = U::ZERO;
+    unsafe { impls::block_basefee(out.as_mut_ptr()) }
+    out
 }

@@ -67,7 +67,7 @@ mod impls {
     }
 }
 
-fn create1_partial(code: &[u8], endowment: U) -> (Address, usize) {
+pub fn create1_partial(code: &[u8], endowment: U) -> (Address, usize) {
     let mut addr = [0u8; 20];
     let mut revert_len = 0;
     unsafe {
@@ -129,7 +129,7 @@ pub fn create1_vec(code: &[u8], endowment: U) -> (Address, Option<Vec<u8>>) {
     }
 }
 
-fn create2_partial(code: &[u8], endowment: U, salt: U) -> (Address, usize) {
+pub fn create2_partial(code: &[u8], endowment: U, salt: U) -> (Address, usize) {
     let mut addr = [0u8; 20];
     let mut revert_len = 0;
     unsafe {

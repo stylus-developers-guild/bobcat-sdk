@@ -218,6 +218,16 @@ pub fn panic_handler(_msg: &core::panic::PanicInfo) -> ! {
     core::arch::wasm32::unreachable()
 }
 
+#[cfg(all(target_arch = "riscv32", target_os = "unknown"))]
+#[cfg_attr(all(feature = "panic", not(feature = "std")), panic_handler)]
+pub fn panic_handler(_: &core::panic::PanicInfo) -> ! {
+    // TODO: this needs to be fleshed out
+    unsafe {
+        core::arch::asm!("ebreak");
+    }
+    loop {}
+}
+
 pub fn bump() {
     let p = SLOT_TRACING_COUNTER.as_ptr();
     // We assume the execution counter here is always less than u32,

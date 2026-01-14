@@ -9,6 +9,7 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [features]
 ed25519-dalek = ["dep:ed25519-dalek"]
+alloc = ["bobcat-call/alloc"]
 
 [dependencies]
 array-concat.workspace = true

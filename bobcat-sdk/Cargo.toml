@@ -40,7 +40,8 @@ alloc = [
 	"bobcat-call/alloc",
 	"bobcat-panic/alloc",
 	"bobcat-events/alloc",
-	"bobcat-maths/alloc"
+	"bobcat-maths/alloc",
+	"bobcat-precompiles/alloc"
 ]
 serde = ["bobcat-maths/serde"]
 borsh = ["bobcat-maths/borsh"]

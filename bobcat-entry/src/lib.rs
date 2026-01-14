@@ -475,16 +475,20 @@ pub fn code_slice<const CAP: usize>(
 }
 
 #[cfg(feature = "alloc")]
-pub fn code_vec(addr: Address, offset: usize) -> Vec<u8> {
-    let size = code_size(addr);
+pub fn code_vec_size(addr: Address, offset: usize, size: usize) -> Vec<u8> {
     let mut b = Vec::with_capacity(size);
     let rd = unsafe { impls::account_code(addr.as_ptr(), offset, size, b.as_mut_ptr()) };
     unsafe { b.set_len(rd) };
     b
 }
 
-pub fn code_hash(addr: Address) -> [u8; 32] {
-    let mut b = [0u8; 32];
+#[cfg(feature = "alloc")]
+pub fn code_vec(addr: Address, offset: usize) -> Vec<u8> {
+    code_vec_size(addr, offset, code_size(addr))
+}
+
+pub fn code_hash(addr: Address) -> U {
+    let mut b = U::ZERO;
     unsafe { impls::account_codehash(addr.as_ptr(), b.as_mut_ptr()) };
     b
 }

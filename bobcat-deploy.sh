@@ -75,4 +75,4 @@ hash="$(\
 
 2>&1 echo activated $contract_addr with hash $hash
 
-echo $hash
+echo "$BC_CONTRACT\n$hash"

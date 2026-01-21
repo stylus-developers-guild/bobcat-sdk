@@ -56,7 +56,7 @@ macro_rules! BOBCAT_FEATURES {
         #[allow(unused)]
         pub fn feature_pack() -> $crate::U {
             let mut r = $crate::U::default();
-            let mut i = 0;
+            let mut i = 1;
             $(
                 $crate::paste! {
                     if [<feature_is_ $feature_name:lower>]() {
@@ -262,9 +262,9 @@ mod test_1 {
         assert!(50_000 >= else_count || 49_900 <= else_count);
         feature_set_test123(true);
         feature_set_swag(true);
-        assert_eq!(U::from(3u32), feature_pack());
+        assert_eq!(U::from(6u32), feature_pack());
         feature_set_swag(false);
-        assert_eq!(U::ONE, feature_pack());
+        assert_eq!(U::from(2u32), feature_pack());
         storage_clear();
     }
 }
@@ -554,7 +554,7 @@ mod test_2 {
         feature_set_f254(true);
         assert_eq!(
             U::from_str(
-                "57896044618658097711785492504343953926634992332820282019728792003956564819967"
+                "57896044618658097711785492504343953926634992332820282019728792003956564819966"
             )
             .unwrap(),
             feature_pack()

@@ -92,7 +92,7 @@ pub mod entry_host {
         println!("{}", const_hex::encode(unsafe { from_raw_parts(d, l) }));
     }
 
-    pub(crate) fn return_data_size() -> usize {
+    pub(crate) unsafe fn return_data_size() -> usize {
         0
     }
 
@@ -223,13 +223,13 @@ pub mod entry_host {
         BLOCK_TIMESTAMP.with(|s| *s.borrow())
     }
 
-    pub(crate) unsafe fn block_basefee(out: *mut u8) {}
+    pub(crate) unsafe fn block_basefee(_: *mut u8) {}
 
     pub(crate) unsafe fn evm_gas_left() -> u64 {
         0
     }
 
-    pub(crate) fn evm_ink_left() -> u64 {
+    pub(crate) unsafe fn evm_ink_left() -> u64 {
         0
     }
 }

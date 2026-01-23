@@ -8,19 +8,7 @@ use core::fmt::{Result as FmtResult, Write};
 
 use paste::paste;
 
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
 use bobcat_host as impls;
-
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
-mod impls {
-    pub unsafe fn transient_store_bytes32(_: *const u8, _: *const u8) {}
-    pub unsafe fn transient_load_bytes32(_: *const u8, _: *const u8) {}
-}
-
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
-fn write_result_slice(s: &[u8]) {
-    unsafe { impls::write_result(s.as_ptr(), s.len()) }
-}
 
 //Panic(uint256)
 pub const PANIC_PREAMBLE_WORD: [u8; 32 + 4] = match const_hex::const_decode_to_array::<{ 32 + 4 }>(

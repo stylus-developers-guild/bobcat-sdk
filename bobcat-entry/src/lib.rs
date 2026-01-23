@@ -384,7 +384,11 @@ macro_rules! write_result_exit_call {
     ($ident:expr) => {{
         let (rc, l, v) = $ident;
         $crate::write_result_slice(&v[..l]);
-        if rc { 0 } else { 1 }
+        if rc {
+            0
+        } else {
+            1
+        }
     }};
 }
 
@@ -393,6 +397,11 @@ pub fn read_args<const CAP: usize>(len: usize) -> ([u8; CAP], usize) {
     let mut b = [0u8; CAP];
     unsafe { impls::read_args(b.as_mut_ptr()) };
     (b, len)
+}
+
+#[cfg(all(target_arch = "riscv32", target_os = "unknown"))]
+pub fn args_len() -> usize {
+    unsafe { impls::args_len() }
 }
 
 #[macro_export]

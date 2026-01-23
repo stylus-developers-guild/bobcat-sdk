@@ -59,11 +59,8 @@ use wasm_bindgen::{
     describe::WasmDescribe,
 };
 
-#[cfg(any(
-    feature = "alloy-enabled",
-    all(not(target_arch = "wasm32"), not(target_arch = "riscv32"))
-))]
-mod alloy {
+#[cfg(feature = "alloy-enabled")]
+mod impls {
     use super::copy_nonoverlapping;
 
     pub(crate) use alloy_primitives::U256;
@@ -115,10 +112,7 @@ mod alloy {
     }
 }
 
-#[cfg(any(
-    feature = "alloy-enabled",
-    all(not(target_arch = "wasm32"), not(target_arch = "riscv32"))
-))]
+#[cfg(feature = "alloy-enabled")]
 use alloy::*;
 
 #[derive(Copy, Clone, PartialEq, Hash)]

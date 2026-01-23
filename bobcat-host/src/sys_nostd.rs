@@ -44,3 +44,10 @@ pub unsafe fn transient_store_bytes32(_: *const u8, _: *const u8) {}
 pub unsafe fn storage_flush_cache(_: bool) {}
 
 pub fn log_txt(_: *const u8, _: usize) {}
+
+unsafe extern "C" {
+    pub fn math_div(x: *mut u8, y: *const u8);
+    pub fn math_mod(x: *mut u8, y: *const u8);
+    pub fn math_add_mod(a: *mut u8, b: *const u8, c: *const u8);
+    pub fn math_mul_mod(a: *mut u8, b: *const u8, c: *const u8);
+}

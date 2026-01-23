@@ -180,3 +180,12 @@ pub unsafe fn delegate_call_contract(
 pub unsafe fn read_return_data(_: *mut u8, _: usize, _: usize) -> usize {
     0
 }
+
+// We let the user decide how they want to provide these symbols:
+
+unsafe extern "C" {
+    pub fn math_div(x: *mut u8, y: *const u8);
+    pub fn math_mod(x: *mut u8, y: *const u8);
+    pub fn math_add_mod(a: *mut u8, b: *const u8, c: *const u8);
+    pub fn math_mul_mod(a: *mut u8, b: *const u8, c: *const u8);
+}

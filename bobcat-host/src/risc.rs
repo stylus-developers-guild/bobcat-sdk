@@ -49,6 +49,7 @@ pub enum Ecall {
     MathMod = 40,
     MathAddMod = 41,
     MathMulMod = 42,
+    ExitEarly = 43
 }
 
 pub unsafe fn log_txt(ptr: *const u8, len: usize) {
@@ -642,4 +643,16 @@ pub unsafe fn math_mul_mod(x: *mut u8, y: *const u8, z: *const u8) {
             options(nostack)
         );
     }
+}
+
+pub unsafe fn exit_early(code: i32) -> ! {
+    unsafe {
+        asm!(
+            "ecall",
+            in("a7") Ecall::ExitEarly as usize,
+            in("a0") code,
+            options(nostack)
+        );
+    }
+    loop {}
 }

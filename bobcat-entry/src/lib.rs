@@ -239,3 +239,7 @@ pub fn evm_gas_left() -> u64 {
 pub fn evm_ink_left() -> u64 {
     unsafe { host::evm_ink_left() }
 }
+
+pub unsafe fn exit_early(code: usize) {
+    unsafe { host::exit_early(code as i32) }
+}

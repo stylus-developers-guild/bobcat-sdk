@@ -97,3 +97,7 @@ pub unsafe fn evm_gas_left() -> u64 {
 pub unsafe fn evm_ink_left() -> u64 {
     0
 }
+
+pub unsafe fn exit_early(code: i32) -> ! {
+    panic!("exit_early called: {code}");
+}

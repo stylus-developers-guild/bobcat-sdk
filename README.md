@@ -95,8 +95,8 @@ choose the lighter forms.
 12. Code verification using a bobcat-build script that adds a custom section with
 information on the repo and the hash.
 
-13. Support for riscv32im using a custom risc-runner to run code optionally in a sandboxed
-syscall jail in the program's execution space with ELF.
+13. Support for [Markov Geist's on-chain riscv32im `risc-runner`](https://code.markovgeist.org) that
+can run programs in a syscall pledge(2)-style jail.
 
 ## Non-goals
 

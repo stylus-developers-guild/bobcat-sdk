@@ -40,7 +40,7 @@ use alloc::boxed::Box;
 
 type Address = [u8; 20];
 
-#[allow(unused)]
+#[cfg(not(feature = "alloy-enabled"))]
 use bobcat_host::*;
 
 #[cfg(feature = "ruint-enabled")]

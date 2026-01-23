@@ -1,6 +1,3 @@
-// This risc code doesn't use the coprocessor-extended functionality for
-// EVM operations.
-
 use core::{arch::asm, prelude::rust_2024::derive};
 
 #[derive(Clone, Copy, PartialEq, Eq)]

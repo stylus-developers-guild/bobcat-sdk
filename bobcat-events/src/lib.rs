@@ -22,9 +22,7 @@ mod impls {
 }
 
 pub fn emit_log(data: &[u8], topics: usize) {
-    unsafe {
-        impls::emit_log(data.as_ptr(), data.len(), topics)
-    }
+    unsafe { impls::emit_log(data.as_ptr(), data.len(), topics) }
 }
 
 // ShadowTable that's intended for the 32 wasm machine to do shadow event

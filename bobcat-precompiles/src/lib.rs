@@ -7,5 +7,5 @@ mod ed25519;
 extern crate alloc;
 
 pub mod ethereum;
-pub mod superposition;
 pub mod markovgeist;
+pub mod superposition;

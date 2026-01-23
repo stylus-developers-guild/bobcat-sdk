@@ -226,7 +226,9 @@ mod impls {
 
     pub(crate) unsafe fn write_result(_: *const u8, _: usize) {}
 
-    pub(crate) unsafe fn return_data_size() -> usize { 0 }
+    pub(crate) unsafe fn return_data_size() -> usize {
+        0
+    }
 
     pub(crate) unsafe fn read_args(_out: *mut u8) {}
 
@@ -382,11 +384,7 @@ macro_rules! write_result_exit_call {
     ($ident:expr) => {{
         let (rc, l, v) = $ident;
         $crate::write_result_slice(&v[..l]);
-        if rc {
-            0
-        } else {
-            1
-        }
+        if rc { 0 } else { 1 }
     }};
 }
 

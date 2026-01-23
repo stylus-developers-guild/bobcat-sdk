@@ -1,6 +1,6 @@
 use bobcat_maths::U;
 
-use bobcat_cd::{leftpad_u8, leftpad_addr};
+use bobcat_cd::{leftpad_addr, leftpad_u8};
 
 use array_concat::concat_arrays;
 

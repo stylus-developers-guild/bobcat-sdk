@@ -6,8 +6,8 @@ use bobcat_maths::U;
 use ed25519_dalek::{Signature, VerifyingKey};
 
 use sha2::digest::{
-    generic_array::{typenum::U64, GenericArray},
     Digest, FixedOutput, FixedOutputReset, OutputSizeUser, Reset, Update,
+    generic_array::{GenericArray, typenum::U64},
 };
 
 #[derive(Debug, Clone, Copy)]

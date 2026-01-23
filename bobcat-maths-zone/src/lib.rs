@@ -973,7 +973,6 @@ mod tests {
         );
     }
 
-
     #[test]
     fn rejects_negative_results() {
         let err = evaluate_expression("-1").unwrap_err();

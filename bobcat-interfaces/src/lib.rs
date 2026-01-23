@@ -2,9 +2,9 @@
 
 mod sels;
 
+pub mod eip1967;
 pub mod eip20;
 pub mod eip2612;
-pub mod eip1967;
 
 pub mod camelotv3_swap_router;
 

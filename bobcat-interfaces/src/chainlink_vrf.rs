@@ -1,4 +1,4 @@
-use bobcat_cd::{leftpad_u16, leftpad_u32, leftpad_u8, leftpad_usize};
+use bobcat_cd::{leftpad_u8, leftpad_u16, leftpad_u32, leftpad_usize};
 
 use bobcat_maths::U;
 

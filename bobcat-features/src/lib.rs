@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use bobcat_storage::{
-    const_keccak256_two_off_curve, keccak256, storage_load, storage_store, U,
+    U, const_keccak256_two_off_curve, keccak256, storage_load, storage_store,
 };
 
 pub use bobcat_entry::block_timestamp;
@@ -230,7 +230,7 @@ macro_rules! FEATURE_PACK {
 
 #[cfg(all(test, feature = "std"))]
 mod test_1 {
-    use bobcat_entry::{entry_host::set_block_timestamp, U};
+    use bobcat_entry::{U, entry_host::set_block_timestamp};
 
     use bobcat_host::storage_clear;
 

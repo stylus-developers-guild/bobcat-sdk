@@ -372,6 +372,34 @@ pub fn checked_sub(x: &U, y: &U) -> U {
     panic_on_err_overflow!(checked_sub_opt(x, y), "Checked sub overflow: {x}, y: {y}")
 }
 
+pub const fn wrapping_mul_const_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
+    let mut r = [0u8; C];
+    let mut i = 0;
+    while i < C {
+        let mut c = 0u16;
+        let mut j = 0;
+        while j < C {
+            let i_r = i + j;
+            if i_r >= C {
+                break;
+            }
+            let r_idx = C - 1 - i_r;
+            let xi = x[C - 1 - i] as u16;
+            let yj = y[C - 1 - j] as u16;
+            let prod = xi * yj + r[r_idx] as u16 + c;
+            r[r_idx] = prod as u8;
+            c = prod >> 8;
+            j += 1;
+        }
+        i += 1;
+    }
+    r
+}
+
+pub const fn wrapping_mul_const(x: &U, y: &U) -> U {
+    U(wrapping_mul_const_b(&x.0, &y.0))
+}
+
 pub const fn wrapping_mul_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
     let mut r = [0u8; C];
     let mut i = 0;
@@ -391,16 +419,12 @@ pub const fn wrapping_mul_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C]
             c = prod >> 8;
             j += 1;
         }
-        if i + j < C {
-            let idx = 31 - (i + j);
-            r[idx] = r[idx] + c as u8;
-        }
         i += 1;
     }
     r
 }
 
-pub const fn wrapping_mul(x: &U, y: &U) -> U {
+pub fn wrapping_mul(x: &U, y: &U) -> U {
     U(wrapping_mul_b(&x.0, &y.0))
 }
 

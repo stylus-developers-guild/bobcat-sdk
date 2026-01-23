@@ -1,3 +1,3 @@
 #!/bin/sh
 
-cargo test --features std,alloy-enabled,proptest-enabled $@
+cargo test --features std,proptest $@

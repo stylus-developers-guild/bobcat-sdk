@@ -7,9 +7,11 @@ files="\
 	bobcat-sdk-examples-002.wasm \
 	bobcat-sdk-examples-003.wasm"
 
+in_err=0
+
 err() {
 	>&2 echo "$1 size regression (expected $2, is $3)"
-	exit 1
+	in_err=1
 }
 
 check_size() {
@@ -26,3 +28,5 @@ for n in $files; do
 		bobcat-sdk-examples-003.wasm) check_size $f 4475 ;;
 	esac
 done
+
+exit $in_err

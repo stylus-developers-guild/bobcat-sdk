@@ -1,10 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(all(target_arch = "riscv32", target_os = "none"))]
-mod risc;
+pub mod risc;
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-mod wasm;
+pub mod wasm;
 
 #[cfg(all(target_arch = "riscv32", target_os = "none"))]
 pub use risc::*;
@@ -19,7 +19,7 @@ pub use wasm::*;
         all(target_arch = "riscv32", target_os = "none")
     ))
 ))]
-mod sys_nostd;
+pub mod sys_nostd;
 
 #[cfg(all(
     not(feature = "std"),
@@ -37,7 +37,7 @@ pub use sys_nostd::*;
         all(target_arch = "riscv32", target_os = "none")
     ))
 ))]
-mod sys_std;
+pub mod sys_std;
 
 #[cfg(all(
     feature = "std",

@@ -12,14 +12,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-mod impls {
-    #[link(wasm_import_module = "vm_hooks")]
-    #[allow(unused)]
-    unsafe extern "C" {
-        pub fn emit_log(data: *const u8, len: usize, topics: usize);
-        pub(crate) fn write_result(ptr: *const u8, len: usize);
-    }
-}
+use bobcat_host as impls;
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 #[allow(unused)]

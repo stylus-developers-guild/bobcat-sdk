@@ -10,102 +10,33 @@ use bobcat_maths::U;
 
 use bobcat_entry::code_hash;
 
+use bobcat_host as host;
+
+use host::{
+    call_contract as call, delegate_call_contract as delegate_call,
+    static_call_contract as static_call,
+};
+
 #[allow(unused)]
 use bobcat_panic::panic_on_err_bad_decoding_bool;
 
 type Address = [u8; 20];
 
-#[cfg(target_arch = "wasm32")]
-mod impls {
-    #[link(wasm_import_module = "vm_hooks")]
-    unsafe extern "C" {
-        pub(crate) fn call_contract(
-            contract: *const u8,
-            calldata: *const u8,
-            calldata_len: usize,
-            value: *const u8,
-            gas: u64,
-            return_data_len: *mut usize,
-        ) -> u8;
-
-        pub(crate) fn static_call_contract(
-            contract: *const u8,
-            calldata: *const u8,
-            calldata_len: usize,
-            gas: u64,
-            return_data_len: *mut usize,
-        ) -> u8;
-
-        pub(crate) fn delegate_call_contract(
-            contract: *const u8,
-            calldata: *const u8,
-            calldata_len: usize,
-            gas: u64,
-            return_data_len: *mut usize,
-        ) -> u8;
-
-        pub(crate) fn read_return_data(dest: *mut u8, offset: usize, size: usize) -> usize;
-    }
-}
-
 pub fn read_return_data_slice<const CAP: usize>(offset: usize, size: usize) -> ([u8; CAP], usize) {
     let mut b = [0u8; CAP];
-    let rd = unsafe { impls::read_return_data(b.as_mut_ptr(), offset, size) };
+    let rd = unsafe { host::read_return_data(b.as_mut_ptr(), offset, size) };
     (b, rd)
 }
 
 #[cfg(feature = "alloc")]
 pub fn read_return_data_vec(offset: usize, size: usize) -> Vec<u8> {
     let mut b = Vec::with_capacity(size);
-    let rd = unsafe { impls::read_return_data(b.as_mut_ptr(), offset, size) };
+    let rd = unsafe { host::read_return_data(b.as_mut_ptr(), offset, size) };
     unsafe {
         b.set_len(rd);
     }
     b
 }
-
-#[cfg(not(target_arch = "wasm32"))]
-mod impls {
-    pub(crate) unsafe fn call_contract(
-        _contract: *const u8,
-        _calldata: *const u8,
-        _calldata_len: usize,
-        _value: *const u8,
-        _gas: u64,
-        _return_data_len: *mut usize,
-    ) -> u8 {
-        0
-    }
-
-    pub(crate) unsafe fn static_call_contract(
-        _contract: *const u8,
-        _calldata: *const u8,
-        _calldata_len: usize,
-        _gas: u64,
-        _return_data_len: *mut usize,
-    ) -> u8 {
-        0
-    }
-
-    pub(crate) unsafe fn delegate_call_contract(
-        _contract: *const u8,
-        _calldata: *const u8,
-        _calldata_len: usize,
-        _gas: u64,
-        _return_data_len: *mut usize,
-    ) -> u8 {
-        0
-    }
-
-    pub(crate) unsafe fn read_return_data(_: *mut u8, _: usize, _: usize) -> usize {
-        0
-    }
-}
-
-use impls::{
-    call_contract as call, delegate_call_contract as delegate_call,
-    static_call_contract as static_call,
-};
 
 pub fn addr_has_code(addr: Address) -> bool {
     // It costs to use the length instead of the codehash, so we do it this
@@ -203,7 +134,7 @@ macro_rules! generate_call_variants {
                     DATA_CAP >= size,
                     "not enough slice capacity"
                 );
-                unsafe { impls::read_return_data(b.as_mut_ptr(), offset, DATA_CAP) };
+                unsafe { host::read_return_data(b.as_mut_ptr(), offset, DATA_CAP) };
                 (rc, rd_len, b)
             }
 
@@ -242,7 +173,7 @@ macro_rules! generate_call_variants {
                     "not enough _slice capacity"
                 );
                 let mut b = [0u8; DATA_CAP];
-                unsafe { impls::read_return_data(b.as_mut_ptr(), offset, DATA_CAP) };
+                unsafe { host::read_return_data(b.as_mut_ptr(), offset, DATA_CAP) };
                 (rc, size, b)
             }
 
@@ -366,7 +297,7 @@ macro_rules! generate_call_variants {
                     match [<$base_fn _partial>](contract, calldata, $($value_param,)? gas) {
                         (true, 32) => {
                             let mut b = [0u8; 1];
-                            unsafe { impls::read_return_data(b.as_mut_ptr(), 31, 1) };
+                            unsafe { host::read_return_data(b.as_mut_ptr(), 31, 1) };
                             b[0] == 1
                         }
                         (true, 0) => true,
@@ -412,7 +343,7 @@ macro_rules! generate_call_variants {
                 let size = rd_len - offset;
                 let mut b = Vec::with_capacity(size);
                 unsafe { b.set_len(size) }
-                unsafe { impls::read_return_data(b.as_mut_ptr(), offset, size) };
+                unsafe { host::read_return_data(b.as_mut_ptr(), offset, size) };
                 (rc, b)
             }
 
@@ -506,13 +437,13 @@ macro_rules! generate_call_variants {
                     panic_on_err_bad_decoding_bool!(rd_len == 32, "not return for bool word");
                     let mut b = [0u8; 1];
                     unsafe {
-                        impls::read_return_data(b.as_mut_ptr(), 31, 1);
+                        host::read_return_data(b.as_mut_ptr(), 31, 1);
                     }
                     (b[0] == 1, None)
                 } else {
                     let mut b = Vec::with_capacity(rd_len);
                     unsafe {
-                        impls::read_return_data(b.as_mut_ptr(), 0, rd_len);
+                        host::read_return_data(b.as_mut_ptr(), 0, rd_len);
                         b.set_len(rd_len);
                     }
                     (false, Some(b))
@@ -538,7 +469,7 @@ macro_rules! generate_call_variants {
                     (true, 32) => {
                         let mut b = [0u8; 1];
                         unsafe {
-                            impls::read_return_data(b.as_mut_ptr(), 31, 1);
+                            host::read_return_data(b.as_mut_ptr(), 31, 1);
                         }
                         (b[0] == 1, None)
                     }
@@ -549,7 +480,7 @@ macro_rules! generate_call_variants {
                     (false, rd_len) => {
                         let mut b = Vec::with_capacity(rd_len);
                         unsafe {
-                            impls::read_return_data(b.as_mut_ptr(), 0, rd_len);
+                            host::read_return_data(b.as_mut_ptr(), 0, rd_len);
                             b.set_len(rd_len);
                         }
                         (false, Some(b))
@@ -571,7 +502,7 @@ macro_rules! generate_call_variants {
                 } else {
                     let mut b = Vec::with_capacity(rd_len);
                     unsafe {
-                        impls::read_return_data(b.as_mut_ptr(), 0, rd_len);
+                        host::read_return_data(b.as_mut_ptr(), 0, rd_len);
                         b.set_len(rd_len);
                     }
                     (false, Some(b))

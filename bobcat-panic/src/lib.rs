@@ -9,23 +9,7 @@ use core::fmt::{Result as FmtResult, Write};
 use paste::paste;
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-mod impls {
-    #[link(wasm_import_module = "console")]
-    #[cfg(feature = "console")]
-    unsafe extern "C" {
-        pub(crate) fn log_txt(ptr: *const u8, len: usize);
-    }
-
-    #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-    #[link(wasm_import_module = "vm_hooks")]
-    #[allow(unused)]
-    unsafe extern "C" {
-        pub(crate) fn exit_early(code: i32) -> !;
-        pub(crate) fn write_result(d: *const u8, l: usize);
-        pub(crate) fn transient_store_bytes32(key: *const u8, value: *const u8);
-        pub(crate) fn transient_load_bytes32(key: *const u8, value: *const u8);
-    }
-}
+use bobcat_host as impls;
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 mod impls {

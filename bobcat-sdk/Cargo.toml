@@ -25,6 +25,7 @@ bobcat-events = { version = "0.7.15", path = "../bobcat-events" }
 bobcat-precompiles = { version = "0.7.15", path = "../bobcat-precompiles" }
 bobcat-maths-zone = { version = "0.7.15", path = "../bobcat-maths-zone" }
 bobcat-features = { version = "0.7.15", path = "../bobcat-features" }
+bobcat-host = { version = "0.7.15", path = "../bobcat-host" }
 
 [features]
 std = [
@@ -45,7 +46,7 @@ alloc = [
 ]
 serde = ["bobcat-maths/serde"]
 borsh = ["bobcat-maths/borsh"]
-console = ["dep:bobcat-console", "bobcat-panic/console"]
+console = ["dep:bobcat-console", "bobcat-panic/console", "bobcat-host/console"]
 arbitrary = ["bobcat-maths/arbitrary"]
 proptest = ["bobcat-maths/proptest", "bobcat-storage/proptest"]
 alloy-enabled = [

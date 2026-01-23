@@ -18,6 +18,7 @@ alloy-enabled = ["bobcat-maths/alloy-enabled"]
 
 [dependencies]
 bobcat-cd = { version = "0.7.15", path = "../bobcat-cd" }
+bobcat-host = { version = "0.7.15", path = "../bobcat-host" }
 bobcat-maths = { version = "0.7.15", path = "../bobcat-maths" }
 bobcat-storage = { version = "0.7.15", path = "../bobcat-storage" }
 const-hex = { workspace = true }

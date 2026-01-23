@@ -26,6 +26,7 @@ serde = { version = ">=1.0.0", default-features = false, features = ["derive"], 
 bobcat-panic = { version = "0.7.15", path = "../bobcat-panic" }
 clap = { version = ">=4.0.0", optional = true }
 wasm-bindgen = { version = ">=0.2.0", optional = true, default-features = false }
+bobcat-host = { version = "0.7.15", path = "../bobcat-host" }
 
 [dev-dependencies]
 proptest = { workspace = true }

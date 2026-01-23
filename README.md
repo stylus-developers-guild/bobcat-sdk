@@ -92,7 +92,11 @@ values and simple booleans when that is helpful. Result and Option increase code
 Option having a smaller impact), so developers focused on reducing their codesize can
 choose the lighter forms.
 
-12. Code verification.
+12. Code verification using a bobcat-build script that adds a custom section with
+information on the repo and the hash.
+
+13. Support for riscv32im using a custom risc-runner to run code optionally in a sandboxed
+syscall jail in the program's execution space with ELF.
 
 ## Non-goals
 
@@ -104,9 +108,7 @@ testing instead. These functions will be provided, but you cannot set them. Chec
 
 3. Entrypoint code generation. Function selection is okay.
 
-4. Any support for the host environment outside wasm.
-
-5. Storage of integers other than U256. Conversion is okay.
+4. Storage of integers other than U256. Conversion is okay.
 
 6. Visibility setting on the functions.
 
@@ -126,19 +128,16 @@ interfaces.
 ## Maths
 
 With wasm, for codesize, it is best to use either 32-bit numbers or go all-in with the
-entire 256-bit native EVM number. The machine is natively 32-bit, so operations involving
-those values do not require additional code generation. Like the wasm machine, the Stylus
-machine provides operations for 256-bit math that we can use to keep codesize down. A good
-reason to use other integer types is to keep calldata low when you encode with a different
-format.
+entire 256-bit native EVM number. The machine is natively 32-bit (though it has operations
+for 64 bit numbers), so operations involving those values do not require additional code
+generation. T Stylus machine provides operations for 256-bit math that we can use to keep
+codesize down. A good reason to use other integer types is to keep calldata low when you
+encode with a different format.
 
 The native integer types in this SDK use Stylus functions for math whenever possible,
 keeping codesize (and gas, we imagine) very low. Some functions we use frequently in web3
 are also included, such as `mul_div`, `mul_div_round_up`, and several widening operations.
 These functions use the native VM operations for minimal codesize impact.
-
-We do not support anything other than the native type for storage access, except `[u8; 20]`
-for addresses. This encourages thoughtful use of storage and types.
 
 ## Constant functions
 
@@ -185,6 +184,14 @@ make my-new-project.wasm
 
 The script creates a ready-to-build workspace with sensible defaults, a deploy script, and
 a `Makefile` that produces the optimized wasm artifact.
+
+## Deployment with `bobcat-deploy`
+
+Use `bobcat-deploy` to do a simple deploy:
+
+```sh
+./bobcat-deploy <endpoint> <private key> <wasm file>
+```
 
 ## Credits
 

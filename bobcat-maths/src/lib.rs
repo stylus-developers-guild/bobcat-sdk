@@ -40,14 +40,8 @@ use alloc::boxed::Box;
 
 type Address = [u8; 20];
 
-#[link(wasm_import_module = "vm_hooks")]
 #[cfg(not(feature = "alloy-enabled"))]
-unsafe extern "C" {
-    fn math_div(x: *mut u8, y: *const u8);
-    fn math_mod(x: *mut u8, y: *const u8);
-    fn math_add_mod(a: *mut u8, b: *const u8, c: *const u8);
-    fn math_mul_mod(a: *mut u8, b: *const u8, c: *const u8);
-}
+use bobcat_host::*;
 
 #[cfg(feature = "ruint-enabled")]
 use alloy_primitives::{ruint, U256};

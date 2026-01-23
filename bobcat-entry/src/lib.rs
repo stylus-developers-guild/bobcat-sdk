@@ -13,33 +13,7 @@ type Address = [u8; 20];
 pub use bobcat_cd::read_words;
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-mod impls {
-    #[link(wasm_import_module = "vm_hooks")]
-    unsafe extern "C" {
-        pub(crate) fn account_balance(addr: *const u8, dest: *mut u8);
-        #[allow(unused)]
-        pub(crate) fn pay_for_memory_grow(pages: u16);
-        pub(crate) fn write_result(d: *const u8, l: usize);
-        pub(crate) fn return_data_size() -> usize;
-        pub(crate) fn read_args(out: *mut u8);
-        pub(crate) fn msg_sender(addr: *mut u8);
-        pub(crate) fn contract_address(addr: *mut u8);
-        pub(crate) fn msg_value(value: *mut u8);
-        pub fn chainid() -> u64;
-        pub(crate) fn account_code_size(address: *const u8) -> usize;
-        pub(crate) fn account_code(
-            address: *const u8,
-            offset: usize,
-            size: usize,
-            dest: *mut u8,
-        ) -> usize;
-        pub(crate) fn account_codehash(address: *const u8, dest: *mut u8);
-        pub(crate) fn block_timestamp() -> u64;
-        pub(crate) fn block_basefee(out: *mut u8);
-        pub(crate) fn evm_gas_left() -> u64;
-        pub(crate) fn evm_ink_left() -> u64;
-    }
-}
+use bobcat_host as impls;
 
 #[cfg(all(
     not(all(target_family = "wasm", target_os = "unknown")),
@@ -245,7 +219,7 @@ pub use entry_host as impls;
     not(feature = "std")
 ))]
 mod impls {
-    pub(crate) fn account_balance(_: *const u8, _: *mut u8) {}
+    pub(crate) unsafe fn account_balance(_: *const u8, _: *mut u8) {}
 
     #[allow(unused)]
     pub(crate) unsafe fn pay_for_memory_grow(_: u16) {}
@@ -280,12 +254,12 @@ mod impls {
         0
     }
 
-    pub(crate) unsafe fn block_basefee(out: *mut u8) {}
+    pub(crate) unsafe fn block_basefee(_: *mut u8) {}
 
     pub(crate) unsafe fn evm_gas_left() -> u64 {
         0
     }
-    pub(crate) fn evm_ink_left() -> u64 {
+    pub(crate) unsafe fn evm_ink_left() -> u64 {
         0
     }
 }

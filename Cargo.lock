@@ -457,6 +457,7 @@ name = "bobcat-call"
 version = "0.7.15"
 dependencies = [
  "bobcat-entry",
+ "bobcat-host",
  "bobcat-maths",
  "bobcat-panic",
  "paste",
@@ -476,12 +477,16 @@ dependencies = [
 [[package]]
 name = "bobcat-console"
 version = "0.7.15"
+dependencies = [
+ "bobcat-host",
+]
 
 [[package]]
 name = "bobcat-create"
 version = "0.7.15"
 dependencies = [
  "array-concat",
+ "bobcat-host",
  "bobcat-maths",
  "bobcat-proxy",
  "bobcat-storage",
@@ -492,6 +497,7 @@ name = "bobcat-entry"
 version = "0.7.15"
 dependencies = [
  "bobcat-cd",
+ "bobcat-host",
  "bobcat-maths",
  "bobcat-storage",
  "const-hex",
@@ -502,6 +508,7 @@ name = "bobcat-events"
 version = "0.7.15"
 dependencies = [
  "array-concat",
+ "bobcat-host",
  "bobcat-maths",
 ]
 
@@ -514,6 +521,13 @@ dependencies = [
  "bobcat-interfaces",
  "bobcat-storage",
  "paste",
+]
+
+[[package]]
+name = "bobcat-host"
+version = "0.7.15"
+dependencies = [
+ "num_enum",
 ]
 
 [[package]]
@@ -538,6 +552,7 @@ dependencies = [
  "alloy-primitives",
  "arbitrary",
  "array-concat",
+ "bobcat-host",
  "bobcat-panic",
  "borsh",
  "cfg-if",
@@ -567,6 +582,7 @@ dependencies = [
 name = "bobcat-panic"
 version = "0.7.15"
 dependencies = [
+ "bobcat-host",
  "const-hex",
  "paste",
  "proptest",
@@ -606,6 +622,7 @@ dependencies = [
  "bobcat-entry",
  "bobcat-events",
  "bobcat-features",
+ "bobcat-host",
  "bobcat-interfaces",
  "bobcat-maths",
  "bobcat-maths-zone",
@@ -620,6 +637,7 @@ name = "bobcat-storage"
 version = "0.7.15"
 dependencies = [
  "array-concat",
+ "bobcat-host",
  "bobcat-maths",
  "const-hex",
  "keccak-const",
@@ -1346,6 +1364,27 @@ checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
  "libm",
+]
+
+[[package]]
+name = "num_enum"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1207a7e20ad57b847bbddc6776b968420d38292bbfe2089accff5e19e82454c"
+dependencies = [
+ "num_enum_derive",
+ "rustversion",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.108",
 ]
 
 [[package]]

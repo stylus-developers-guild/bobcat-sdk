@@ -16,6 +16,7 @@ keccak-const = "0.2.0"
 proptest = { workspace = true, optional = true }
 array-concat = { workspace = true }
 paste.workspace = true
+bobcat-host = { version = "0.7.15", path = "../bobcat-host" }
 
 [dev-dependencies]
 const-hex = { workspace = true }

@@ -15,29 +15,7 @@ type Address = [u8; 20];
 use array_concat::concat_arrays;
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-mod impls {
-    #[link(wasm_import_module = "vm_hooks")]
-    unsafe extern "C" {
-        pub(crate) fn create1(
-            code: *const u8,
-            code_len: usize,
-            endowment: *const u8,
-            contract: *mut u8,
-            revert_data_len: *mut usize,
-        );
-
-        pub(crate) fn create2(
-            code: *const u8,
-            code_len: usize,
-            endowment: *const u8,
-            salt: *const u8,
-            contract: *mut u8,
-            revert_data_len: *mut usize,
-        );
-
-        pub(crate) fn read_return_data(dest: *mut u8, offset: usize, size: usize) -> usize;
-    }
-}
+use bobcat_host as impls;
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 mod impls {

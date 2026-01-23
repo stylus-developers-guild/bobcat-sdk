@@ -1,0 +1,12 @@
+[package]
+name = "bobcat-host"
+version = "0.7.15"
+edition = "2024"
+
+[dependencies]
+num_enum = { version = "0.7.5", default-features = false }
+
+[features]
+std = []
+mutex = ["std"]
+console = []

@@ -19,6 +19,7 @@ msg-on-sdk-err = ["bobcat-panic/msg-on-sdk-err"]
 
 [dependencies]
 bobcat-entry = { version = "0.7.15", path = "../bobcat-entry" }
+bobcat-host = { version = "0.7.15", path = "../bobcat-host" }
 bobcat-maths = { version = "0.7.15", path = "../bobcat-maths" }
 bobcat-panic = { version = "0.7.15", path = "../bobcat-panic" }
 paste.workspace = true

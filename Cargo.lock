@@ -518,6 +518,7 @@ version = "0.7.15"
 dependencies = [
  "bobcat-call",
  "bobcat-entry",
+ "bobcat-host",
  "bobcat-interfaces",
  "bobcat-storage",
  "paste",

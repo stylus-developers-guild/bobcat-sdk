@@ -25,3 +25,6 @@ dont-define-symbols = ["bobcat-entry/dont-define-symbols"]
 msg-on-sdk-err = ["bobcat-call/msg-on-sdk-err"]
 panic = ["bobcat-call/panic"]
 panic-rever = ["bobcat-call/panic-revert"]
+
+[dev-dependencies]
+bobcat-host = { path = "../bobcat-host" }

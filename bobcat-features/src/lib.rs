@@ -232,7 +232,7 @@ macro_rules! FEATURE_PACK {
 mod test_1 {
     use bobcat_entry::{entry_host::set_block_timestamp, U};
 
-    use bobcat_storage::storage_host::storage_clear;
+    use bobcat_host::storage_clear;
 
     BOBCAT_FEATURES!(test123, swag);
 
@@ -275,7 +275,7 @@ mod test_2 {
 
     use bobcat_entry::U;
 
-    use bobcat_storage::storage_host::storage_clear;
+    use bobcat_host::storage_clear;
 
     BOBCAT_FEATURES!(
         F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20,

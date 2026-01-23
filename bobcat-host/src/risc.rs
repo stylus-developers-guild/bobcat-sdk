@@ -42,6 +42,13 @@ pub enum Ecall {
     TxOrigin = 33,
     ArgsLen = 34,
     Console = 35,
+    TransientLoad = 36,
+    TransientStore = 37,
+    MathAdd = 38,
+    MathDiv = 39,
+    MathMod = 40,
+    MathAddMod = 41,
+    MathMulMod = 42,
 }
 
 pub unsafe fn log_txt(ptr: *const u8, len: usize) {
@@ -85,6 +92,30 @@ pub unsafe fn storage_cache_bytes32(key: *const u8, value: *const u8) {
         asm!(
             "ecall",
             in("a7") Ecall::EthereumStore as usize,
+            in("a0") key,
+            in("a1") value,
+            options(nostack)
+        );
+    }
+}
+
+pub unsafe fn transient_load_bytes32(key: *const u8, out: *mut u8) {
+    unsafe {
+        core::ptr::copy_nonoverlapping(key, out, 32);
+        asm!(
+            "ecall",
+            in("a7") Ecall::TransientLoad as usize,
+            in("a0") out,
+            options(nostack)
+        );
+    }
+}
+
+pub unsafe fn transient_store_bytes32(key: *const u8, value: *const u8) {
+    unsafe {
+        asm!(
+            "ecall",
+            in("a7") Ecall::TransientStore as usize,
             in("a0") key,
             in("a1") value,
             options(nostack)
@@ -558,6 +589,56 @@ pub unsafe fn tx_origin(out: *mut u8) {
             "ecall",
             in("a7") Ecall::TxOrigin as usize,
             in("a0") out,
+            options(nostack)
+        );
+    }
+}
+
+pub unsafe fn math_div(x: *mut u8, y: *const u8) {
+    unsafe {
+        asm!(
+            "ecall",
+            in("a7") Ecall::MathDiv as usize,
+            in("a0") x,
+            in("a1") y,
+            options(nostack)
+        );
+    }
+}
+
+pub unsafe fn math_mod(x: *mut u8, y: *const u8) {
+    unsafe {
+        asm!(
+            "ecall",
+            in("a7") Ecall::MathMod as usize,
+            in("a0") x,
+            in("a1") y,
+            options(nostack)
+        );
+    }
+}
+
+pub unsafe fn math_add_mod(x: *mut u8, y: *const u8, z: *const u8) {
+    unsafe {
+        asm!(
+            "ecall",
+            in("a7") Ecall::MathAddMod as usize,
+            in("a0") x,
+            in("a1") y,
+            in("a2") z,
+            options(nostack)
+        );
+    }
+}
+
+pub unsafe fn math_mul_mod(x: *mut u8, y: *const u8, z: *const u8) {
+    unsafe {
+        asm!(
+            "ecall",
+            in("a7") Ecall::MathMulMod as usize,
+            in("a0") x,
+            in("a1") y,
+            in("a2") z,
             options(nostack)
         );
     }

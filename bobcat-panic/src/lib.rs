@@ -190,7 +190,7 @@ pub fn panic_handler(_msg: &core::panic::PanicInfo) -> ! {
     core::arch::wasm32::unreachable()
 }
 
-#[cfg(all(target_arch = "riscv32", target_os = "unknown"))]
+#[cfg(all(target_arch = "riscv32", target_os = "none"))]
 #[cfg_attr(all(feature = "panic", not(feature = "std")), panic_handler)]
 pub fn panic_handler(_: &core::panic::PanicInfo) -> ! {
     // TODO: this needs to be fleshed out

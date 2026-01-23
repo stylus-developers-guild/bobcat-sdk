@@ -528,6 +528,8 @@ dependencies = [
 name = "bobcat-host"
 version = "0.7.17"
 dependencies = [
+ "const-hex",
+ "keccak-const",
  "num_enum",
 ]
 

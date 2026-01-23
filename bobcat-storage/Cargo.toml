@@ -12,7 +12,7 @@ name = "bobcat_storage"
 
 [dependencies]
 bobcat-maths = { version = "0.7.17", path = "../bobcat-maths" }
-keccak-const = "0.2.0"
+keccak-const.workspace = true
 proptest = { workspace = true, optional = true }
 array-concat = { workspace = true }
 paste.workspace = true

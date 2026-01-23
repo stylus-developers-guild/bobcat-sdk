@@ -230,7 +230,7 @@ macro_rules! FEATURE_PACK {
 
 #[cfg(all(test, feature = "std"))]
 mod test_1 {
-    use bobcat_entry::{U, entry_host::set_block_timestamp};
+    use bobcat_entry::{U, host::set_block_timestamp};
 
     use bobcat_host::storage_clear;
 

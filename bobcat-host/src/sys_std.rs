@@ -381,6 +381,6 @@ unsafe extern "C" {
     pub fn math_mul_mod(a: *mut u8, b: *const u8, c: *const u8);
 }
 
-pub unsafe fn exit_early(code: i32) -> ! {
+pub unsafe fn exit_early(_: i32) -> ! {
     todo!("implement dispatch function");
 }

@@ -6,9 +6,9 @@ extern crate alloc;
 #[allow(unused)]
 use core::fmt::{Result as FmtResult, Write};
 
-use paste::paste;
+use bobcat_host as host;
 
-use bobcat_host as impls;
+use paste::paste;
 
 //Panic(uint256)
 pub const PANIC_PREAMBLE_WORD: [u8; 32 + 4] = match const_hex::const_decode_to_array::<{ 32 + 4 }>(
@@ -38,8 +38,10 @@ pub enum PanicCodes {
 pub fn panic_with_code(x: PanicCodes) -> ! {
     let mut b = PANIC_PREAMBLE_WORD;
     b[4 + 32 - 1] = x as u8;
-    write_result_slice(&b);
-    unsafe { impls::exit_early(1) }
+    unsafe {
+        host::write_result(b.as_ptr(), b.len());
+        host::exit_early(1)
+    }
 }
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
@@ -139,7 +141,7 @@ pub fn panic_handler(_msg: &core::panic::PanicInfo) -> ! {
     #[cfg(feature = "console")]
     {
         let msg = alloc::format!("{_msg}");
-        unsafe { impls::log_txt(msg.as_ptr(), msg.len()) }
+        unsafe { host::log_txt(msg.as_ptr(), msg.len()) }
     }
     #[cfg(any(
         feature = "panic-revert",
@@ -163,7 +165,7 @@ pub fn panic_handler(_msg: &core::panic::PanicInfo) -> ! {
         #[cfg(feature = "panic-trace")]
         {
             let mut b = [0u8; 32];
-            unsafe { impls::transient_load_bytes32(SLOT_TRACING_COUNTER.as_ptr(), b.as_mut_ptr()) };
+            unsafe { host::transient_load_bytes32(SLOT_TRACING_COUNTER.as_ptr(), b.as_mut_ptr()) };
             if b[0] == TracingDiscriminant::Number as u8 {
                 write!(
                     &mut w,
@@ -180,8 +182,10 @@ pub fn panic_handler(_msg: &core::panic::PanicInfo) -> ! {
         buf[len_offset + 28..len_offset + 32].copy_from_slice(&(len_msg as u32).to_be_bytes());
         let len_full = ERROR_PREAMBLE_OFFSET.len() + 32 + len_msg;
         let len_padded = len_full + (32 - (len_full % 32)) % 32;
-        write_result_slice(&buf[..len_padded]);
-        unsafe { impls::exit_early(1) }
+        unsafe {
+            host::write_result(buf.as_ptr(), len_padded);
+            host::exit_early(1)
+        }
     }
     // Prefer the normal behaviour if the user hasn't opted into this
     // feature. Maybe it's better to wipe out the revertdata if this happens,
@@ -205,11 +209,11 @@ pub fn bump() {
     // We assume the execution counter here is always less than u32,
     // so the upper part of the word could be dirty!
     let mut b = [0u8; 32];
-    unsafe { impls::transient_load_bytes32(p, b.as_mut_ptr()) };
+    unsafe { host::transient_load_bytes32(p, b.as_mut_ptr()) };
     let v = u32::from_be_bytes(b[32 - size_of::<u32>()..].try_into().unwrap()) + 1;
     b[32 - size_of::<u32>()..].copy_from_slice(&v.to_be_bytes());
     b[0] = TracingDiscriminant::Number as u8;
-    unsafe { impls::transient_store_bytes32(p, b.as_ptr()) }
+    unsafe { host::transient_store_bytes32(p, b.as_ptr()) }
 }
 
 pub const fn trace_key_of_str(s: &str) -> [u8; 32] {
@@ -241,7 +245,7 @@ const fn trace_key_to_str(b: &[u8; 32]) -> &str {
 
 pub fn trace(k: &str) {
     let v = trace_key_of_str(k);
-    unsafe { impls::transient_store_bytes32(SLOT_TRACING_COUNTER.as_ptr(), v.as_ptr()) }
+    unsafe { host::transient_store_bytes32(SLOT_TRACING_COUNTER.as_ptr(), v.as_ptr()) }
 }
 
 #[macro_export]

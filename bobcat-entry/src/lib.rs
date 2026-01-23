@@ -12,7 +12,7 @@ type Address = [u8; 20];
 
 pub use bobcat_cd::read_words;
 
-use bobcat_host as host;
+pub use bobcat_host as host;
 
 pub fn balance(addr: Address) -> U {
     let mut out = U::ZERO;

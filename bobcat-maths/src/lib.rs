@@ -40,11 +40,11 @@ use alloc::boxed::Box;
 
 type Address = [u8; 20];
 
-#[cfg(not(feature = "alloy-enabled"))]
+#[allow(unused)]
 use bobcat_host::*;
 
 #[cfg(feature = "ruint-enabled")]
-use alloy_primitives::{U256, ruint};
+use alloy_primitives::{ruint, U256};
 
 #[cfg(any(
     all(
@@ -59,7 +59,10 @@ use wasm_bindgen::{
     describe::WasmDescribe,
 };
 
-#[cfg(feature = "alloy-enabled")]
+#[cfg(any(
+    feature = "alloy-enabled",
+    all(not(target_arch = "wasm32"), not(target_arch = "riscv32"))
+))]
 mod alloy {
     use super::copy_nonoverlapping;
 
@@ -112,7 +115,10 @@ mod alloy {
     }
 }
 
-#[cfg(feature = "alloy-enabled")]
+#[cfg(any(
+    feature = "alloy-enabled",
+    all(not(target_arch = "wasm32"), not(target_arch = "riscv32"))
+))]
 use alloy::*;
 
 #[derive(Copy, Clone, PartialEq, Hash)]
@@ -407,7 +413,11 @@ pub fn checked_mul_opt(x: &U, y: &U) -> Option<U> {
         None
     } else {
         let z = x.mul_mod(y, &U::MAX);
-        if z.is_zero() { Some(U::MAX) } else { Some(z) }
+        if z.is_zero() {
+            Some(U::MAX)
+        } else {
+            Some(z)
+        }
     }
 }
 
@@ -1016,7 +1026,11 @@ impl U {
     }
 
     pub fn abs_diff(&self, y: &U) -> U {
-        if self > y { self - y } else { y - self }
+        if self > y {
+            self - y
+        } else {
+            y - self
+        }
     }
 
     pub const fn const_addr(self) -> Address {
@@ -1483,7 +1497,11 @@ fn i_div(x: &I, y: &I) -> I {
 
 fn i_rem(x: &I, y: &I) -> I {
     let r = modd(&x.abs(), &y.abs());
-    if x.is_neg() { I(r.0).neg() } else { I(r.0) }
+    if x.is_neg() {
+        I(r.0).neg()
+    } else {
+        I(r.0)
+    }
 }
 
 impl Add for I {

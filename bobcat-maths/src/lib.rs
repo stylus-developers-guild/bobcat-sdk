@@ -60,7 +60,7 @@ use wasm_bindgen::{
 };
 
 #[cfg(feature = "alloy-enabled")]
-mod impls {
+mod alloy {
     use super::copy_nonoverlapping;
 
     pub(crate) use alloy_primitives::U256;

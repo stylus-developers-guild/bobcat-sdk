@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod risc_ecall;
+
 #[cfg(all(target_arch = "riscv32", target_os = "none"))]
 pub mod risc;
 

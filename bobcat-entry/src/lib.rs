@@ -243,3 +243,7 @@ pub fn evm_ink_left() -> u64 {
 pub unsafe fn exit_early(code: usize) -> ! {
     unsafe { host::exit_early(code as i32) }
 }
+
+pub unsafe fn storage_flush_cache(clear: bool) {
+    unsafe { host::storage_flush_cache(clear) }
+}

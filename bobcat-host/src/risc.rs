@@ -1,54 +1,5 @@
 use core::{arch::asm, prelude::rust_2024::derive};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum Ecall {
-    AccountBalance = 0,
-    AccountCode = 1,
-    AccountCodeSize = 2,
-    AccountCodehash = 3,
-    EthereumLoad = 4,
-    EthereumStore = 5,
-    StorageFlushCache = 6,
-    BlockBasefee = 7,
-    Chainid = 8,
-    BlockCoinbase = 9,
-    BlockGasLimit = 10,
-    BlockNumber = 11,
-    BlockTimestamp = 12,
-    CallContract = 13,
-    ContractAddress = 14,
-    Create1 = 15,
-    Create2 = 16,
-    DelegateCallContract = 17,
-    EmitLog = 18,
-    EvmGasLeft = 19,
-    EvmInkLeft = 20,
-    PayForMemoryGrow = 21,
-    MsgReentrant = 22,
-    MsgSender = 23,
-    MsgValue = 24,
-    NativeKeccak256 = 25,
-    ReadArgs = 26,
-    ReadReturnData = 27,
-    WriteResult = 28,
-    ReturnDataSize = 29,
-    StaticCallContract = 30,
-    TxGasPrice = 31,
-    TxInkPrice = 32,
-    TxOrigin = 33,
-    ArgsLen = 34,
-    Console = 35,
-    TransientLoad = 36,
-    TransientStore = 37,
-    MathAdd = 38,
-    MathDiv = 39,
-    MathMod = 40,
-    MathAddMod = 41,
-    MathMulMod = 42,
-    ExitEarly = 43
-}
-
 pub unsafe fn log_txt(ptr: *const u8, len: usize) {
     unsafe {
         asm!(

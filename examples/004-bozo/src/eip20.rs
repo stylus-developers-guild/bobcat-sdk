@@ -2,7 +2,7 @@ type Address = [u8; 20];
 
 use bobcat_sdk::maths::U;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", target_arch = "riscv32"))]
 mod impls {
     use super::*;
 
@@ -31,7 +31,7 @@ mod impls {
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(any(target_arch = "wasm32", target_arch = "riscv32")))]
 mod impls {
     use super::*;
 

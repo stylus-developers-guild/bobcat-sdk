@@ -1,4 +1,6 @@
 
+.DELETE_ON_ERROR:
+
 .PHONY: build clean
 
 CARGO_EXTRA_FEATURES := \
@@ -7,7 +9,6 @@ CARGO_EXTRA_FEATURES := \
 build: bozo.wasm bootstrap.zip
 
 bozo.wasm: $(shell find Cargo.* src -type f)
-	@rm -f bozo.wasm
 	@cargo build \
 		--release \
 		--target wasm32-unknown-unknown \
@@ -16,6 +17,14 @@ bozo.wasm: $(shell find Cargo.* src -type f)
 		target/wasm32-unknown-unknown/release/bobcat-examples-004.wasm \
 		bozo.wasm
 	@./check-codesize.sh bozo.wasm
+
+bozo: $(shell find Cargo.* src -type f)
+	@cargo build \
+		--release \
+		--target riscv32im-unknown-none-elf \
+		${CARGO_EXTRA_FEATURES}
+	@cp target/riscv32im-unknown-none-elf/release/bobcat-examples-004 bozo
+	@./check-codesize.sh bobcat-examples-004
 
 bozo.out: $(shell find -name 'go.*' -or -name '*.go' -type f)
 	@go build -o bozo.out

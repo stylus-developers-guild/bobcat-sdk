@@ -1,4 +1,4 @@
-#![cfg_attr(target_arch = "wasm32", no_std)]
+#![cfg_attr(any(target_arch = "wasm32", target_arch = "riscv32"), no_std)]
 
 use core::cmp::{max, min};
 
@@ -178,7 +178,7 @@ fn view_was_epoch_collected() -> usize {
 }
 
 fn state_init(admin: Address, asset: Address) -> usize {
-    assert!(storage::initialised::get().is_zero(), "already created");
+    core::assert!(storage::initialised::get().is_zero(), "already created");
     storage_store(&SLOT_ADMIN, &admin.into());
     storage::asset::set(&asset.into());
     storage::initialised::set(&U::from(true));
@@ -199,11 +199,11 @@ fn pick_epoch() -> (U, bool) {
 }
 
 fn state_play(amt: U, recipient: Address, comment: &U, preferred_epoch: &U) -> usize {
-    assert!(amt.is_some(), "amount is zero");
-    assert!(recipient != [0u8; 20], "recipient is zero");
+    core::assert!(amt.is_some(), "amount is zero");
+    core::assert!(recipient != [0u8; 20], "recipient is zero");
     let timestamp = U::from(block_timestamp());
     let (epoch, needs_epoch_setting) = pick_epoch();
-    assert_eq!(epoch, *preferred_epoch, "epoch not the preferred one");
+    core::assert_eq!(epoch, *preferred_epoch, "epoch not the preferred one");
     if needs_epoch_setting {
         // If we've exceeded the timestamp, we need to set a new epoch.
         storage::epoch::set(&epoch);
@@ -222,7 +222,7 @@ fn state_play(amt: U, recipient: Address, comment: &U, preferred_epoch: &U) -> u
     let last_bettor_amt = storage::last_bettor_amt::get(&epoch);
     // Get the amount that the user has to beat to play the game next:
     let extra_amt = get_min_deposit(&pool_size, &last_bettor_amt).unwrap();
-    assert!(
+    core::assert!(
         amt >= extra_amt,
         "amount not enough: {extra_amt} needed, {amt} provided. diff: {}",
         amt.abs_diff(&extra_amt)
@@ -278,9 +278,9 @@ fn state_play(amt: U, recipient: Address, comment: &U, preferred_epoch: &U) -> u
 }
 
 fn state_distribute_rewards(epoch: &U, rng: &U) -> usize {
-    assert_eq!(ADDR_OPERATOR, msg_sender(), "operator only");
+    core::assert_eq!(ADDR_OPERATOR, msg_sender(), "operator only");
     let deadline = storage::ts_deadline::get(&epoch);
-    assert!(
+    core::assert!(
         U::from(block_timestamp()) > deadline && deadline.is_some(),
         "not concluded"
     );
@@ -357,7 +357,7 @@ fn state_distribute_rewards(epoch: &U, rng: &U) -> usize {
 }
 
 fn state_upgrade(new_impl: Address) -> usize {
-    assert_eq!(storage_load(&SLOT_ADMIN), msg_sender().into());
+    core::assert_eq!(storage_load(&SLOT_ADMIN), msg_sender().into());
     storage_store(&SLOT_IMPL, &U::from(new_impl));
     emit!(TOPIC_UPGRADED, new_impl);
     0
@@ -365,7 +365,7 @@ fn state_upgrade(new_impl: Address) -> usize {
 
 fn state_change_admin(new_admin: Address) -> usize {
     let last_admin = storage_load(&SLOT_ADMIN);
-    assert_eq!(last_admin, msg_sender().into());
+    core::assert_eq!(last_admin, msg_sender().into());
     storage_store(&SLOT_ADMIN, &U::from(new_admin));
     emit!(TOPIC_ADMIN_CHANGED, last_admin, new_admin);
     0

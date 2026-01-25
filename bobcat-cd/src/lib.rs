@@ -13,7 +13,7 @@ macro_rules! address {
     ($a:expr) => {{
         match $crate::const_hex_decode_to_array::<20>($a) {
             Ok(v) => v,
-            Err(_) => panic!("bad address"),
+            Err(_) => core::panic!("bad address"),
         }
     }};
 }
@@ -22,12 +22,12 @@ macro_rules! address {
 macro_rules! read_words {
     ($slice:expr, 1) => {{
         let s = $slice;
-        assert!(s.len() >= 32);
+        core::assert!(s.len() >= 32);
         &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) })
     }};
     ($slice:expr, 2) => {{
         let s = $slice;
-        assert!(s.len() >= 64);
+        core::assert!(s.len() >= 64);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -35,7 +35,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 3) => {{
         let s = $slice;
-        assert!(s.len() >= 96);
+        core::assert!(s.len() >= 96);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -44,7 +44,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 4) => {{
         let s = $slice;
-        assert!(s.len() >= 128);
+        core::assert!(s.len() >= 128);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -54,7 +54,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 5) => {{
         let s = $slice;
-        assert!(s.len() >= 160);
+        core::assert!(s.len() >= 160);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -65,7 +65,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 6) => {{
         let s = $slice;
-        assert!(s.len() >= 192);
+        core::assert!(s.len() >= 192);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -77,7 +77,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 7) => {{
         let s = $slice;
-        assert!(s.len() >= 224);
+        core::assert!(s.len() >= 224);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -90,7 +90,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 8) => {{
         let s = $slice;
-        assert!(s.len() >= 256);
+        core::assert!(s.len() >= 256);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -104,7 +104,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 9) => {{
         let s = $slice;
-        assert!(s.len() >= 288);
+        core::assert!(s.len() >= 288);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -119,7 +119,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 10) => {{
         let s = $slice;
-        assert!(s.len() >= 320);
+        core::assert!(s.len() >= 320);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -135,7 +135,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 11) => {{
         let s = $slice;
-        assert!(s.len() >= 352);
+        core::assert!(s.len() >= 352);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -152,7 +152,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 12) => {{
         let s = $slice;
-        assert!(s.len() >= 384);
+        core::assert!(s.len() >= 384);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -170,7 +170,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 13) => {{
         let s = $slice;
-        assert!(s.len() >= 416);
+        core::assert!(s.len() >= 416);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -189,7 +189,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 14) => {{
         let s = $slice;
-        assert!(s.len() >= 448);
+        core::assert!(s.len() >= 448);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -209,7 +209,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 15) => {{
         let s = $slice;
-        assert!(s.len() >= 480);
+        core::assert!(s.len() >= 480);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -230,7 +230,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 16) => {{
         let s = $slice;
-        assert!(s.len() >= 512);
+        core::assert!(s.len() >= 512);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -252,7 +252,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 17) => {{
         let s = $slice;
-        assert!(s.len() >= 544);
+        core::assert!(s.len() >= 544);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -275,7 +275,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 18) => {{
         let s = $slice;
-        assert!(s.len() >= 576);
+        core::assert!(s.len() >= 576);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -299,7 +299,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 19) => {{
         let s = $slice;
-        assert!(s.len() >= 608);
+        core::assert!(s.len() >= 608);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),
@@ -324,7 +324,7 @@ macro_rules! read_words {
     }};
     ($slice:expr, 20) => {{
         let s = $slice;
-        assert!(s.len() >= 640);
+        core::assert!(s.len() >= 640);
         (
             &$crate::U::from(unsafe { *(s[..32].as_ptr() as *const [u8; 32]) }),
             &$crate::U::from(unsafe { *(s[32..64].as_ptr() as *const [u8; 32]) }),

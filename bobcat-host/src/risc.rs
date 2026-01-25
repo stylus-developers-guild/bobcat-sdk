@@ -1,4 +1,6 @@
-use core::{arch::asm, prelude::rust_2024::derive};
+use core::arch::asm;
+
+use crate::risc_ecall::Ecall;
 
 pub unsafe fn log_txt(ptr: *const u8, len: usize) {
     unsafe {

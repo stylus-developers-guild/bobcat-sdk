@@ -6,7 +6,7 @@
 #![no_main]
 
 #[global_allocator]
-static ALLOC: mini_alloc::MiniAlloc = mini_alloc::MiniAlloc::INIT;
+static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
 
 use bobcat_sdk::{storage::reentrancy_guard_sel, entry::write_result_bool};
 

@@ -10,7 +10,7 @@ use bobcat_sdk::{
 };
 
 #[global_allocator]
-static ALLOC: mini_alloc::MiniAlloc = mini_alloc::MiniAlloc::INIT;
+static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
 
 const SEL: [u8; 4] = const_keccak_sel(b"deploy(address)");
 

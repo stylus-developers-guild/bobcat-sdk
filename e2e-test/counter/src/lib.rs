@@ -2,7 +2,7 @@
 #![no_std]
 
 #[global_allocator]
-static ALLOC: mini_alloc::MiniAlloc = mini_alloc::MiniAlloc::INIT;
+static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
 
 use bobcat_sdk::{cd::{const_keccak_sel, read_words}, entry::*, maths::U, storage::*};
 

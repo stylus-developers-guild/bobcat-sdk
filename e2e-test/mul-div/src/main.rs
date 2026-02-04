@@ -7,7 +7,7 @@ use bobcat_sdk::{
 };
 
 #[global_allocator]
-static ALLOC: mini_alloc::MiniAlloc = mini_alloc::MiniAlloc::INIT;
+static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
 
 const SEL_UNISWAP: [u8; 4] = const_keccak_sel(b"uniswap(uint256,uint256,uint256)");
 const SEL_RUINT: [u8; 4] = const_keccak_sel(b"ruint(uint256,uint256,uint256)");

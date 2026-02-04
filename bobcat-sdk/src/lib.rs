@@ -1,5 +1,21 @@
 #![no_std]
 
+pub mod prelude {
+    pub use super::{
+        call::*, cd::*, create::*, entry::*, events::*, features::*, host, maths::*, proxy::*,
+        storage::*,
+    };
+
+    pub use super::interfaces;
+    pub use super::precompiles;
+
+    #[cfg(any(feature = "panic", feature = "panic-revert"))]
+    pub use super::panic::*;
+
+    #[cfg(feature = "console")]
+    pub use super::console::*;
+}
+
 pub use bobcat_call as call;
 pub use bobcat_cd as cd;
 pub use bobcat_create as create;
@@ -18,19 +34,3 @@ pub use bobcat_panic as panic;
 
 #[cfg(feature = "console")]
 pub use bobcat_console as console;
-
-pub mod prelude {
-    pub use super::{
-        call::*, cd::*, create::*, entry::*, events::*, features::*, host, maths::*, proxy::*,
-        storage::*,
-    };
-
-    pub use super::interfaces;
-    pub use super::precompiles;
-
-    #[cfg(any(feature = "panic", feature = "panic-revert"))]
-    pub use super::panic::*;
-
-    #[cfg(feature = "console")]
-    pub use super::console::*;
-}

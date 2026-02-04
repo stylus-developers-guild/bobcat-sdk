@@ -16,7 +16,7 @@ members = [
 	"bobcat-maths-zone",
 	"bobcat-features",
 	"bobcat-host"
-]
+, "bobcat-alloc"]
 exclude = ["fuzz"]
 
 [workspace.dependencies]

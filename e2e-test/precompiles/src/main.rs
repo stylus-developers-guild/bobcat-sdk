@@ -17,7 +17,7 @@ use sha2::digest::Update;
 use array_concat::concat_arrays;
 
 #[global_allocator]
-static ALLOC: mini_alloc::MiniAlloc = mini_alloc::MiniAlloc::INIT;
+static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
 
 const SEL_ECRECOVER: [u8; 4] = const_keccak_sel(b"ecrecover_(bytes32,uint8,bytes32,bytes32)");
 const SEL_SECP256R1: [u8; 4] =

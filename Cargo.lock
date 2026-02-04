@@ -453,6 +453,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "bobcat-alloc"
+version = "0.7.19"
+dependencies = [
+ "mini-alloc",
+]
+
+[[package]]
 name = "bobcat-call"
 version = "0.7.19"
 dependencies = [
@@ -618,6 +625,7 @@ dependencies = [
 name = "bobcat-sdk"
 version = "0.7.19"
 dependencies = [
+ "bobcat-alloc",
  "bobcat-call",
  "bobcat-cd",
  "bobcat-console",
@@ -1333,6 +1341,15 @@ name = "memchr"
 version = "2.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273"
+
+[[package]]
+name = "mini-alloc"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b620761d4c29ede39bb1351c4360dba54d3b414d9fb460d37cba4c98b37a0b9d"
+dependencies = [
+ "cfg-if",
+]
 
 [[package]]
 name = "mutants"

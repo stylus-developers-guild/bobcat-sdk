@@ -26,6 +26,7 @@ bobcat-precompiles = { version = "0.7.19", path = "../bobcat-precompiles" }
 bobcat-maths-zone = { version = "0.7.19", path = "../bobcat-maths-zone" }
 bobcat-features = { version = "0.7.19", path = "../bobcat-features" }
 bobcat-host = { version = "0.7.19", path = "../bobcat-host" }
+bobcat-alloc = { version = "0.7.19", path = "../bobcat-alloc" }
 
 [features]
 std = [

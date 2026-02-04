@@ -1,0 +1,7 @@
+[package]
+name = "bobcat-alloc"
+version = "0.7.19"
+edition = "2024"
+
+[dependencies]
+mini-alloc = "1.0.0"

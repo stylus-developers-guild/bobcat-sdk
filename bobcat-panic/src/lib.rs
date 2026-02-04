@@ -117,7 +117,7 @@ pub const SLOT_TRACING_COUNTER: [u8; 32] = [
 /// use a large page here since a panic will consume all the gas anyway,
 /// and a user will see this during simulation hopefully.
 #[allow(unused)]
-const REVERT_BUF_SIZE: usize = 1024 * 2;
+const REVERT_BUF_SIZE: usize = 1024 * 10;
 
 #[cfg(all(feature = "panic-revert", feature = "panic-loc"))]
 compile_error!("panic-revert and panic-loc simultaneously enabled");

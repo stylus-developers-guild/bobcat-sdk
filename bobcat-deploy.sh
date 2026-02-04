@@ -27,18 +27,16 @@ if [ -z "$BC_CONTRACT" ]; then
 
 	with_preamble="63${len}80600c5f395ff3$compressed"
 
-	export BC_CONTRACT="$(\
+	BC_CONTRACT="$(\
 		cast send \
 			--json \
 			--rpc-url "$endpoint" \
 			--private-key "$private_key" \
 			--create "0x$with_preamble" \
 				| jq -r .contractAddress)"
-
-	echo $BC_CONTRACT
 fi
 
-2>&1 echo BC_CONTRACT=$BC_CONTRACT
+echo $BC_CONTRACT
 
 arb_wasm=0x0000000000000000000000000000000000000071
 
@@ -60,19 +58,11 @@ if [ -z "$BC_ACTIVATION" ]; then
 				| jq -r '.[1]')"
 fi
 
-2>&1 echo BC_ACTIVATION=$BC_ACTIVATION
-
-hash="$(\
-	cast send \
-		--json \
-		--rpc-url "$endpoint" \
-		--private-key "$private_key" \
-		--value "$BC_ACTIVATION" \
-		"$arb_wasm" \
-		"activateProgram(address)" \
-		"$BC_CONTRACT" \
-			| jq -r .transactionHash)"
-
-2>&1 echo activated $contract_addr with hash $hash
-
-echo "$BC_CONTRACT\n$hash"
+cast send \
+	--json \
+	--rpc-url "$endpoint" \
+	--private-key "$private_key" \
+	--value "$BC_ACTIVATION" \
+	"$arb_wasm" \
+	"activateProgram(address)" \
+	"$BC_CONTRACT" >/dev/null

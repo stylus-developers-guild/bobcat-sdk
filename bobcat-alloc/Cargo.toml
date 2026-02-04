@@ -1,7 +1,11 @@
 [package]
 name = "bobcat-alloc"
-version = "0.7.19"
+version = "0.7.20"
 edition = "2024"
+license = "MIT"
+description = "bobcat-alloc provides allocators for wasm32 and riscv32im."
+homepage = "https://bobcat.so"
+repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [dependencies]
 mini-alloc = "1.0.0"

@@ -75,7 +75,8 @@ from a slot, and beacon proxies.
 
 6. Each library feature can be imported as a separate package without the whole SDK.
 
-7. Have to opt into the allocator.
+7. Have to opt into the allocator. The wasm target is reexported from `mini-alloc`, though
+the risc-v build is supplied here and based on the `risc-runner`.
 
 8. Solidity storage equivalence.
 

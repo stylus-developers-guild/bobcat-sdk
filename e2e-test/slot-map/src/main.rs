@@ -3,8 +3,7 @@
 
 use bobcat_sdk::prelude::*;
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {

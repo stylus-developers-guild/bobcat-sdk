@@ -1,10 +1,9 @@
 #![no_std]
 #![no_main]
 
-use bobcat_sdk::panic::panic_on_err_overflow;
+use bobcat_sdk::{alloc::bobcat_allocator, panic::panic_on_err_overflow};
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(_: usize) -> usize {

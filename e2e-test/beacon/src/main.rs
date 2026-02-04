@@ -7,10 +7,10 @@ use bobcat_sdk::{
     entry::*,
     maths::U,
     proxy::make_beacon_proxy,
+    alloc::bobcat_allocator,
 };
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 const SEL: [u8; 4] = const_keccak_sel(b"deploy(address)");
 

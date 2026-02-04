@@ -14,6 +14,9 @@ pub mod prelude {
 
     #[cfg(feature = "console")]
     pub use super::console::*;
+
+    #[cfg(feature = "alloc")]
+    pub use alloc::*;
 }
 
 pub use bobcat_call as call;
@@ -34,3 +37,6 @@ pub use bobcat_panic as panic;
 
 #[cfg(feature = "console")]
 pub use bobcat_console as console;
+
+#[cfg(feature = "alloc")]
+pub use bobcat_alloc as alloc;

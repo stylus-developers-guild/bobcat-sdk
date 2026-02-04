@@ -4,10 +4,10 @@
 use bobcat_sdk::{
     cd::{const_keccak_sel, read_words},
     entry::*,
+    prelude::*,
 };
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 const SEL_UNISWAP: [u8; 4] = const_keccak_sel(b"uniswap(uint256,uint256,uint256)");
 const SEL_RUINT: [u8; 4] = const_keccak_sel(b"ruint(uint256,uint256,uint256)");

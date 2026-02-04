@@ -5,15 +5,13 @@
 #![no_std]
 #![no_main]
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
-
-extern crate alloc;
-
 use bobcat_sdk::{
     call::call_word_err_vec, cd::*, entry::*,
     interfaces::chainlink_vrf::make_fn_request_words_in_native_no_bytes, maths::U, storage::*,
+    alloc::bobcat_allocator,
 };
+
+bobcat_allocator!();
 
 type Address = [u8; 20];
 

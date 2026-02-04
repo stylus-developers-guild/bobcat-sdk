@@ -6,11 +6,11 @@ use bobcat_sdk::{
     entry::{write_result_word, read_args_safe},
     maths::U,
     cd::read_words,
-    create::create1_unit
+    create::create1_unit,
+    alloc::bobcat_allocator
 };
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {

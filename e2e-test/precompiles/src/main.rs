@@ -2,6 +2,7 @@
 #![no_std]
 
 use bobcat_sdk::{
+    alloc::bobcat_allocator,
     cd::{const_keccak_sel, read_words},
     entry::*,
     precompiles::{
@@ -16,8 +17,7 @@ use sha2::digest::Update;
 
 use array_concat::concat_arrays;
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 const SEL_ECRECOVER: [u8; 4] = const_keccak_sel(b"ecrecover_(bytes32,uint8,bytes32,bytes32)");
 const SEL_SECP256R1: [u8; 4] =

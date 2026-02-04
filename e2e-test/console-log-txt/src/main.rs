@@ -4,16 +4,9 @@
 #![no_std]
 #![no_main]
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+use bobcat_sdk::{alloc::bobcat_allocator, cd::*, console::console, entry::*};
 
-extern crate alloc;
-
-use bobcat_sdk::{
-    cd::*,
-    entry::*,
-    console::console
-};
+bobcat_allocator!();
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {

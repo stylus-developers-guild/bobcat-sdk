@@ -5,10 +5,11 @@
 #![no_std]
 #![no_main]
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+use bobcat_sdk::{
+    alloc::bobcat_allocator, entry::write_result_bool, storage::reentrancy_guard_sel,
+};
 
-use bobcat_sdk::{storage::reentrancy_guard_sel, entry::write_result_bool};
+bobcat_allocator!();
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(_: usize) -> usize {

@@ -3,8 +3,7 @@
 
 use bobcat_sdk::prelude::*;
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 const SEL_DEPLOY: [u8; 4] = const_keccak_sel(b"deploy(address)");
 const SEL_PREDICT: [u8; 4] = const_keccak_sel(b"predict(address)");

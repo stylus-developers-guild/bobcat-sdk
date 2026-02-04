@@ -26,7 +26,7 @@ bobcat-precompiles = { version = "0.7.19", path = "../bobcat-precompiles" }
 bobcat-maths-zone = { version = "0.7.19", path = "../bobcat-maths-zone" }
 bobcat-features = { version = "0.7.19", path = "../bobcat-features" }
 bobcat-host = { version = "0.7.19", path = "../bobcat-host" }
-bobcat-alloc = { version = "0.7.19", path = "../bobcat-alloc" }
+bobcat-alloc = { version = "0.7.19", path = "../bobcat-alloc", optional = true }
 
 [features]
 std = [
@@ -43,7 +43,8 @@ alloc = [
 	"bobcat-panic/alloc",
 	"bobcat-events/alloc",
 	"bobcat-maths/alloc",
-	"bobcat-precompiles/alloc"
+	"bobcat-precompiles/alloc",
+	"dep:bobcat-alloc"
 ]
 serde = ["bobcat-maths/serde"]
 borsh = ["bobcat-maths/borsh"]

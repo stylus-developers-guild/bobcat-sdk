@@ -3,8 +3,7 @@
 
 use bobcat_sdk::prelude::*;
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 pub const SEL_FEATURES: [u8; 4] = const_keccak_sel(b"features()");
 

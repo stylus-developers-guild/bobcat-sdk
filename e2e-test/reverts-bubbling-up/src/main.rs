@@ -2,6 +2,7 @@
 #![no_main]
 
 use bobcat_sdk::{
+    alloc::bobcat_allocator,
     call::safe_call_bool_err_vec,
     entry::{
         contract_address, msg_sender, read_args_safe, read_words, revert_if_bad_call_unit_vec,
@@ -10,8 +11,7 @@ use bobcat_sdk::{
     maths::{u, U},
 };
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+bobcat_allocator!();
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(len: usize) -> usize {

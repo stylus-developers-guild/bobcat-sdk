@@ -1,10 +1,16 @@
 #![no_main]
 #![no_std]
 
-#[global_allocator]
-static ALLOC: bobcat_alloc = bobcat_alloc::INIT;
+use bobcat_sdk::{
+    alloc::Alloc,
+    cd::{const_keccak_sel, read_words},
+    entry::*,
+    maths::U,
+    storage::*,
+};
 
-use bobcat_sdk::{cd::{const_keccak_sel, read_words}, entry::*, maths::U, storage::*};
+#[global_allocator]
+pub static INIT: Alloc = Alloc;
 
 pub fn get_number() -> U {
     storage_load(&U::ZERO)
@@ -50,9 +56,3 @@ pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
     });
     0
 }
-
-
-
-
-
-

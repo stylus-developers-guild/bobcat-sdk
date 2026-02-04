@@ -16,7 +16,7 @@ pub mod prelude {
     pub use super::console::*;
 
     #[cfg(feature = "alloc")]
-    pub use alloc::*;
+    pub use super::alloc::*;
 }
 
 pub use bobcat_call as call;

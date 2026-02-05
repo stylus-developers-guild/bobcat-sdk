@@ -58,6 +58,43 @@ pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
 
 ```
 
+## Features
+
+The feature flags below are the user-facing options for the `bobcat-sdk` crate. Workspace
+crates also define internal/testing flags for examples and tooling; those are omitted
+here intentionally.
+
+- `std`: Enable standard library support across the bobcat subcrates that ship with the
+  SDK.
+- `alloc`: Enable allocator-backed APIs (including the optional `bobcat-alloc`) across
+  the SDK crates that need heap support.
+- `serde`: Add `serde` derives/traits for math types via `bobcat-maths`.
+- `borsh`: Add `borsh` derives/traits for math types via `bobcat-maths`.
+- `console`: Enable console logging via `bobcat-console` plus panic/host console hooks.
+- `arbitrary`: Enable `arbitrary` support for math types (useful for fuzzing).
+- `proptest`: Enable property-based testing helpers for maths and storage types.
+- `alloy-enabled`: Enable integration with `alloy-primitives` for maths/entry types.
+- `ruint-enabled`: Enable ruint-backed math helpers (used for mul/div paths).
+- `panic`: Use the minimal panic handler that reverts via `unreachable`.
+- `panic-revert`: Panic handler that reverts with a stack trace message.
+- `panic-loc`: Panic handler that reports filename + line only.
+- `panic-trace`: Panic handler that writes a trace identifier from transient storage into
+  the revert message.
+- `msg-on-sdk-err`: Emit SDK error messages (overflow/decoding) when panicking to make
+  failures easier to diagnose.
+- `detailed-errors`: Use detailed panic strings for SDK error helpers instead of generic
+  messages or codes.
+- `dont-define-symbols`: Avoid defining the default `mark_used` symbol from
+  `bobcat-entry` when you need to provide your own entry symbols.
+- `wasm-bindgen`: Enable `wasm-bindgen` integration for math types (wasm tooling).
+- `wasm-bindgen-wasi`: Enable `wasm-bindgen` integration for WASI builds of the math
+  types.
+- `ed25519-dalek`: Enable ed25519 support in the precompile helpers via
+  `ed25519-dalek`.
+- `shadow`: Enable the "shadow" event mechanism for custom chain event piping.
+- `mutex`: Allow the storage implementation to use a mutex for multi-threaded access in
+  host-backed environments.
+
 ## Goals
 
 1. Macro/compile time heavy features equivalent to the SDK.

@@ -127,7 +127,7 @@ macro_rules! generate_call_variants {
                 }
                 panic_on_err_bad_decoding_bool!(
                     rd_len > offset;
-                    "offset greater than rd len ok, offset: {offset}, contract: {contract:?}, calldata: {calldata:?}"
+                    "offset greater than rd len ok, offset: {offset}, rd len: {rd_len}, contract: {contract:?}, calldata: {calldata:?}"
                 );
                 let size = rd_len - offset;
                 panic_on_err_bad_decoding_bool!(

@@ -26,10 +26,10 @@ pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
     flush_guard(|| match sel {
         SEL_NUMBER => write_result_word(&storage_load(&U::ZERO)),
         SEL_SET_NUMBER => storage_store(&U::ZERO, w),
-        SEL_MUL_NUMBER => storage_checked_mul(&U::ZERO, w).unwrap(),
-        SEL_ADD_NUMBER => storage_checked_add(&U::ZERO, w).unwrap(),
-        SEL_INCREMENT => storage_checked_add(&U::ONE, w).unwrap(),
-        SEL_ADD_FROM_MSG_VALUE => storage_checked_add(&msg_value(), w).unwrap(),
+        SEL_MUL_NUMBER => storage_wrapping_mul(&U::ZERO, w),
+        SEL_ADD_NUMBER => storage_wrapping_add(&U::ZERO, w),
+        SEL_INCREMENT => storage_wrapping_add(&U::ONE, w),
+        SEL_ADD_FROM_MSG_VALUE => storage_wrapping_add(&msg_value(), w),
         _ => unimplemented!(),
     });
     0

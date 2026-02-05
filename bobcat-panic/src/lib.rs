@@ -49,9 +49,8 @@ pub fn panic_with_code(x: PanicCodes) -> ! {
     panic!("panicked with code: {x:?}");
 }
 
-#[macro_export]
 macro_rules! define_panic_macros {
-    (@internal [$dollar:tt] $(($error_msg:expr, $panic_code:ident)),* $(,)?) => {
+    (@internal [$dollar:tt] $(($error_msg:ident, $panic_code:ident)),* $(,)?) => {
         $(
             paste! {
                 #[macro_export]
@@ -63,7 +62,7 @@ macro_rules! define_panic_macros {
                                 #[cfg(feature = "detailed-errors")]
                                 panic!($dollar($dollar arg)*);
                                 #[cfg(all(not(feature = "detailed-errors"), feature = "msg-on-sdk-err"))]
-                                panic!("decoding error");
+                                panic!(stringify!($error_msg));
                                 #[cfg(feature = "panic-code")]
                                 $crate::panic_with_code($crate::PanicCodes::$panic_code);
                                 #[cfg(not(any(feature = "detailed-errors", feature = "msg-on-sdk-err", feature = "panic-code")))]
@@ -75,7 +74,7 @@ macro_rules! define_panic_macros {
             }
         )*
     };
-    ($(($error_msg:expr, $panic_code:ident)),* $(,)?) => {
+    ($(($error_msg:ident, $panic_code:ident)),* $(,)?) => {
         $crate::define_panic_macros!(@internal [$] $(($error_msg, $panic_code)),*);
     };
 }

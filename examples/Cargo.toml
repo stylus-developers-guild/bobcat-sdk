@@ -7,8 +7,7 @@ members = [
 ]
 
 [workspace.dependencies]
-bobcat-sdk = { path = "../bobcat-sdk" }
-mini-alloc = "1.0.0"
+bobcat-sdk.path = "../bobcat-sdk"
 
 [profile.release]
 codegen-units = 1

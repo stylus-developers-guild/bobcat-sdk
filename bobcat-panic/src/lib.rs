@@ -51,27 +51,32 @@ pub fn panic_with_code(x: PanicCodes) -> ! {
 
 #[macro_export]
 macro_rules! define_panic_macros {
-    (
-        $(($error_msg:expr, $panic_code:ident)),* $(,)?
-    ) => {
+    (@internal [$dollar:tt] $(($error_msg:expr, $panic_code:ident)),* $(,)?) => {
         $(
             paste! {
                 #[macro_export]
                 macro_rules! [<panic_on_err_ $error_msg>] {
-                    ($e:expr, $msg:expr) => {{
-                        match $e {
+                    ($dollar e:expr; $dollar($dollar arg:tt)*) => {{
+                        match $dollar e {
                             Some(v) => v,
                             None => {
-                                #[cfg(feature = "msg-on-sdk-err")]
-                                panic!("{}: {}", $error_msg, $msg);
-                                #[cfg(not(feature = "msg-on-sdk-err"))]
+                                #[cfg(feature = "detailed-errors")]
+                                panic!($dollar($dollar arg)*);
+                                #[cfg(all(not(feature = "detailed-errors"), feature = "msg-on-sdk-err"))]
+                                panic!("decoding error");
+                                #[cfg(feature = "panic-code")]
                                 $crate::panic_with_code($crate::PanicCodes::$panic_code);
+                                #[cfg(not(any(feature = "detailed-errors", feature = "msg-on-sdk-err", feature = "panic-code")))]
+                                panic!()
                             }
                         }
                     }};
                 }
             }
         )*
+    };
+    ($(($error_msg:expr, $panic_code:ident)),* $(,)?) => {
+        $crate::define_panic_macros!(@internal [$] $(($error_msg, $panic_code)),*);
     };
 }
 
@@ -82,16 +87,20 @@ define_panic_macros!(
 
 #[macro_export]
 macro_rules! panic_on_err_bad_decoding_bool {
-    ($msg:expr) => {{
-        #[cfg(feature = "msg-on-sdk-err")]
-        panic!("error decoding: {}", $msg);
-        #[cfg(not(feature = "msg-on-sdk-err"))]
-        $crate::panic_with_code($crate::PanicCodes::DecodingError);
-    }};
-    ($e:expr, $msg:expr) => {{
+    ($e:expr; $($arg:tt)*) => {{
         if !$e {
-            panic_on_err_bad_decoding_bool!($msg);
+            $crate::panic_on_err_bad_decoding_bool!($($arg)*);
         }
+    }};
+    ($($arg:tt)*) => {{
+        #[cfg(feature = "detailed-errors")]
+        panic!($($arg)*);
+        #[cfg(all(not(feature = "detailed-errors"), feature = "msg-on-sdk-err"))]
+        panic!("decoding error");
+        #[cfg(feature = "panic-code")]
+        $crate::panic_with_code($crate::PanicCodes::DecodingError);
+        #[cfg(not(any(feature = "detailed-errors", feature = "msg-on-sdk-err", feature = "panic-code")))]
+        panic!()
     }};
 }
 

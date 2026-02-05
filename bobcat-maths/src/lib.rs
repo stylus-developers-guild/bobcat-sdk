@@ -44,7 +44,7 @@ type Address = [u8; 20];
 use bobcat_host::*;
 
 #[cfg(feature = "ruint-enabled")]
-use alloy_primitives::{U256, ruint};
+use alloy_primitives::{ruint, U256};
 
 #[cfg(any(
     all(
@@ -265,7 +265,7 @@ pub fn checked_div_opt(x: &U, y: &U) -> Option<U> {
 
 #[cfg_attr(test, mutants::skip)]
 pub fn checked_div(x: &U, y: &U) -> U {
-    panic_on_err_div_by_zero!(checked_div_opt(x, y), "Division by zero: {x}")
+    panic_on_err_div_by_zero!(checked_div_opt(x, y); "division by zero: {x}")
 }
 
 pub fn modd(x: &U, y: &U) -> U {
@@ -301,21 +301,22 @@ pub const fn wrapping_add(x: &U, y: &U) -> U {
 
 #[cfg_attr(test, mutants::skip)]
 pub fn checked_add_opt(x: &U, y: &U) -> Option<U> {
-    if x > &(U::MAX - *y) {
-        None
-    } else {
-        let z = x.add_mod(y, &U::MAX);
-        if z.is_zero() && (x.is_some() || y.is_some()) {
-            Some(U::MAX)
-        } else {
-            Some(z)
-        }
+    if x.is_zero() {
+        return Some(*y);
     }
+    if *x > !*y {
+        return None;
+    }
+    let z = x.add_mod(y, &U::MAX);
+    Some(if z.is_zero() { U::MAX } else { z })
 }
 
 #[cfg_attr(test, mutants::skip)]
 pub fn checked_add(x: &U, y: &U) -> U {
-    panic_on_err_overflow!(checked_add_opt(x, y), "Checked add overflow: {x}, y: {y}")
+    panic_on_err_overflow!(
+        checked_add_opt(x, y);
+        "checked add overflow: {x}, y: {y}"
+    )
 }
 
 #[cfg_attr(test, mutants::skip)]
@@ -363,7 +364,7 @@ pub fn checked_sub_opt(x: &U, y: &U) -> Option<U> {
 
 #[cfg_attr(test, mutants::skip)]
 pub fn checked_sub(x: &U, y: &U) -> U {
-    panic_on_err_overflow!(checked_sub_opt(x, y), "Checked sub overflow: {x}, y: {y}")
+    panic_on_err_overflow!(checked_sub_opt(x, y); "checked sub overflow: {x}, y: {y}")
 }
 
 pub const fn wrapping_mul_const_b<const C: usize>(x: &[u8; C], y: &[u8; C]) -> [u8; C] {
@@ -431,12 +432,16 @@ pub fn checked_mul_opt(x: &U, y: &U) -> Option<U> {
         None
     } else {
         let z = x.mul_mod(y, &U::MAX);
-        if z.is_zero() { Some(U::MAX) } else { Some(z) }
+        if z.is_zero() {
+            Some(U::MAX)
+        } else {
+            Some(z)
+        }
     }
 }
 
 pub fn checked_mul(x: &U, y: &U) -> U {
-    panic_on_err_overflow!(checked_mul_opt(x, y), "Checked mul overflow: {x}, y: {y}")
+    panic_on_err_overflow!(checked_mul_opt(x, y); "checked mul overflow: {x}, y: {y}")
 }
 
 pub fn saturating_mul(x: &U, y: &U) -> U {
@@ -1040,7 +1045,11 @@ impl U {
     }
 
     pub fn abs_diff(&self, y: &U) -> U {
-        if self > y { self - y } else { y - self }
+        if self > y {
+            self - y
+        } else {
+            y - self
+        }
     }
 
     pub const fn const_addr(self) -> Address {
@@ -1507,7 +1516,11 @@ fn i_div(x: &I, y: &I) -> I {
 
 fn i_rem(x: &I, y: &I) -> I {
     let r = modd(&x.abs(), &y.abs());
-    if x.is_neg() { I(r.0).neg() } else { I(r.0) }
+    if x.is_neg() {
+        I(r.0).neg()
+    } else {
+        I(r.0)
+    }
 }
 
 impl Add for I {

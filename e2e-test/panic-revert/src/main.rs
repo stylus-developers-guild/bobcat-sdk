@@ -7,6 +7,6 @@ bobcat_allocator!();
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(_: usize) -> usize {
-    panic_on_err_overflow!(None, "Hello!");
+    panic_on_err_overflow!(None; "Hello!");
     0
 }

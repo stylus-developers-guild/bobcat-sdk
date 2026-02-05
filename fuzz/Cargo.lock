@@ -324,12 +324,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "bobcat-host"
+version = "0.7.22"
+dependencies = [
+ "const-hex",
+ "keccak-const",
+ "num_enum",
+]
+
+[[package]]
 name = "bobcat-maths"
-version = "0.7.5"
+version = "0.7.22"
 dependencies = [
  "alloy-primitives",
  "arbitrary",
  "array-concat",
+ "bobcat-host",
  "bobcat-panic",
  "cfg-if",
  "clap",
@@ -350,8 +360,9 @@ dependencies = [
 
 [[package]]
 name = "bobcat-panic"
-version = "0.7.5"
+version = "0.7.22"
 dependencies = [
+ "bobcat-host",
  "const-hex",
  "paste",
 ]
@@ -749,6 +760,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "keccak-const"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57d8d8ce877200136358e0bbff3a77965875db3af755a11e1fa6b1b3e2df13ea"
+
+[[package]]
 name = "libc"
 version = "0.2.177"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -809,6 +826,27 @@ checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
  "libm",
+]
+
+[[package]]
+name = "num_enum"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1207a7e20ad57b847bbddc6776b968420d38292bbfe2089accff5e19e82454c"
+dependencies = [
+ "num_enum_derive",
+ "rustversion",
+]
+
+[[package]]
+name = "num_enum_derive"
+version = "0.7.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.108",
 ]
 
 [[package]]

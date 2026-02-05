@@ -1,10 +1,8 @@
 #![no_main]
 #![no_std]
 
-#[global_allocator]
-static ALLOC: mini_alloc::MiniAlloc = mini_alloc::MiniAlloc::INIT;
-
 use bobcat_sdk::{
+    alloc::bobcat_allocator,
     call::{call_word_err_vec, safe_call_unit_err_vec},
     cd::{const_keccak_sel, read_words},
     entry::*,
@@ -14,6 +12,8 @@ use bobcat_sdk::{
     },
     maths::U,
 };
+
+bobcat_allocator!();
 
 #[link(wasm_import_module = "vm_hooks")]
 unsafe extern "C" {

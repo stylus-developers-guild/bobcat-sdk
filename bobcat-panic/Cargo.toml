@@ -17,9 +17,11 @@ std = ["proptest"]
 panic-revert = ["panic"]
 panic-loc = ["panic"]
 panic-trace = ["panic"]
+panic-code = ["panic"]
 panic = []
 msg-on-sdk-err = ["panic"]
 proptest = ["dep:proptest"]
+detailed-errors = ["panic"]
 
 [dependencies]
 bobcat-host = { version = "0.7.22", path = "../bobcat-host" }

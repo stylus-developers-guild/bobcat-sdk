@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 bobcat-sdk = { workspace = true, features = ["panic"] }
-mini-alloc.workspace = true
 
 [[bin]]
 name = "bobcat-sdk-examples-001"

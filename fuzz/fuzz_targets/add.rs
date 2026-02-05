@@ -26,7 +26,7 @@ fuzz_target!(|data: Add| {
     let ey = U256::from_be_bytes(data.y.0);
     let Add { x, y } = data;
     assert_eq_t!(ex.wrapping_add(ey), x.wrapping_add(&y),);
-    match (ex.checked_add(ey), bobcat_maths::checked_add(&x, &y)) {
+    match (ex.checked_add(ey), bobcat_maths::checked_add_opt(&x, &y)) {
         (None, None) => (),
         (Some(x), Some(y)) => {
             assert_eq_t!(x, y, "{x} != {y} ({}, {})", data.x, data.y)

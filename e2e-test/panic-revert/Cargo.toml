@@ -8,5 +8,7 @@ mini-alloc.workspace = true
 bobcat-sdk.workspace = true
 
 [features]
-default = ["msg-on-sdk-err"]
+default = ["detailed-errors"]
 msg-on-sdk-err = []
+panic-code = []
+detailed-errors = []

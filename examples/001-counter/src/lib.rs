@@ -1,15 +1,9 @@
 #![no_main]
 #![no_std]
 
-use bobcat_sdk::{
-    cd::{const_keccak_sel, read_words},
-    entry::*,
-    maths::U,
-    storage::*,
-};
+use bobcat_sdk::prelude::*;
 
-#[global_allocator]
-static ALLOC: mini_alloc::MiniAlloc = mini_alloc::MiniAlloc::INIT;
+bobcat_allocator!();
 
 const SEL_NUMBER: [u8; 4] = const_keccak_sel(b"number()");
 const SEL_SET_NUMBER: [u8; 4] = const_keccak_sel(b"setNumber(uint256)");

@@ -126,13 +126,13 @@ macro_rules! generate_call_variants {
                     return (false, rd_len, b);
                 }
                 panic_on_err_bad_decoding_bool!(
-                    rd_len > offset,
-                    "offset greater than rd len ok"
+                    rd_len > offset;
+                    "offset greater than rd len ok, offset: {offset}, contract: {contract:?}, calldata: {calldata:?}"
                 );
                 let size = rd_len - offset;
                 panic_on_err_bad_decoding_bool!(
-                    DATA_CAP >= size,
-                    "not enough slice capacity"
+                    DATA_CAP >= size;
+                    "not enough slice capacity, contract: {contract:?}, capacity: {DATA_CAP}, requested: {size}, calldata: {calldata:?}"
                 );
                 unsafe { host::read_return_data(b.as_mut_ptr(), offset, DATA_CAP) };
                 (rc, rd_len, b)
@@ -158,8 +158,8 @@ macro_rules! generate_call_variants {
                 // When it comes to a revert, we don't cut it up like we do a normal slice.
                 let size = if rc {
                     panic_on_err_bad_decoding_bool!(
-                        rd_len > offset,
-                        "offset greater than rd len ok"
+                        rd_len > offset;
+                        "offset greater than rd len ok, contract: {contract:?}, rd len: {rd_len}, offset: {offset}, calldata: {calldata:?}"
                     );
                     rd_len - offset
                 } else {
@@ -169,8 +169,8 @@ macro_rules! generate_call_variants {
                 // size isn't known and we want to show it to the user should use err_vec
                 // functions instead with the allocator.
                 panic_on_err_bad_decoding_bool!(
-                    DATA_CAP >= size,
-                    "not enough _slice capacity"
+                    DATA_CAP >= size;
+                    "not enough _slice capacity, contract: {contract:?}, data cap: {DATA_CAP}, size: {size}, calldata: {calldata:?}"
                 );
                 let mut b = [0u8; DATA_CAP];
                 unsafe { host::read_return_data(b.as_mut_ptr(), offset, DATA_CAP) };
@@ -187,7 +187,10 @@ macro_rules! generate_call_variants {
                 offset: usize,
             ) -> (bool, U) {
                 let (rc, len, v) = [<$base_fn _slice>]::<32>(contract, calldata, $($value_param,)? gas, offset);
-                panic_on_err_bad_decoding_bool!(len == 32, "response didn't write 32");
+                panic_on_err_bad_decoding_bool!(
+                    len == 32;
+                    "response didn't write 32 length, length: {len}, contract: {contract:?}, calldata: {calldata:?}"
+                );
                 (rc, U::from(v))
             }
 
@@ -301,7 +304,9 @@ macro_rules! generate_call_variants {
                             b[0] == 1
                         }
                         (true, 0) => true,
-                        (true, _) => panic_on_err_bad_decoding_bool!("word not returned"),
+                        (true, _) => panic_on_err_bad_decoding_bool!(
+                            "word not returned, contract: {contract:?}, calldata: {calldata:?}"
+                        ),
                         _ => false
                     }
                 } else {
@@ -415,7 +420,13 @@ macro_rules! generate_call_variants {
                     0
                 );
                 if rc {
-                    panic_on_err_bad_decoding_bool!(v.len() == 32, "not return for word");
+                    panic_on_err_bad_decoding_bool!(
+                        v.len() == 32;
+                        "not return for word, len: {}, contract: {}, calldata: {}",
+                        v.len(),
+                        const_hex::const_encode::<20, false>(&contract).as_str(),
+                        const_hex::encode(calldata)
+                    );
                     let v: [u8; 32] = v.try_into().unwrap();
                     (rc, U::from(v), None)
                 } else {
@@ -434,7 +445,12 @@ macro_rules! generate_call_variants {
             ) -> (bool, Option<Vec<u8>>) {
                 let (rc, rd_len) = [<$base_fn _partial>](contract, calldata, $($value_param,)? gas);
                 if rc {
-                    panic_on_err_bad_decoding_bool!(rd_len == 32, "not return for bool word");
+                    panic_on_err_bad_decoding_bool!(
+                        rd_len == 32;
+                        "bad length for bool word error vec, len: {rd_len}, contract: {}, calldata: {}",
+                        const_hex::const_encode::<20, false>(&contract).as_str(),
+                        const_hex::encode(calldata)
+                    );
                     let mut b = [0u8; 1];
                     unsafe {
                         host::read_return_data(b.as_mut_ptr(), 31, 1);
@@ -475,7 +491,9 @@ macro_rules! generate_call_variants {
                     }
                     (true, 0) => (true, None),
                     (true, _) => panic_on_err_bad_decoding_bool!(
-                        "word not returned for safe_ _bool_err_vec"
+                        "word not returned for safe_ _bool_err_vec, contract: {}, calldata: {}",
+                        const_hex::const_encode::<20, false>(&contract).as_str(),
+                        const_hex::encode(calldata)
                     ),
                     (false, rd_len) => {
                         let mut b = Vec::with_capacity(rd_len);

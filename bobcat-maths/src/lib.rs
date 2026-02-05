@@ -301,14 +301,17 @@ pub const fn wrapping_add(x: &U, y: &U) -> U {
 
 #[cfg_attr(test, mutants::skip)]
 pub fn checked_add_opt(x: &U, y: &U) -> Option<U> {
-    if x.is_zero() {
-        return Some(*y);
-    }
-    if *x > !*y {
-        return None;
+    if y.is_max() {
+        return if x.is_zero() { Some(U::MAX) } else { None };
     }
     let z = x.add_mod(y, &U::MAX);
-    Some(if z.is_zero() { U::MAX } else { z })
+    if z.is_zero() {
+        return Some(if x.is_zero() { U::ZERO } else { U::MAX });
+    }
+    if z.cmp(x) == Ordering::Less {
+        return None;
+    }
+    Some(z)
 }
 
 #[cfg_attr(test, mutants::skip)]
@@ -424,20 +427,19 @@ pub fn wrapping_mul(x: &U, y: &U) -> U {
 }
 
 #[cfg_attr(test, mutants::skip)]
+#[inline(never)]
 pub fn checked_mul_opt(x: &U, y: &U) -> Option<U> {
-    if x.is_zero() || y.is_zero() {
+    if x.is_zero() | y.is_zero() {
         return Some(U::ZERO);
     }
-    if x > &(U::MAX / *y) {
-        None
-    } else {
-        let z = x.mul_mod(y, &U::MAX);
-        if z.is_zero() {
-            Some(U::MAX)
-        } else {
-            Some(z)
-        }
+    let mut max_div_y = U::MAX;
+    unsafe { math_div(max_div_y.as_mut_ptr(), y.as_ptr()) }
+
+    if x.cmp(&max_div_y) == Ordering::Greater {
+        return None;
     }
+    let z = mul_mod(*x, y, &U::MAX);
+    Some(if z.is_zero() { U::MAX } else { z })
 }
 
 pub fn checked_mul(x: &U, y: &U) -> U {
@@ -1056,7 +1058,7 @@ impl U {
         self.const_20_slice()
     }
 
-    pub const fn is_max(&self) -> bool {
+    pub const fn is_max_const(&self) -> bool {
         let mut i = 0;
         while i < 32 {
             if self.0[i] != u8::MAX {
@@ -1065,6 +1067,10 @@ impl U {
             i += 1;
         }
         true
+    }
+
+    pub fn is_max(&self) -> bool {
+        self.0 == [0xffu8; 32]
     }
 
     pub fn is_some(&self) -> bool {

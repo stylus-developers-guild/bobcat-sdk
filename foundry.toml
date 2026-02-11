@@ -21,6 +21,7 @@ fs_permissions = [
 	{ access = "read", path = "e2e-test/panic-trace.wasm" },
 	{ access = "read", path = "e2e-test/superposition-precompiles/precompiles-ed25519.wasm" },
 	{ access = "read", path = "e2e-test/precompiles.wasm" },
+	{ access = "read", path = "e2e-test/math-example.wasm" },
 ]
 
 [lint]

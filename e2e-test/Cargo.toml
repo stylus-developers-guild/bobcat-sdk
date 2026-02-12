@@ -15,7 +15,8 @@ members = [
 	"slot-map",
 	"safe-erc20",
 	"tracing-counter",
-	"features"
+	"features",
+	"math-example"
 ]
 
 [workspace.dependencies]

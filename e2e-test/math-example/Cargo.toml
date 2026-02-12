@@ -1,0 +1,14 @@
+[package]
+name = "math-example"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bobcat-sdk.workspace = true
+mini-alloc.workspace = true
+bobcat-maths-zone = { path = "../../bobcat-maths-zone" }
+bobcat-maths = { path = "../../bobcat-maths" }
+
+[[bin]]
+name = "math-example"
+path = "src/main.rs"

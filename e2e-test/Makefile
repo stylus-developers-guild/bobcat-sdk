@@ -20,7 +20,8 @@ PROJECTS := \
 	tracing-counter \
 	panic-trace \
 	shadow \
-	features
+	features \
+	math-example
 
 all: wasm
 
@@ -46,7 +47,8 @@ wasm: \
 	tracing-counter.wasm \
 	panic-trace.wasm \
 	shadow.wasm \
-	features.wasm
+	features.wasm \
+	math-example.wasm
 
 chainlink-vrf-test.wasm: ${BUILT}
 	@rm -f chainlink-vrf-test.wasm
@@ -117,6 +119,10 @@ features.wasm: ${BUILT}
 	@# We don't post process features since wat2wasm hangs due to some kind of bug:
 	@cp ${RELEASE}/features.wasm features.wasm
 
+math-example.wasm: ${BUILT}
+	@rm -f math-example.wasm
+	@./wasm-post.sh ${RELEASE}/math-example.wasm math-example.wasm
+
 clean:
 	@rm -rf \
 		target \
@@ -136,4 +142,5 @@ clean:
 		tracing-counter.wasm \
 		panic-trace.wasm \
 		shadow.wasm \
-		features.wasm
+		features.wasm \
+		math-example.wasm

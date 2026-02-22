@@ -609,6 +609,7 @@ dependencies = [
  "bobcat-maths",
  "bobcat-storage",
  "ed25519-dalek",
+ "markovgeist-precompiles-tickmath",
  "sha2",
 ]
 
@@ -1335,6 +1336,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.108",
+]
+
+[[package]]
+name = "markovgeist-precompiles-tickmath"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4eef677d2b2af4a31eb6a654a7345ddbc0bdc7535b538fea52c30379d9e1d26b"
+dependencies = [
+ "alloy-primitives",
 ]
 
 [[package]]

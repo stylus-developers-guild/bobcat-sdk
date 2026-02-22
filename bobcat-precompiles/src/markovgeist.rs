@@ -89,8 +89,8 @@ pub fn price_to_tick(price: [u8; 24]) -> (bool, i32) {
 }
 
 #[cfg(feature = "tickmath-local")]
-pub fn price_to_tick(price: U) -> (bool, i32) {
-    match tickmath::price_to_tick(U256::from_be_bytes(price.0)) {
+pub fn price_to_tick(price: [u8; 24]) -> (bool, i32) {
+    match tickmath::price_to_tick(U256::from_be_bytes(&price)) {
         Some(v) => (true, v),
         None => (false, 0),
     }

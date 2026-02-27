@@ -2,10 +2,10 @@ use bobcat_cd::address;
 
 use bobcat_call::delegate_call_slice;
 
-#[cfg(not(feature = "tickmath-local"))]
+#[cfg(all(target_arch = "wasm32", not(feature = "tickmath-local")))]
 use bobcat_cd::const_keccak_sel;
 
-#[cfg(not(feature = "tickmath-local"))]
+#[cfg(all(target_arch = "wasm32", not(feature = "tickmath-local")))]
 use bobcat_call::{static_call_slice, static_call_word};
 
 #[cfg(feature = "alloc")]
@@ -16,6 +16,7 @@ use array_concat::concat_arrays;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
+#[cfg(any(feature = "tickmath-local", target_arch = "wasm32"))]
 use crate::U;
 
 #[cfg(feature = "tickmath-local")]
@@ -28,13 +29,13 @@ pub const ADDR_RISC_RUNNER: [u8; 20] = address!(b"215dc94d90fa87642def299e0c0188
 
 pub const ADDR_TICKMATH: [u8; 20] = address!(b"4e0b6ad0f26f2fa689ac4c808fc50a0b4f8ef126");
 
-#[cfg(not(feature = "tickmath-local"))]
+#[cfg(all(target_arch = "wasm32", not(feature = "tickmath-local")))]
 const SEL_PRICE_TO_TICK: [u8; 4] = const_keccak_sel(b"tickAtSqrtRatio(uint256)");
 
-#[cfg(not(feature = "tickmath-local"))]
+#[cfg(all(target_arch = "wasm32", not(feature = "tickmath-local")))]
 const SEL_TICK_TO_PRICE: [u8; 4] = const_keccak_sel(b"sqrtRatioAtTick(int32)");
 
-#[cfg(not(feature = "tickmath-local"))]
+#[cfg(all(target_arch = "wasm32", not(feature = "tickmath-local")))]
 const SEL_TICK_TO_PRICE_LIMBS: [u8; 4] = const_keccak_sel(b"sqrtRatioAtTickLimbs(int32)");
 
 /// Delegatecall to Orderbookkit's riscv32im runner
@@ -77,7 +78,7 @@ pub fn delegate_riscv32im_vec_vec(
 }
 
 #[cfg(all(target_arch = "wasm32", not(feature = "tickmath-local")))]
-pub fn price_to_tick(price: [u8; 24]) -> (bool, i32) {
+pub fn price_to_tick(price: [u8; 20]) -> (bool, i32) {
     let b: [u8; 4 + 32 - 24 + 24] = concat_arrays!(SEL_PRICE_TO_TICK, [0u8; 32 - 24], price);
     let (rc, rd) = static_call_word(ADDR_TICKMATH, &b, u64::MAX, 0);
     if !rc {
@@ -89,8 +90,9 @@ pub fn price_to_tick(price: [u8; 24]) -> (bool, i32) {
 }
 
 #[cfg(feature = "tickmath-local")]
-pub fn price_to_tick(price: [u8; 24]) -> (bool, i32) {
-    match tickmath::price_to_tick(U256::from_be_bytes(price)) {
+pub fn price_to_tick(price: [u8; 20]) -> (bool, i32) {
+    let b: [u8; 32] = concat_arrays!([0u8; 32 - 20], price);
+    match tickmath::price_to_tick(U256::from_be_bytes(b)) {
         Some(v) => (true, v),
         None => (false, 0),
     }

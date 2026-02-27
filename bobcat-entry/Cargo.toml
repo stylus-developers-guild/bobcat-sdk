@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-entry"
-version = "0.7.26"
+version = "0.7.27"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for building contract entrypoints on Arbitrum Stylus."
@@ -17,8 +17,8 @@ dont-define-symbols = []
 alloy-enabled = ["bobcat-maths/alloy-enabled"]
 
 [dependencies]
-bobcat-cd = { version = "0.7.26", path = "../bobcat-cd" }
-bobcat-host = { version = "0.7.26", path = "../bobcat-host" }
-bobcat-maths = { version = "0.7.26", path = "../bobcat-maths" }
-bobcat-storage = { version = "0.7.26", path = "../bobcat-storage" }
+bobcat-cd = { version = "0.7.27", path = "../bobcat-cd" }
+bobcat-host = { version = "0.7.27", path = "../bobcat-host" }
+bobcat-maths = { version = "0.7.27", path = "../bobcat-maths" }
+bobcat-storage = { version = "0.7.27", path = "../bobcat-storage" }
 const-hex = { workspace = true }

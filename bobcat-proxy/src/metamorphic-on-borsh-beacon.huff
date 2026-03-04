@@ -1,0 +1,25 @@
+// metamorphic-on-borsh-beacon.huff: A proxy that asks the BEACON address
+// for the location of where to delegatecall to if the migrate borsh
+// operation is used. Assumes the first operation is Upgrade (thus,
+// corresponding to 0). Doesn't handle properly if if the beacon reverts.
+
+#define constant SLOT_IMPL = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+
+#define constant ADDR_BEACON = 0x1000000000000000000000000000000000000001
+
+#define macro MAIN() = takes(0) returns(0) {
+	0x0 calldataload 0xf8 shr iszero MIGRATE jumpi
+	ALL jump
+	MIGRATE:
+		0x20 0x0 0x0 0x0 [ADDR_BEACON] gas staticcall 0x0 mload
+		CONT jump
+	ALL:
+		[SLOT_IMPL] sload
+	CONT:
+		calldatasize 0x0 0x0 calldatacopy
+		0x0 calldatasize 0x0 0x0 swap4 gas delegatecall
+		returndatasize 0x0 0x0 returndatacopy
+		returndatasize 0x0 dup3 RETURN jumpi revert
+	RETURN:
+		return
+}

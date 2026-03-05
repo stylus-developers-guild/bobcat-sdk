@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-panic"
-version = "0.7.33"
+version = "0.7.34"
 edition = "2024"
 license = "MIT"
 description = "Bobcat utilities with a panic handler on Arbitrum Stylus."
@@ -24,7 +24,7 @@ proptest = ["dep:proptest"]
 detailed-errors = ["panic"]
 
 [dependencies]
-bobcat-host = { version = "0.7.33", path = "../bobcat-host" }
+bobcat-host = { version = "0.7.34", path = "../bobcat-host" }
 const-hex.workspace = true
 paste.workspace = true
 proptest = { workspace = true, optional = true }

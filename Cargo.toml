@@ -22,7 +22,7 @@ exclude = ["fuzz"]
 
 [workspace.dependencies]
 proptest = { version = "1.8.0" }
-const-hex = { version = "1.17.0", default-features = false }
+const-hex = { version = ">=1.0.1", default-features = false }
 array-concat = "0.5.5"
 paste = "1.0.15"
-keccak-const = "0.2.0"
+keccak-const = ">=0.2.0"

@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-alloc"
-version = "0.7.32"
+version = "0.7.33"
 edition = "2024"
 license = "MIT"
 description = "bobcat-alloc provides allocators for wasm32 and riscv32im."

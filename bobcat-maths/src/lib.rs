@@ -7,7 +7,7 @@ use core::{
         Add, AddAssign, BitAnd, BitOr, BitOrAssign, BitXor, Deref, DerefMut, Div, Index, IndexMut,
         Mul, MulAssign, Neg, Not, Rem, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
     },
-    str::FromStr,
+    str::{from_utf8_unchecked, FromStr},
 };
 
 #[allow(unused)]
@@ -941,16 +941,17 @@ impl Ord for U {
 impl LowerHex for U {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         let mut b = [0u8; 32 * 2];
-        let s = const_hex::encode_to_str(self.0, &mut b).unwrap();
-        write!(f, "{s}")
+        const_hex::encode_to_slice(self.0, &mut b).unwrap();
+        write!(f, "{}", unsafe { from_utf8_unchecked(&b) })
     }
 }
 
 impl UpperHex for U {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         let mut b = [0u8; 32 * 2];
-        let s = const_hex::encode_to_str_upper(self.0, &mut b).unwrap();
-        write!(f, "{s}")
+        const_hex::encode_to_slice(self.0, &mut b).unwrap();
+        b.make_ascii_uppercase();
+        write!(f, "{}", unsafe { from_utf8_unchecked(&b) })
     }
 }
 

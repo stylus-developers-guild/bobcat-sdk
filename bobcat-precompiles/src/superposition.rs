@@ -4,7 +4,7 @@ use bobcat_maths::U;
 
 use bobcat_cd::address;
 
-use bobcat_call::static_call_unit;
+use bobcat_call::{static_call_slice, static_call_unit};
 
 use array_concat::concat_arrays;
 
@@ -32,7 +32,7 @@ pub fn const_sha512(x: &[u8]) -> [u8; 64] {
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
 pub fn sha512(cd: &[u8]) -> [u8; 64] {
-    static_call_unit(ADDR_SHA512, cd, u64::MAX)
+    static_call_slice::<64>(ADDR_SHA512, cd, u64::MAX, 0).2
 }
 
 #[cfg(feature = "sha512")]

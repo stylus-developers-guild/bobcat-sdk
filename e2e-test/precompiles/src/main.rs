@@ -7,7 +7,7 @@ use bobcat_sdk::{
     entry::*,
     precompiles::{
         ethereum::{ecrecover_post, secp256r1_post},
-        superposition::edphverify,
+        superposition::edphverify_post,
     },
 };
 
@@ -56,7 +56,7 @@ pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
             let digest: [u8; 64] = args[4..4 + 64].try_into().unwrap();
             let key: U = args[4 + 64..4 + 64 + 32].try_into().unwrap();
             let sig: [u8; 64] = args[4 + 64 + 32..].try_into().unwrap();
-            edphverify(digest, key, sig);
+            edphverify_post(digest, key, sig);
             0
         }
         _ => unimplemented!(),

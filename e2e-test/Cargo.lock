@@ -55,14 +55,14 @@ dependencies = [
 
 [[package]]
 name = "bobcat-alloc"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "mini-alloc",
 ]
 
 [[package]]
 name = "bobcat-call"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "bobcat-entry",
  "bobcat-host",
@@ -74,7 +74,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-cd"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "array-concat",
  "bobcat-maths",
@@ -84,14 +84,14 @@ dependencies = [
 
 [[package]]
 name = "bobcat-console"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "bobcat-host",
 ]
 
 [[package]]
 name = "bobcat-create"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -102,7 +102,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-entry"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "bobcat-cd",
  "bobcat-host",
@@ -113,7 +113,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-events"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -122,7 +122,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-features"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "bobcat-call",
  "bobcat-entry",
@@ -133,16 +133,15 @@ dependencies = [
 
 [[package]]
 name = "bobcat-host"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "const-hex",
  "keccak-const",
- "num_enum",
 ]
 
 [[package]]
 name = "bobcat-interfaces"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "array-concat",
  "bobcat-cd",
@@ -153,7 +152,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "alloy-primitives",
  "array-concat",
@@ -168,7 +167,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths-zone"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "bobcat-maths",
  "bobcat-panic",
@@ -179,7 +178,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-panic"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "bobcat-host",
  "const-hex",
@@ -188,19 +187,18 @@ dependencies = [
 
 [[package]]
 name = "bobcat-precompiles"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "array-concat",
  "bobcat-call",
  "bobcat-cd",
  "bobcat-maths",
  "bobcat-storage",
- "sha2",
 ]
 
 [[package]]
 name = "bobcat-proxy"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "array-concat",
  "bobcat-interfaces",
@@ -210,7 +208,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-sdk"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "bobcat-alloc",
  "bobcat-call",
@@ -223,7 +221,6 @@ dependencies = [
  "bobcat-host",
  "bobcat-interfaces",
  "bobcat-maths",
- "bobcat-maths-zone",
  "bobcat-panic",
  "bobcat-precompiles",
  "bobcat-proxy",
@@ -232,7 +229,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-storage"
-version = "0.7.24"
+version = "0.7.35"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -496,27 +493,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num_enum"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1207a7e20ad57b847bbddc6776b968420d38292bbfe2089accff5e19e82454c"
-dependencies = [
- "num_enum_derive",
- "rustversion",
-]
-
-[[package]]
-name = "num_enum_derive"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "panic-revert"
 version = "0.1.0"
 dependencies = [
@@ -676,12 +652,6 @@ checksum = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92"
 dependencies = [
  "semver",
 ]
-
-[[package]]
-name = "rustversion"
-version = "1.0.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
 
 [[package]]
 name = "safe-erc20"

@@ -8,6 +8,7 @@ use bobcat_call::static_call_unit;
 
 use array_concat::concat_arrays;
 
+#[cfg(feature = "sha512")]
 use sha2::{digest::Update, Digest, Sha512};
 
 #[cfg(feature = "ed25519-dalek")]
@@ -19,12 +20,22 @@ pub const ADDR_EDVERIFY: [u8; 20] = address!(b"c3e443be2cfa4f41a5f5e4978d012847d
 /// Muldiv is deployed at this address on Arbitrum One and Superposition.
 pub const ADDR_MUL_DIV: [u8; 20] = address!(b"7a9579a78d6ea3279b33d6d0f92a2fe8fd0e2662");
 
+/// Sha512 is deployed at this address on Arbitrum One and Superposition.
+pub const ADDR_SHA512: [u8; 20] = address!(b"1f4350205a556587ff3a1f2cb627613685dacb73");
+
+#[cfg(feature = "sha512")]
 pub fn const_sha512(x: &[u8]) -> [u8; 64] {
     let mut d = Sha512::new();
     Update::update(&mut d, x);
     d.finalize().into()
 }
 
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+pub fn sha512(cd: &[u8]) -> [u8; 64] {
+    static_call_unit(ADDR_SHA512, &cd, u64::MAX)
+}
+
+#[cfg(feature = "sha512")]
 pub fn sha512(x: &[u8]) -> [u8; 64] {
     const_sha512(x)
 }

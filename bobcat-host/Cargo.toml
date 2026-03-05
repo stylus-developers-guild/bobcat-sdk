@@ -8,7 +8,6 @@ homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [dependencies]
-num_enum = { version = "0.7.5", default-features = false }
 keccak-const.workspace = true
 const-hex.workspace = true
 

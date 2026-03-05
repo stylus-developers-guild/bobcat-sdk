@@ -261,8 +261,6 @@ mod impls {
 
 #[cfg(feature = "mutex")]
 mod impls {
-    use super::*;
-
     use std::{
         collections::HashMap,
         ptr::copy_nonoverlapping,
@@ -287,7 +285,7 @@ mod impls {
         unsafe {
             copy_nonoverlapping(key, r.as_mut_ptr(), 32);
         }
-        [u8; 32](r)
+        r
     }
 
     unsafe fn write_word(key: *mut u8, val: [u8; 32]) {

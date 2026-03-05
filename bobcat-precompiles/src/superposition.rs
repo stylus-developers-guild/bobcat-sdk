@@ -32,7 +32,7 @@ pub fn const_sha512(x: &[u8]) -> [u8; 64] {
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
 pub fn sha512(cd: &[u8]) -> [u8; 64] {
-    static_call_unit(ADDR_SHA512, &cd, u64::MAX)
+    static_call_unit(ADDR_SHA512, cd, u64::MAX)
 }
 
 #[cfg(feature = "sha512")]

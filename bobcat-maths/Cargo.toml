@@ -28,15 +28,12 @@ clap = { version = ">=4.0.0", optional = true }
 wasm-bindgen = { version = ">=0.2.0", optional = true, default-features = false }
 bobcat-host = { version = "0.7.35", path = "../bobcat-host" }
 
-[dev-dependencies]
-proptest = { workspace = true }
-
 [features]
 std = ["alloc", "dep:clap"]
 wasm-bindgen = ["dep:wasm-bindgen", "alloc"]
 wasm-bindgen-wasi = ["dep:wasm-bindgen", "alloc"]
 alloc = []
-proptest = ["std", "proptest-derive", "dep:proptest"]
+proptest = ["std", "dep:proptest-derive", "dep:proptest"]
 arbitrary = ["std", "dep:arbitrary"]
 alloy-enabled = ["dep:alloy-primitives"]
 ruint-enabled = ["alloy-enabled"]

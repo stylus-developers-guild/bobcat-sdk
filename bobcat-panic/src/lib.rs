@@ -265,7 +265,7 @@ macro_rules! trace_guard {
     }};
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, feature = "proptest"))]
 mod test {
     use proptest::prelude::*;
 

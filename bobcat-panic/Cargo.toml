@@ -13,7 +13,7 @@ name = "bobcat_panic"
 [features]
 alloc = []
 console = ["alloc", "bobcat-host/console"]
-std = ["proptest"]
+std = []
 panic-revert = ["panic"]
 panic-loc = ["panic"]
 panic-trace = ["panic"]

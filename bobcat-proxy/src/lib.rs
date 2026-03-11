@@ -178,7 +178,7 @@ pub const SIZE_METAMORPHIC_ON_BORSH_BEACON: usize = 30 + 20 + 69;
 pub const fn make_metamorphic_borsh_beacon_proxy(
     deployer: Address,
 ) -> [u8; SIZE_METAMORPHIC_ON_BORSH_BEACON] {
-    // Created from metamorphic-on-fn-beacon.huff .
+    // Created from metamorphic-on-borsh-beacon.huff .
     concat_arrays!(
         unpack_arr!(b"606e8060093d393df35f3560f81c1561000e57610031565b60205f5f5f73", 30),
         deployer,

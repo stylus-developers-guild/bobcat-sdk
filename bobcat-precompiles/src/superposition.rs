@@ -35,7 +35,10 @@ pub fn sha512(cd: &[u8]) -> [u8; 64] {
     static_call_slice::<64>(ADDR_SHA512, cd, u64::MAX, 0).2
 }
 
-#[cfg(feature = "sha512")]
+#[cfg(all(
+    not(all(target_family = "wasm", target_os = "unknown")),
+    feature = "sha512"
+))]
 pub fn sha512(x: &[u8]) -> [u8; 64] {
     const_sha512(x)
 }

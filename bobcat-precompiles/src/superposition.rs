@@ -43,16 +43,16 @@ pub fn sha512(x: &[u8]) -> [u8; 64] {
     const_sha512(x)
 }
 
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(all(
+    all(target_family = "wasm", target_os = "unknown"),
+    not(feature = "ed25519-dalek")
+))]
 pub fn edphverify_post(digest: [u8; 64], pub_key: U, sig: [u8; 64]) -> bool {
     let cd: [u8; 64 * 2 + 32] = concat_arrays!(digest, pub_key.0, sig);
     static_call_unit(ADDR_EDVERIFY, &cd, u64::MAX)
 }
 
-#[cfg(all(
-    not(all(target_family = "wasm", target_os = "unknown")),
-    feature = "ed25519-dalek"
-))]
+#[cfg(feature = "ed25519-dalek")]
 pub use const_edphverify as edphverify_post;
 
 #[cfg(any(

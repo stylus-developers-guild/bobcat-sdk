@@ -16,15 +16,13 @@ bobcat-entry = { version = "0.7.38", path = "../bobcat-entry" }
 bobcat-interfaces = { version = "0.7.38", path = "../bobcat-interfaces" }
 bobcat-storage = { version = "0.7.38", path = "../bobcat-storage" }
 paste.workspace = true
+bobcat-host = { path = "../bobcat-host" }
 
 [features]
-std = ["bobcat-storage/std", "bobcat-entry/std"]
+std = ["bobcat-storage/std", "bobcat-entry/std", "bobcat-host/std"]
 mutex = ["bobcat-storage/mutex"]
 alloy-enabled = ["bobcat-entry/alloy-enabled", "bobcat-storage/alloy-enabled"]
 dont-define-symbols = ["bobcat-entry/dont-define-symbols"]
 msg-on-sdk-err = ["bobcat-call/msg-on-sdk-err"]
 panic = ["bobcat-call/panic"]
 panic-rever = ["bobcat-call/panic-revert"]
-
-[dev-dependencies]
-bobcat-host = { path = "../bobcat-host" }

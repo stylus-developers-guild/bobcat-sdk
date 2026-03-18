@@ -1,8 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use bobcat_storage::{
-    const_keccak256_two_off_curve, keccak256, storage_load, storage_store,
-    U,
+    const_keccak256_two_off_curve, keccak256, storage_load, storage_store, U,
 };
 
 pub use bobcat_entry::block_timestamp;
@@ -130,6 +129,18 @@ macro_rules! FEATURE_MATCH {
 #[macro_export]
 macro_rules! FEATURE_COPY {
     ($address:expr, $($feature_name:ident),* $(,)?) => {
+        #[cfg(not(any(
+            target_arch = "riscv32",
+            all(target_family = "wasm", target_os = "unknown"))
+        ))]
+        {
+            // This is a no-op on this host! We assume someone is running this with a
+            // testing harness.
+        }
+        #[cfg(any(
+            target_arch = "riscv32",
+            all(target_family = "wasm", target_os = "unknown")
+        ))]
         {
             let (rc, r) = $crate::static_call_word(
                 $address,
@@ -167,6 +178,18 @@ macro_rules! FEATURE_COPY {
 #[macro_export]
 macro_rules! FEATURE_COPY_NON_ZEROES {
     ($address:expr, $($feature_name:ident),* $(,)?) => {
+        #[cfg(not(any(
+            target_arch = "riscv32",
+            all(target_family = "wasm", target_os = "unknown"))
+        ))]
+        {
+            // This is a no-op on this host! We assume someone is running this with a
+            // testing harness.
+        }
+        #[cfg(any(
+            target_arch = "riscv32",
+            all(target_family = "wasm", target_os = "unknown")
+        ))]
         {
             let (rc, r) = $crate::static_call_word(
                 $address,
@@ -231,9 +254,9 @@ macro_rules! FEATURE_PACK {
 
 #[cfg(all(test, feature = "std"))]
 mod test_1 {
-    use bobcat_entry::{host::set_block_timestamp, U};
+    use bobcat_host::{set_block_timestamp, storage_clear};
 
-    use bobcat_host::storage_clear;
+    use super::U;
 
     BOBCAT_FEATURES!(test123, swag);
 

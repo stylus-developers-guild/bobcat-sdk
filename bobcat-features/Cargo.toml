@@ -16,7 +16,7 @@ bobcat-entry = { version = "0.7.39", path = "../bobcat-entry" }
 bobcat-interfaces = { version = "0.7.39", path = "../bobcat-interfaces" }
 bobcat-storage = { version = "0.7.39", path = "../bobcat-storage" }
 paste.workspace = true
-bobcat-host = { path = "../bobcat-host" }
+bobcat-host = { version = "0.7.39", path = "../bobcat-host" }
 
 [features]
 std = ["bobcat-storage/std", "bobcat-entry/std", "bobcat-host/std"]

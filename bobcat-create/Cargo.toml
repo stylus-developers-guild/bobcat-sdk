@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-create"
-version = "0.7.38"
+version = "0.7.39"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for using CREATE1 and CREATE2 on Arbitrum Stylus."
@@ -11,11 +11,11 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_create"
 
 [dependencies]
-bobcat-proxy = { version = "0.7.38", path = "../bobcat-proxy" }
-bobcat-maths = { version = "0.7.38", path = "../bobcat-maths" }
-bobcat-storage = { version = "0.7.38", path = "../bobcat-storage" }
+bobcat-proxy = { version = "0.7.39", path = "../bobcat-proxy" }
+bobcat-maths = { version = "0.7.39", path = "../bobcat-maths" }
+bobcat-storage = { version = "0.7.39", path = "../bobcat-storage" }
 array-concat.workspace = true
-bobcat-host = { version = "0.7.38", path = "../bobcat-host" }
+bobcat-host = { version = "0.7.39", path = "../bobcat-host" }
 
 [features]
 alloc = []

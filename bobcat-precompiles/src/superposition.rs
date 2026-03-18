@@ -88,9 +88,15 @@ pub fn edphverify_pre_opt(pre: &[u8], pub_key: U, sig: [u8; 64]) -> Option<()> {
 }
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-pub fn mul_div(x: U, y: U, z: U) -> bool {
+pub fn mul_div(x: U, y: U, z: U) -> Option<(U, bool)> {
     let cd: [u8; 3 * 32] = concat_arrays!(x.0, y.0, z.0);
-    static_call_unit(ADDR_MUL_DIV, &cd, u64::MAX)
+    let (rd, _, rc) = static_call_slice::<64>(ADDR_MUL_DIV, &cd, u64::MAX, 0);
+    if rd {
+        let x: [u8; 32] = rc[32..].try_into().unwrap();
+        Some((U::from(x), rc[31] != 0))
+    } else {
+        None
+    }
 }
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]

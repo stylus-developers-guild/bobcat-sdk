@@ -106,7 +106,7 @@ pub fn mul_div(x: U, y: U, z: U) -> Option<(U, bool)> {
 pub use bobcat_maths::mul_div;
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-pub fn rooti(x: U, y: u32) -> Option<U> {
+pub fn checked_root(x: U, y: u32) -> Option<U> {
     let cd: [u8; { 32 + size_of::<u32>() }] = concat_arrays!(x.0, y.to_be_bytes());
     let (rd, rc) = static_call_word(ADDR_ROOTI, &cd, u64::MAX, 0);
     if rd {

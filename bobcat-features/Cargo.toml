@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-features"
-version = "0.7.43"
+version = "0.7.44"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for feature flagged release on Arbitrum Stylus."
@@ -11,12 +11,12 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_features"
 
 [dependencies]
-bobcat-call = { version = "0.7.43", path = "../bobcat-call" }
-bobcat-entry = { version = "0.7.43", path = "../bobcat-entry" }
-bobcat-interfaces = { version = "0.7.43", path = "../bobcat-interfaces" }
-bobcat-storage = { version = "0.7.43", path = "../bobcat-storage" }
+bobcat-call = { version = "0.7.44", path = "../bobcat-call" }
+bobcat-entry = { version = "0.7.44", path = "../bobcat-entry" }
+bobcat-interfaces = { version = "0.7.44", path = "../bobcat-interfaces" }
+bobcat-storage = { version = "0.7.44", path = "../bobcat-storage" }
 paste.workspace = true
-bobcat-host = { version = "0.7.43", path = "../bobcat-host" }
+bobcat-host = { version = "0.7.44", path = "../bobcat-host" }
 
 [features]
 std = ["bobcat-storage/std", "bobcat-entry/std", "bobcat-host/std"]

@@ -4,7 +4,7 @@ use bobcat_maths::U;
 
 use bobcat_cd::address;
 
-use bobcat_call::{static_call_slice, static_call_unit};
+use bobcat_call::{static_call_word, static_call_slice, static_call_unit};
 
 use array_concat::concat_arrays;
 
@@ -22,6 +22,9 @@ pub const ADDR_MUL_DIV: [u8; 20] = address!(b"7a9579a78d6ea3279b33d6d0f92a2fe8fd
 
 /// Sha512 is deployed at this address on Arbitrum One and Superposition.
 pub const ADDR_SHA512: [u8; 20] = address!(b"1f4350205a556587ff3a1f2cb627613685dacb73");
+
+/// A rooti function is deployed at this address.
+pub const ADDR_ROOTI: [u8; 20] = address!(b"e0efe3de50d40452bc53317e16a1b69764e2b1b2");
 
 #[cfg(feature = "sha512")]
 pub fn const_sha512(x: &[u8]) -> [u8; 64] {
@@ -101,3 +104,17 @@ pub fn mul_div(x: U, y: U, z: U) -> Option<(U, bool)> {
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 pub use bobcat_maths::mul_div;
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+pub fn rooti(x: U, y: u32) -> Option<U> {
+    let cd: [u8; { 32 + size_of::<u32>() }] = concat_arrays!(x.0, y.to_be_bytes());
+    let (rd, rc) = static_call_word(ADDR_ROOTI, &cd, u64::MAX, 0);
+    if rd {
+        Some(rc)
+    } else {
+        None
+    }
+}
+
+#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
+pub use bobcat_maths::checked_root;

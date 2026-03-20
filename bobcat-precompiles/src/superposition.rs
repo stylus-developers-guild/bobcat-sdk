@@ -4,7 +4,7 @@ use bobcat_maths::U;
 
 use bobcat_cd::address;
 
-use bobcat_call::{static_call_word, static_call_slice, static_call_unit};
+use bobcat_call::{static_call_slice, static_call_unit, static_call_word};
 
 use array_concat::concat_arrays;
 
@@ -117,4 +117,4 @@ pub fn rooti(x: U, y: u32) -> Option<U> {
 }
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
-pub use bobcat_maths::checked_root;
+pub use bobcat_maths::checked_rooti as checked_root;

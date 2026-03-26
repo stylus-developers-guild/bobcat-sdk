@@ -90,26 +90,6 @@ EOF
 
 chmod +x wasm-post.sh
 
-cat >deploy.sh <<EOF
-#!/bin/sh
-
-url=\${ENDPOINT:-https://testnet-rpc.superposition.so}
-
-if [ -z "\$PRIVATE_KEY" ]; then
-	>&2 echo "PRIVATE_KEY unset"
-	exit 2
-fi
-
-cargo stylus deploy \\
-	--wasm-file "$lib_project_name.wasm" \\
-	--private-key "\$PRIVATE_KEY" \\
-	--endpoint "\$url" \\
-	--no-verify \\
-	        | sed -nr 's/.*deployed code at address: +.*(0x.{40}).*\$/\\1/p'
-EOF
-
-chmod +x deploy.sh
-
 cat >Makefile <<EOF
 
 $project_name.wasm: \$(shell find Cargo.* src -type f)

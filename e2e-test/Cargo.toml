@@ -16,7 +16,8 @@ members = [
 	"safe-erc20",
 	"tracing-counter",
 	"features",
-	"math-example"
+	"math-example",
+	"zeroise-check"
 ]
 
 [workspace.dependencies]

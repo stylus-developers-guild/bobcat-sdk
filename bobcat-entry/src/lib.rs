@@ -132,23 +132,25 @@ macro_rules! write_result_exit_call {
     ($ident:expr) => {{
         let (rc, l, v) = $ident;
         $crate::write_result_slice(&v[..l]);
-        if rc { 0 } else { 1 }
+        if rc {
+            0
+        } else {
+            1
+        }
     }};
 }
 
-/// Read args, panicking if the length is not the same as CAP. Uses
-/// MaybeUninit to not bother zeroing out the slice we allocate here a miniscule better code
-/// generation performance.
-pub fn read_args_eq<const CAP: usize>(len: usize) -> [u8; CAP] {
-    assert_eq!(CAP, len, "cap not equal to len for eq read args");
-    // SAFETY: This is safe since the host will write over this.
-    let mut b = unsafe { core::mem::MaybeUninit::<[u8; CAP]>::uninit().assume_init() };
-    unsafe { host::read_args(b.as_mut_ptr()) };
-    b
-}
-
+/// Read arguments from the Stylus VM (calldata), using unsafe
+/// MaybeUninit code if we're on the wasm host. If we're on a non wasm
+/// host, zero it out then return it. We also return the length.
 pub fn read_args<const CAP: usize>(len: usize) -> ([u8; CAP], usize) {
     assert!(CAP >= len, "cap not enough");
+    // SAFETY: This is safe since the host will write over this, and on
+    // the Stylus host this will always be zeroed out anyway.
+    #[cfg(all(target_family = "wasm", target_os = "unknown"))]
+    let mut b = unsafe { core::mem::MaybeUninit::<[u8; CAP]>::uninit().assume_init() };
+    // On other hosts, we don't make the assumption about this and zero it out:
+    #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
     let mut b = [0u8; CAP];
     unsafe { host::read_args(b.as_mut_ptr()) };
     (b, len)

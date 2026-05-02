@@ -21,7 +21,8 @@ PROJECTS := \
 	panic-trace \
 	shadow \
 	features \
-	math-example
+	math-example \
+	zeroise-check
 
 all: wasm
 
@@ -48,7 +49,8 @@ wasm: \
 	panic-trace.wasm \
 	shadow.wasm \
 	features.wasm \
-	math-example.wasm
+	math-example.wasm \
+	zeroise-check.wasm
 
 chainlink-vrf-test.wasm: ${BUILT}
 	@rm -f chainlink-vrf-test.wasm
@@ -123,6 +125,10 @@ math-example.wasm: ${BUILT}
 	@rm -f math-example.wasm
 	@./wasm-post.sh ${RELEASE}/math-example.wasm math-example.wasm
 
+math-example.wasm: ${BUILT}
+	@rm -f zeroise-checke.wasm
+	@./wasm-post.sh ${RELEASE}/zeroise-check.wasm zeroise-check.wasm
+
 clean:
 	@rm -rf \
 		target \
@@ -143,4 +149,5 @@ clean:
 		panic-trace.wasm \
 		shadow.wasm \
 		features.wasm \
-		math-example.wasm
+		math-example.wasm \
+		zeroise-check.wasm

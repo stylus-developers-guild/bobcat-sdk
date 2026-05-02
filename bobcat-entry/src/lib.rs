@@ -136,6 +136,17 @@ macro_rules! write_result_exit_call {
     }};
 }
 
+/// Read args, panicking if the length is not the same as CAP. Uses
+/// MaybeUninit to not bother zeroing out the slice we allocate here a miniscule better code
+/// generation performance.
+pub fn read_args_eq<const CAP: usize>(len: usize) -> [u8; CAP] {
+    assert_eq!(CAP, len, "cap not equal to len for eq read args");
+    // SAFETY: This is safe since the host will write over this.
+    let mut b = unsafe { core::mem::MaybeUninit::<[u8; CAP]>::uninit().assume_init() };
+    unsafe { host::read_args(b.as_mut_ptr()) };
+    b
+}
+
 pub fn read_args<const CAP: usize>(len: usize) -> ([u8; CAP], usize) {
     assert!(CAP >= len, "cap not enough");
     let mut b = [0u8; CAP];

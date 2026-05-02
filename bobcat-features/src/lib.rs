@@ -177,7 +177,7 @@ macro_rules! FEATURE_COPY {
 
 #[macro_export]
 macro_rules! FEATURE_COPY_NON_ZEROES {
-    ($address:expr, $($feature_name:ident),* $(,)?) => {
+    ($address:expr, $($feature_name:ident),* $(,)?) => {{
         #[cfg(not(any(
             target_arch = "riscv32",
             all(target_family = "wasm", target_os = "unknown"))
@@ -224,7 +224,7 @@ macro_rules! FEATURE_COPY_NON_ZEROES {
             )*
             let _ = i;
         }
-    };
+    }};
 }
 
 #[macro_export]

@@ -31,6 +31,12 @@ pub unsafe fn mark_used() {
     panic!();
 }
 
+/// Write a result array, avoiding a copy.
+pub fn write_result_arr<const CAP: usize>(s: [u8; CAP]) {
+    unsafe { host::write_result(s.as_ptr(), s.len()) }
+}
+
+/// Write a result slice.
 pub fn write_result_slice(s: &[u8]) {
     unsafe { host::write_result(s.as_ptr(), s.len()) }
 }

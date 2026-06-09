@@ -199,20 +199,24 @@ pub fn reentrancy_guard_keccak<R>(k: &[u8], f: impl FnOnce() -> R) -> R {
 
 /// Find the storage map slot using keccak_const. Don't do this during
 /// your runtime code, unless you want to pay the codesize price.
-pub const fn const_slot_map(k: &U, p: &U) -> U {
-    let a: [u8; 32 * 2] = concat_arrays!(k.0, p.0);
+/// Make sure to reverse your arguments if you're shooting for EVM
+/// storage equivalence. Same as slot_map.
+pub const fn const_slot_map(x: &U, y: &U) -> U {
+    let a: [u8; 32 * 2] = concat_arrays!(x.0, y.0);
     const_keccak256(&a)
 }
 
+/// Find the slot map item given by keccak256(k . p) with padding.
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-pub fn slot_map(k: &U, p: &U) -> U {
-    let b: [u8; 32 * 2] = concat_arrays!(k.0, p.0);
-    keccak256(&b)
+pub fn slot_map(x: &U, y: &U) -> U {
+    let a: [u8; 32 * 2] = concat_arrays!(x.0, y.0);
+    keccak256(&a)
 }
 
+/// Find the slot map item given by keccak256(k . p) with padding.
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
-pub fn slot_map(k: &U, p: &U) -> U {
-    const_slot_map(k, p)
+pub fn slot_map(x: &U, y: &U) -> U {
+    const_slot_map(x, y)
 }
 
 #[test]

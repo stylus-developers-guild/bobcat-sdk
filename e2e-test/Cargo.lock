@@ -709,6 +709,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "slot-key"
+version = "0.1.0"
+dependencies = [
+ "bobcat-sdk",
+]
+
+[[package]]
 name = "slot-map"
 version = "0.1.0"
 dependencies = [

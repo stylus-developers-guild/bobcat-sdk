@@ -17,7 +17,8 @@ members = [
 	"tracing-counter",
 	"features",
 	"math-example",
-	"zeroise-check"
+	"zeroise-check",
+	"slot-key"
 ]
 
 [workspace.dependencies]

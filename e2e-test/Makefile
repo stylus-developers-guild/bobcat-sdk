@@ -22,7 +22,8 @@ PROJECTS := \
 	shadow \
 	features \
 	math-example \
-	zeroise-check
+	zeroise-check \
+	slot-key
 
 all: wasm
 
@@ -50,7 +51,8 @@ wasm: \
 	shadow.wasm \
 	features.wasm \
 	math-example.wasm \
-	zeroise-check.wasm
+	zeroise-check.wasm \
+	slot-key.wasm
 
 chainlink-vrf-test.wasm: ${BUILT}
 	@rm -f chainlink-vrf-test.wasm
@@ -125,9 +127,13 @@ math-example.wasm: ${BUILT}
 	@rm -f math-example.wasm
 	@./wasm-post.sh ${RELEASE}/math-example.wasm math-example.wasm
 
-math-example.wasm: ${BUILT}
-	@rm -f zeroise-checke.wasm
+zeroise-check.wasm: ${BUILT}
+	@rm -f zeroise-check.wasm
 	@./wasm-post.sh ${RELEASE}/zeroise-check.wasm zeroise-check.wasm
+
+slot-key.wasm: ${BUILT}
+	@rm -f slot-key.wasm
+	@./wasm-post.sh ${RELEASE}/slot-key.wasm slot-key.wasm
 
 clean:
 	@rm -rf \
@@ -150,4 +156,5 @@ clean:
 		shadow.wasm \
 		features.wasm \
 		math-example.wasm \
-		zeroise-check.wasm
+		zeroise-check.wasm \
+		slot-key.wasm

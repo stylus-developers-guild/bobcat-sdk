@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use bobcat_storage::{
-    const_keccak256_two_off_curve, keccak256, storage_load, storage_store, U,
+    U, const_keccak256_two_off_curve, keccak256, storage_load, storage_store,
 };
 
 pub use bobcat_entry::block_timestamp;

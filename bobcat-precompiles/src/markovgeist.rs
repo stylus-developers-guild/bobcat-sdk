@@ -103,11 +103,7 @@ pub fn tick_to_price(tick: i32) -> (bool, U) {
     let b: [u8; 4 + 32 - 4 + 24] =
         concat_arrays!(SEL_TICK_TO_PRICE, [0u8; 32 - 4], tick.to_be_bytes());
     let (rc, rd) = static_call_word(ADDR_TICKMATH, &b, u64::MAX, 0);
-    if !rc {
-        (false, U::ZERO)
-    } else {
-        (true, rd)
-    }
+    if !rc { (false, U::ZERO) } else { (true, rd) }
 }
 
 #[cfg(feature = "tickmath-local")]

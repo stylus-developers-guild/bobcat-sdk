@@ -12,7 +12,10 @@ pub use bobcat_maths::U;
 
 type Address = [u8; 20];
 
-use bobcat_proxy::{make_minimal_proxy, make_beacon_proxy, make_beacon_sel_proxy_sel, make_upgradeable_beacon_proxy, make_multi3_proxy};
+use bobcat_proxy::{
+    make_beacon_proxy, make_beacon_sel_proxy_sel, make_minimal_proxy, make_multi3_proxy,
+    make_upgradeable_beacon_proxy,
+};
 
 use array_concat::concat_arrays;
 
@@ -426,7 +429,6 @@ pub fn deploy_multi3_proxy_create2_pre_endowment(
 ) -> Address {
     deploy_multi3_proxy_create2_endowment(one, two, three, all, endowment, keccak256(salt_pre))
 }
-
 
 /// Deploy a multi3 proxy for the implementations provided. Read
 /// bobcat-proxy for context. TLDR: we select a proxy based on the first

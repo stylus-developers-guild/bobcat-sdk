@@ -6,10 +6,16 @@ use bobcat_cd::address;
 
 use bobcat_call::{static_call_slice, static_call_unit, static_call_word};
 
+#[cfg(feature = "alloc")]
+use bobcat_call::static_call_vec;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 use array_concat::concat_arrays;
 
 #[cfg(feature = "sha512")]
-use sha2::{digest::Update, Digest, Sha512};
+use sha2::{Digest, Sha512, digest::Update};
 
 #[cfg(feature = "ed25519-dalek")]
 pub use crate::ed25519::const_edphverify;
@@ -25,6 +31,9 @@ pub const ADDR_SHA512: [u8; 20] = address!(b"1f4350205a556587ff3a1f2cb627613685d
 
 /// A rooti function is deployed at this address.
 pub const ADDR_ROOTI: [u8; 20] = address!(b"e0efe3de50d40452bc53317e16a1b69764e2b1b2");
+
+/// A xz decompressor smart contract.
+pub const ADDR_XA_DECOMPRESSOR: [u8; 20] = address!(b"c640a98ea2809dc65ad58385bbdd9038c529d5e5");
 
 #[cfg(feature = "sha512")]
 pub fn const_sha512(x: &[u8]) -> [u8; 64] {
@@ -109,12 +118,19 @@ pub use bobcat_maths::mul_div;
 pub fn checked_root(x: U, y: u32) -> Option<U> {
     let cd: [u8; { 32 + size_of::<u32>() }] = concat_arrays!(x.0, y.to_be_bytes());
     let (rd, rc) = static_call_word(ADDR_ROOTI, &cd, u64::MAX, 0);
-    if rd {
-        Some(rc)
-    } else {
-        None
-    }
+    if rd { Some(rc) } else { None }
 }
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
 pub use bobcat_maths::checked_rooti as checked_root;
+
+pub fn xz_decompress_slice<const MAX_SLICE: usize>(cd: &[u8]) -> Option<([u8; MAX_SLICE], usize)> {
+    let (ok, rd, rc) = static_call_slice::<MAX_SLICE>(ADDR_XA_DECOMPRESSOR, &cd, u64::MAX, 0);
+    if ok { Some((rc, rd)) } else { None }
+}
+
+#[cfg(feature = "alloc")]
+pub fn xz_decompress_vec(cd: &[u8]) -> Option<Vec<u8>> {
+    let (ok, rd) = static_call_vec(ADDR_XA_DECOMPRESSOR, &cd, u64::MAX, 0);
+    if ok { Some(rd) } else { None }
+}

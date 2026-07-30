@@ -138,11 +138,7 @@ macro_rules! write_result_exit_call {
     ($ident:expr) => {{
         let (rc, l, v) = $ident;
         $crate::write_result_slice(&v[..l]);
-        if rc {
-            0
-        } else {
-            1
-        }
+        if rc { 0 } else { 1 }
     }};
 }
 

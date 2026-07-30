@@ -32,7 +32,12 @@ pub use bobcat_precompiles as precompiles;
 pub use bobcat_proxy as proxy;
 pub use bobcat_storage as storage;
 
-#[cfg(any(feature = "panic", feature = "panic-revert", feature = "panic-loc", feature = "panic-trace"))]
+#[cfg(any(
+    feature = "panic",
+    feature = "panic-revert",
+    feature = "panic-loc",
+    feature = "panic-trace"
+))]
 pub use bobcat_panic as panic;
 
 #[cfg(feature = "console")]

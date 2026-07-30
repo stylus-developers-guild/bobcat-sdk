@@ -180,7 +180,7 @@ pub fn create2_post_vec(code: &[u8], endowment: U, salt: U) -> (Address, Option<
 
 #[cfg(feature = "alloc")]
 pub fn create2_pre_vec(code: &[u8], endowment: U, salt_pre: &[u8]) -> (Address, Option<Vec<u8>>) {
-    create2_post_vec(code, endowment, kecak256(salt_pre))
+    create2_post_vec(code, endowment, keccak256(salt_pre))
 }
 
 pub fn create2_slice_pre_keccak256<const REVERT_CAP: usize>(

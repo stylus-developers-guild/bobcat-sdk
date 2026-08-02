@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-maths"
-version = "0.7.47"
+version = "0.7.48"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities performing codesize efficient math on Arbitrum Stylus."
@@ -23,10 +23,10 @@ const-hex.workspace = true
 paste.workspace = true
 array-concat.workspace = true
 serde = { version = ">=1.0.0", default-features = false, features = ["derive"], optional = true }
-bobcat-panic = { version = "0.7.47", path = "../bobcat-panic" }
+bobcat-panic = { version = "0.7.48", path = "../bobcat-panic" }
 clap = { version = ">=4.0.0", optional = true }
 wasm-bindgen = { version = ">=0.2.0", optional = true, default-features = false }
-bobcat-host = { version = "0.7.47", path = "../bobcat-host" }
+bobcat-host = { version = "0.7.48", path = "../bobcat-host" }
 
 [features]
 std = ["alloc", "dep:clap"]

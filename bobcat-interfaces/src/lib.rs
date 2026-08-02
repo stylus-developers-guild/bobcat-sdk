@@ -9,6 +9,7 @@ pub mod eip2612;
 pub mod aave_v3;
 pub mod camelotv3_swap_router;
 pub mod compound_v3;
+pub mod morpho;
 
 pub mod chainlink_price_feed;
 pub mod chainlink_vrf;

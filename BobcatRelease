@@ -25,6 +25,6 @@ git tag -a $ver_next
 # Any patches for bugs are cherry picked into this release, with a nightly build being made
 # every day using the CI that can be pointed to. The minor releasing needs to be done here.
 
-git push -a
+git push -u release-$ver_next
 
 git checkout trunk

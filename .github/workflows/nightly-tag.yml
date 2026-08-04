@@ -1,0 +1,54 @@
+name: Nightly tag
+
+on:
+  schedule:
+    # Tag the newest BobcatRelease branch once per UTC day.
+    - cron: "15 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag today's release revision
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create nightly tag
+        run: |
+          release_ref="$(
+            git for-each-ref \
+              --format='%(refname:short)' \
+              'refs/remotes/origin/release-*' \
+              | sort --version-sort \
+              | tail -n 1
+          )"
+          if [ -z "$release_ref" ]; then
+            echo "No release-* branch created by BobcatRelease was found; nothing to tag"
+            exit 0
+          fi
+
+          release="${release_ref#origin/release-}"
+          tag="nightly-${release}-$(date -u +%Y-%m-%d)"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            echo "$tag already exists; nothing to do"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag \
+            --annotate "$tag" \
+            --message "bobcat-sdk ${release} nightly for $(date -u +%Y-%m-%d)" \
+            "$release_ref"
+          git push origin "refs/tags/$tag"

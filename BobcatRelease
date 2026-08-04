@@ -8,7 +8,11 @@ ver_minor="$(echo "$ver_cur" | cut -d. -f2)"
 
 ver_next="0.$(echo $ver_minor '+ 1' | bc).0"
 
-sed -i "s/$ver_cur/0.$ver_cur.0/g" $(find -name Cargo.toml -maxdepth 1)
+files=$(find -name Cargo.toml -maxdepth 2)
+
+sed -i "s/$ver_cur/0.$ver_next.0/g" $files
+
+git add $files
 
 cargo publish -n
 

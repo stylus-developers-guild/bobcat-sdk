@@ -42,6 +42,7 @@ contract PrecompilesXz is Test {
         ffiIn[0] = "./e2e-test/gen-xz-pre.sh";
         bytes memory pre = vm.ffi(ffiIn);
         (bool rc, bytes memory out) = xz.call(compressed);
+        assert(rc);
         assertEq(pre, out);
     }
 }

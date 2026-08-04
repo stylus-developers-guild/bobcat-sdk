@@ -19,6 +19,4 @@ git tag -a 0.$ver_minor.0
 
 git push -a
 
-cargo publish
-
 git checkout trunk

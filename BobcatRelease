@@ -14,6 +14,8 @@ sed -i "s/$ver_cur/$ver_next/g" $files
 
 git add $files
 
+git commit -m 'Release new version'
+
 cargo publish -n
 
 git checkout -b release-$ver_next

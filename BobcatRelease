@@ -2,13 +2,15 @@
 
 [ -z "$(git status --porcelain)" ] || exit 1
 
-cargo publish -n
-
 ver_cur="$(awk -F'"' '/^version[[:space:]]*=/ { print $2 }' bobcat-sdk/Cargo.toml | tail -n1)"
 
 ver_minor="$(echo "$ver_cur" | cut -d. -f2)"
 
 ver_next="0.$(echo $ver_minor '+ 1' | bc).0"
+
+sed -i "s/0.$ver_cur.0/g" $(find -name Cargo.toml)
+
+cargo publish -n
 
 git checkout -b release-0.$ver_next.0
 

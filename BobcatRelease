@@ -10,9 +10,9 @@ ver_minor="$(echo "$ver_cur" | cut -d. -f2)"
 
 ver_next="0.$(echo $ver_minor '+ 1' | bc).0"
 
-git checkout -b release-0.$ver_minor.0
+git checkout -b release-0.$ver_next.0
 
-git tag -a 0.$ver_minor.0
+git tag -a 0.$ver_next.0
 
 # Any patches for bugs are cherry picked into this release, with a nightly build being made
 # every day using the CI that can be pointed to. The minor releasing needs to be done here.

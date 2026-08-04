@@ -1,0 +1,62 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Every Monday at 03:00 UTC.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Full test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Initialize submodules
+        run: |
+          git submodule update --init --depth 1 forge-libs/forge-std
+          git submodule update --init --depth 1 e2e-test/superposition-precompiles
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rust-src
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            examples
+            e2e-test
+            e2e-test/panic-trace
+            e2e-test/shadow
+
+      - name: Install WASM tools
+        run: sudo apt-get update && sudo apt-get install --yes binaryen wabt
+
+      - name: Install ArbOS Foundry
+        env:
+          ARBOS_FOUNDRY_VERSION: v0.1.1
+        run: |
+          curl --fail --location --silent --show-error \
+            "https://github.com/iosiro/arbos-foundry/releases/download/${ARBOS_FOUNDRY_VERSION}/arbos-foundry_${ARBOS_FOUNDRY_VERSION}_linux_amd64.tar.gz" \
+            | tar --extract --gzip --directory "$HOME/.cargo/bin"
+          arbos-forge --version
+
+      - name: Run full test suite
+        run: ./tests.sh

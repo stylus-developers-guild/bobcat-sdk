@@ -45,6 +45,21 @@ jobs:
             exit 0
           fi
 
+          latest_tag="$(
+            git tag \
+              --list "nightly-${release}-*" \
+              --sort=-version:refname \
+              | head -n 1
+          )"
+          if [ -n "$latest_tag" ]; then
+            latest_commit="$(git rev-parse "${latest_tag}^{}")"
+            release_commit="$(git rev-parse "$release_ref")"
+            if [ "$latest_commit" = "$release_commit" ]; then
+              echo "$release_ref has no commits since $latest_tag; nothing to tag"
+              exit 0
+            fi
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag \

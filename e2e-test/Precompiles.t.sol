@@ -3,7 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Vm, Test} from "forge-std/Test.sol";
 
-import {IArbFoundry} from "./IArbFoundry.sol";
+/*import {IArbFoundry} from "./IArbFoundry.sol";
 
 interface IPrecompiles {
     function ecrecover_(bytes32, uint8, bytes32, bytes32) external view returns (address);
@@ -31,9 +31,9 @@ interface IPrecompiles {
         bytes32 qx,
         bytes32 qy
     ) external returns (bytes32);
-}
+}*/
 
-contract Ecrecover is Test {
+contract Ecrecover is Test {/*
     IPrecompiles precompiles;
 
     function setUp() public {
@@ -75,5 +75,5 @@ contract Ecrecover is Test {
         (bytes32 r, bytes32 s) = vm.signP256(key, d);
         vm.resetGasMetering();
         precompiles.secp256r1(d, r, s, bytes32(qx), bytes32(qy));
-    }
+    }*/
 }

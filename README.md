@@ -216,9 +216,7 @@ pub fn get_ed25519_count() -> U {
 
 This SDK strives to be like the bobcat: nimble, stalking its prey in winter, and
 conserving its energy. It is tiny, focused, and conservative, with the ability to opt out
-of parts of the library. Once this SDK is finished, there will be no new features except
-for adopting new wasm features or supporting ArbOS upgrades. If you want shiny new things,
-use the mainstream SDK or add the features yourself.
+of parts of the library.
 
 ## Why make this?
 

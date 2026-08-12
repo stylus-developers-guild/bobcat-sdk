@@ -11,7 +11,7 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_call"
 
 [features]
-default = ["std"]
+default = ["alloc"]
 alloc = []
 dont-define-symbols = ["bobcat-entry/dont-define-symbols"]
 panic = ["bobcat-panic/panic"]

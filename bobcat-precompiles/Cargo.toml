@@ -8,7 +8,7 @@ homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [features]
-default = ["std"]
+default = ["alloc"]
 ed25519-dalek = ["dep:ed25519-dalek", "sha512"]
 alloc = ["bobcat-call/alloc"]
 tickmath-local = ["dep:markovgeist-precompiles-tickmath"]

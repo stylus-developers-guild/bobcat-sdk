@@ -13,6 +13,6 @@ bobcat-maths = { version = "0.8.0", path = "../bobcat-maths" }
 bobcat-host = { version = "0.8.0", path = "../bobcat-host" }
 
 [features]
-default = ["std"]
+default = ["alloc"]
 alloc = ["bobcat-maths/alloc"]
 shadow = []

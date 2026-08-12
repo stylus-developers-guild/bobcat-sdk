@@ -4,9 +4,10 @@
 
 ver_cur="$(awk -F'"' '/^version[[:space:]]*=/ { print $2 }' bobcat-sdk/Cargo.toml | tail -n1)"
 
+ver_minor="$(echo "$ver_cur" | cut -d. -f2)"
 ver_patch="$(echo "$ver_cur" | cut -d. -f3)"
 
-ver_next="0.$(echo $ver_patch '+ 1' | bc).0"
+ver_next="0.$ver_minor.$(echo $ver_patch '+ 1' | bc)"
 
 files=$(find -maxdepth 2 -name Cargo.toml)
 

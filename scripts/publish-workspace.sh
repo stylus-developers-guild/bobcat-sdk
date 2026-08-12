@@ -100,7 +100,7 @@ while IFS= read -r crate; do
     echo "Publishing ${crate} ${RELEASE_VERSION}"
     published=false
     for attempt in $(seq 1 12); do
-        if cargo publish --locked --package "$crate"; then
+        if cargo publish --package "$crate"; then
             published=true
             break
         fi

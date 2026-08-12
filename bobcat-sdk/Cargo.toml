@@ -29,6 +29,7 @@ bobcat-host = { version = "0.8.0", path = "../bobcat-host" }
 bobcat-alloc = { version = "0.8.0", path = "../bobcat-alloc", optional = true }
 
 [features]
+default = ["alloc"]
 std = [
 	"bobcat-create/std",
 	"bobcat-entry/std",

@@ -1,0 +1,27 @@
+#!/bin/sh -ex
+
+[ -z "$(git status --porcelain)" ] || exit 1
+
+ver_cur="$(awk -F'"' '/^version[[:space:]]*=/ { print $2 }' bobcat-sdk/Cargo.toml | tail -n1)"
+
+ver_patch="$(echo "$ver_cur" | cut -d. -f3)"
+
+ver_next="0.$(echo $ver_patch '+ 1' | bc).0"
+
+files=$(find -maxdepth 2 -name Cargo.toml)
+
+sed -i "s/$ver_cur/$ver_next/g" $files
+
+git add $files
+
+git commit -m 'Release new version'
+
+cargo publish -n
+
+git checkout -b release-$ver_next
+
+git tag -a $ver_next
+
+git push --tags -u release-$ver_next
+
+git checkout trunk

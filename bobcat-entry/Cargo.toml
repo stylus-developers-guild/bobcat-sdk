@@ -11,6 +11,7 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_entry"
 
 [features]
+default = ["std"]
 alloc = ["const-hex/alloc"]
 std = ["alloc", "bobcat-maths/std", "bobcat-storage/std"]
 dont-define-symbols = []

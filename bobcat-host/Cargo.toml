@@ -12,6 +12,7 @@ keccak-const.workspace = true
 const-hex.workspace = true
 
 [features]
+default = ["std"]
 std = ["const-hex/std"]
 mutex = ["std"]
 console = []

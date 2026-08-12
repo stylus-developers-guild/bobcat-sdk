@@ -23,6 +23,6 @@ git checkout -b release-$ver_next
 
 git tag -a $ver_next
 
-git push --tags -u release-$ver_next
+git push --tags -u origin release-$ver_next
 
 git checkout trunk

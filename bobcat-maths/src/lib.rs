@@ -46,6 +46,9 @@ use bobcat_host::*;
 #[cfg(feature = "ruint-enabled")]
 use alloy_primitives::{U256, ruint};
 
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 #[cfg(any(
     all(
         feature = "wasm-bindgen-wasi",
@@ -130,6 +133,13 @@ pub struct U(pub [u8; 32]);
 #[cfg_attr(feature = "serde", derive(SerdeSerialize, SerdeDeserialize))]
 #[repr(transparent)]
 pub struct I(pub [u8; 32]);
+
+#[cfg(feature = "alloc")]
+impl From<U> for Vec<u8> {
+    fn from(x: U) -> Self {
+        x.as_vec()
+    }
+}
 
 #[cfg(feature = "std")]
 impl clap::builder::ValueParserFactory for U {
@@ -1105,7 +1115,7 @@ impl U {
     }
 
     #[cfg(feature = "alloc")]
-    pub fn as_vec(self) -> alloc::vec::Vec<u8> {
+    pub fn as_vec(self) -> Vec<u8> {
         self.0.to_vec()
     }
 

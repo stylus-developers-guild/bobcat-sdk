@@ -3,7 +3,8 @@
 
 # bobcat-sdk
 
-bobcat-sdk is an opinionated SDK for Arbitrum Stylus, intended for advanced users.
+bobcat-sdk is an opinionated SDK for Arbitrum Stylus, intended for advanced users. It
+powers several dApps, including 9lives and Orderbookkit.
 
 ## Codesize savings
 
@@ -15,9 +16,7 @@ testing items, and a discussion of the methodology.
 If you've never worked with Arbitrum Stylus before, this SDK is not for you. Check out the
 official stylus-sdk repository first.
 
-## Usage
-
-Note: a generated storage selector is coming soon.
+## Usage (with standard EVM calldata)
 
 ```rust
 // main.rs

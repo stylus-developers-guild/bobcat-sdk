@@ -24,7 +24,7 @@ fi
 lib_project_name="$(echo "$project_name" | sed 's/-/_/g')"
 upper_project_name="$(echo "$project_name" |  sed 's/./\U&/; s/-\(.*\)/\U\1/')"
 
-mkdir "$project_name"
+mkdir -p "$project_name/.cargo"
 
 cd "$project_name"
 
@@ -62,6 +62,14 @@ incremental = true
 
 [features]
 std = ["bobcat-sdk/std"]
+EOF
+
+cat >.cargo/config.toml <<EOF
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C", "target-feature=-reference-types",
+  "-C", "target-feature=-multivalue"
+]
 EOF
 
 cat >wasm-post.sh <<EOF

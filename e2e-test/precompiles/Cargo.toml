@@ -8,4 +8,4 @@ array-concat = "0.5.5"
 bobcat-sdk.workspace = true
 ed25519-dalek = { version = "2.2.0", default-features = false, features = ["digest"] }
 mini-alloc.workspace = true
-sha2 = { version = "0.10.9", default-features = false }
+sha2 = { version = "0.11.0", default-features = false }

@@ -15,11 +15,7 @@ pub const fn make_fn_deposit(amount: &U, receiver: Address) -> [u8; 4 + 32 * 2] 
     concat_arrays!(SEL_DEPOSIT, amount.0, leftpad_addr(receiver))
 }
 
-pub const fn make_fn_withdraw(
-    amount: &U,
-    receiver: Address,
-    owner: Address,
-) -> [u8; 4 + 32 * 3] {
+pub const fn make_fn_withdraw(amount: &U, receiver: Address, owner: Address) -> [u8; 4 + 32 * 3] {
     concat_arrays!(
         SEL_WITHDRAW,
         amount.0,

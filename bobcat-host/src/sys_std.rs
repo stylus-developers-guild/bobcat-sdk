@@ -1,7 +1,10 @@
 #[cfg(not(feature = "mutex"))]
 mod impls {
     use std::{
-        cell::RefCell, cmp::min, collections::HashMap, ptr::copy_nonoverlapping,
+        cell::RefCell,
+        cmp::min,
+        collections::{HashMap, VecDeque},
+        ptr::copy_nonoverlapping,
         slice::from_raw_parts,
     };
 
@@ -10,11 +13,18 @@ mod impls {
     type U = [u8; 32];
     type Address = [u8; 20];
 
-    type WordHashMap = HashMap<[u8; 32], [u8; 32]>;
+    type VersionedWord = (u32, [u8; 32]);
+    type WordHashMap = HashMap<[u8; 32], VecDeque<VersionedWord>>;
 
+    const MAX_STORAGE_VERSIONS: usize = 10;
+
+    // The storage uses versioning, allowing it to be rolled back if
+    // the user uses a guard locally. There can only be 10 versions
+    // in circulation at a time.
     thread_local! {
         pub static STORAGE: RefCell<WordHashMap> = RefCell::default();
         pub static TRANSIENT: RefCell<WordHashMap> = RefCell::default();
+        pub static VERSION: RefCell<u32> = RefCell::default();
     }
 
     pub fn storage_clear() {
@@ -39,10 +49,38 @@ mod impls {
         }
     }
 
+    fn current_version() -> u32 {
+        VERSION.with(|v| *v.borrow())
+    }
+
+    fn load_versioned_word(words: &VecDeque<VersionedWord>, version: u32) -> [u8; 32] {
+        match words.back() {
+            Some((v, value)) if *v == version => *value,
+            Some(_) => words
+                .iter()
+                .rev()
+                .skip(1)
+                .find(|(v, _)| *v == version)
+                .map(|(_, value)| *value)
+                .unwrap_or([0u8; 32]),
+            None => [0u8; 32],
+        }
+    }
+
+    fn store_versioned_word(storage: &mut WordHashMap, key: [u8; 32], value: [u8; 32]) {
+        let version = current_version();
+        let words = storage.entry(key).or_default();
+        words.push_back((version, value));
+        while words.len() > MAX_STORAGE_VERSIONS {
+            words.pop_front();
+        }
+    }
+
     pub unsafe fn storage_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
+        let version = current_version();
         let value = STORAGE.with(|s| match s.borrow().get(&k) {
-            Some(v) => *v,
+            Some(v) => load_versioned_word(v, version),
             None => [0u8; 32],
         });
         unsafe { write_word(out, value) };
@@ -51,13 +89,14 @@ mod impls {
     pub unsafe fn storage_cache_bytes32(key: *const u8, value: *const u8) {
         let k = unsafe { read_word(key) };
         let v = unsafe { read_word(value) };
-        STORAGE.with(|s| s.borrow_mut().insert(k, v));
+        STORAGE.with(|s| store_versioned_word(&mut s.borrow_mut(), k, v));
     }
 
     pub unsafe fn transient_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
+        let version = current_version();
         let value = TRANSIENT.with(|s| match s.borrow().get(&k) {
-            Some(v) => *v,
+            Some(v) => load_versioned_word(v, version),
             None => [0u8; 32],
         });
         unsafe { write_word(out, value) };
@@ -66,12 +105,87 @@ mod impls {
     pub unsafe fn transient_store_bytes32(key: *const u8, value: *const u8) {
         let k = unsafe { read_word(key) };
         let v = unsafe { read_word(value) };
-        TRANSIENT.with(|s| s.borrow_mut().insert(k, v));
+        TRANSIENT.with(|s| store_versioned_word(&mut s.borrow_mut(), k, v));
     }
 
     pub unsafe fn storage_flush_cache(clear: bool) {
         if clear {
             storage_clear()
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        fn set_version(version: u32) {
+            VERSION.with(|v| *v.borrow_mut() = version);
+        }
+
+        fn reset() {
+            storage_clear();
+            transient_clear();
+            set_version(0);
+        }
+
+        #[test]
+        fn storage_loads_current_version_when_latest_is_newer() {
+            reset();
+            let key = [1u8; 32];
+            let value_0 = [2u8; 32];
+            let value_1 = [3u8; 32];
+            let mut out = [0u8; 32];
+
+            unsafe { storage_cache_bytes32(key.as_ptr(), value_0.as_ptr()) };
+            set_version(1);
+            unsafe { storage_cache_bytes32(key.as_ptr(), value_1.as_ptr()) };
+
+            unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
+            assert_eq!(value_1, out);
+
+            set_version(0);
+            unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
+            assert_eq!(value_0, out);
+        }
+
+        #[test]
+        fn transient_loads_current_version_when_latest_is_newer() {
+            reset();
+            let key = [4u8; 32];
+            let value_0 = [5u8; 32];
+            let value_1 = [6u8; 32];
+            let mut out = [0u8; 32];
+
+            unsafe { transient_store_bytes32(key.as_ptr(), value_0.as_ptr()) };
+            set_version(1);
+            unsafe { transient_store_bytes32(key.as_ptr(), value_1.as_ptr()) };
+
+            unsafe { transient_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
+            assert_eq!(value_1, out);
+
+            set_version(0);
+            unsafe { transient_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
+            assert_eq!(value_0, out);
+        }
+
+        #[test]
+        fn storage_versions_are_capped_to_ten_entries() {
+            reset();
+            let key = [7u8; 32];
+
+            for version in 0..11 {
+                set_version(version);
+                let value = [version as u8; 32];
+                unsafe { storage_cache_bytes32(key.as_ptr(), value.as_ptr()) };
+            }
+
+            STORAGE.with(|s| {
+                let storage = s.borrow();
+                let words = storage.get(&key).unwrap();
+                assert_eq!(MAX_STORAGE_VERSIONS, words.len());
+                assert_eq!(Some(&(1, [1u8; 32])), words.front());
+                assert_eq!(Some(&(10, [10u8; 32])), words.back());
+            });
         }
     }
 
@@ -262,15 +376,19 @@ mod impls {
 #[cfg(feature = "mutex")]
 mod impls {
     use std::{
-        collections::HashMap,
+        collections::{HashMap, VecDeque},
         ptr::copy_nonoverlapping,
         sync::{LazyLock, Mutex},
     };
 
-    type WordHashMap = HashMap<[u8; 32], [u8; 32]>;
+    type VersionedWord = (u32, [u8; 32]);
+    type WordHashMap = HashMap<[u8; 32], VecDeque<VersionedWord>>;
+
+    const MAX_STORAGE_VERSIONS: usize = 10;
 
     pub static STORAGE: LazyLock<Mutex<WordHashMap>> = LazyLock::new(|| Mutex::default());
     pub static TRANSIENT: LazyLock<Mutex<WordHashMap>> = LazyLock::new(|| Mutex::default());
+    pub static VERSION: LazyLock<Mutex<u32>> = LazyLock::new(|| Mutex::default());
 
     pub fn storage_clear() {
         STORAGE.lock().unwrap().clear()
@@ -294,10 +412,38 @@ mod impls {
         }
     }
 
+    fn current_version() -> u32 {
+        *VERSION.lock().unwrap()
+    }
+
+    fn load_versioned_word(words: &VecDeque<VersionedWord>, version: u32) -> [u8; 32] {
+        match words.back() {
+            Some((v, value)) if *v == version => *value,
+            Some(_) => words
+                .iter()
+                .rev()
+                .skip(1)
+                .find(|(v, _)| *v == version)
+                .map(|(_, value)| *value)
+                .unwrap_or([0u8; 32]),
+            None => [0u8; 32],
+        }
+    }
+
+    fn store_versioned_word(storage: &mut WordHashMap, key: [u8; 32], value: [u8; 32]) {
+        let version = current_version();
+        let words = storage.entry(key).or_default();
+        words.push_back((version, value));
+        while words.len() > MAX_STORAGE_VERSIONS {
+            words.pop_front();
+        }
+    }
+
     pub unsafe fn storage_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
+        let version = current_version();
         let value = match STORAGE.lock().unwrap().get(&k) {
-            Some(v) => *v,
+            Some(v) => load_versioned_word(v, version),
             None => [0u8; 32],
         };
         unsafe { write_word(out, value) };
@@ -306,13 +452,14 @@ mod impls {
     pub unsafe fn storage_cache_bytes32(key: *const u8, value: *const u8) {
         let k = unsafe { read_word(key) };
         let v = unsafe { read_word(value) };
-        STORAGE.lock().unwrap().insert(k, v);
+        store_versioned_word(&mut STORAGE.lock().unwrap(), k, v);
     }
 
     pub unsafe fn transient_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
+        let version = current_version();
         let value = match TRANSIENT.lock().unwrap().get(&k) {
-            Some(v) => *v,
+            Some(v) => load_versioned_word(v, version),
             None => [0u8; 32],
         };
         unsafe { write_word(out, value) };
@@ -321,7 +468,7 @@ mod impls {
     pub unsafe fn transient_store_bytes32(key: *const u8, value: *const u8) {
         let k = unsafe { read_word(key) };
         let v = unsafe { read_word(value) };
-        TRANSIENT.lock().unwrap().insert(k, v);
+        store_versioned_word(&mut TRANSIENT.lock().unwrap(), k, v);
     }
 
     pub unsafe fn storage_flush_cache(clear: bool) {

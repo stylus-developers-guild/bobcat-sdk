@@ -1244,7 +1244,7 @@ impl U {
         }
     }
 
-    pub const fn const_from_hex(x: &[u8; 64]) -> Option<U> {
+    pub const fn const_from_hex(x: &[u8]) -> Option<U> {
         match const_hex::const_decode_to_array::<32>(x) {
             Ok(v) => Some(U(v)),
             Err(_) => None,

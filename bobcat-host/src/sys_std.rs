@@ -124,7 +124,13 @@ mod impls {
         set_committed_version(current_version());
     }
 
-    pub unsafe fn storage_flush_cache(_: bool) {}
+    pub unsafe fn storage_flush_cache(clear: bool) {
+        if clear {
+            rollback_storage();
+        } else {
+            persist_storage();
+        }
+    }
 
     pub fn storage_reset() {
         storage_clear();

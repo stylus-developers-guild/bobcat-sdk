@@ -24,7 +24,7 @@ proptest = { workspace = true }
 
 [features]
 default = ["std"]
-std = []
+std = ["bobcat-host/std"]
 proptest = ["dep:proptest"]
 mutex = []
 alloy-enabled = ["bobcat-maths/alloy-enabled"]

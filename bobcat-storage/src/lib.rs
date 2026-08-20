@@ -92,6 +92,25 @@ pub fn flush_guard<R, F: FnOnce() -> R>(f: F) -> R {
     r
 }
 
+/// Version of the flush_guard function that cleans the storage state
+/// before running using some host functions if it can. If it can't (for
+/// example, it runs on wasm32, then it's the same as `flush_guard`.
+/// Useful for testing without thinking much about it if the program
+/// fails so there's no pollution of the storage and transient storage space.
+pub fn flush_guard_fresh<R, F: FnOnce() -> R>(f: F) -> R {
+    #[cfg(all(
+        feature = "std",
+        not(any(
+            all(target_family = "wasm", target_os = "unknown"),
+            all(target_arch = "riscv32", target_os = "none")
+        ))
+    ))]
+    host::storage_reset();
+    let r = f();
+    flush_cache();
+    r
+}
+
 storage_ops!(storage, transient);
 
 macro_rules! storage_mutate_ops {

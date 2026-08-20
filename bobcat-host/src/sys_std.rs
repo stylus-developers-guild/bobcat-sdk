@@ -126,24 +126,24 @@ mod impls {
 
     pub unsafe fn storage_flush_cache(_: bool) {}
 
+    pub fn storage_reset() {
+        storage_clear();
+        transient_clear();
+        set_version(0);
+        set_committed_version(0);
+    }
+
+    fn set_version(version: u32) {
+        VERSION.with(|v| *v.borrow_mut() = version);
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
 
-        fn set_version(version: u32) {
-            VERSION.with(|v| *v.borrow_mut() = version);
-        }
-
-        fn reset() {
-            storage_clear();
-            transient_clear();
-            set_version(0);
-            set_committed_version(0);
-        }
-
         #[test]
         fn storage_loads_latest_even_when_current_version_is_older() {
-            reset();
+            storage_reset();
             let key = [1u8; 32];
             let value_0 = [2u8; 32];
             let value_1 = [3u8; 32];
@@ -160,16 +160,14 @@ mod impls {
 
         #[test]
         fn transient_loads_latest_even_when_current_version_is_older() {
-            reset();
+            storage_reset();
             let key = [4u8; 32];
             let value_0 = [5u8; 32];
             let value_1 = [6u8; 32];
             let mut out = [0u8; 32];
-
             unsafe { transient_store_bytes32(key.as_ptr(), value_0.as_ptr()) };
             set_version(1);
             unsafe { transient_store_bytes32(key.as_ptr(), value_1.as_ptr()) };
-
             set_version(0);
             unsafe { transient_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
             assert_eq!(value_1, out);
@@ -177,20 +175,17 @@ mod impls {
 
         #[test]
         fn storage_rollback_discards_versions_newer_than_committed() {
-            reset();
+            storage_reset();
             let key = [8u8; 32];
             let value_0 = [9u8; 32];
             let value_1 = [10u8; 32];
             let mut out = [0u8; 32];
-
             unsafe { storage_cache_bytes32(key.as_ptr(), value_0.as_ptr()) };
             unsafe { storage_flush_cache(false) };
-
             set_version(1);
             unsafe { storage_cache_bytes32(key.as_ptr(), value_1.as_ptr()) };
             unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
             assert_eq!(value_1, out);
-
             unsafe { storage_flush_cache(true) };
             unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
             assert_eq!(value_0, out);
@@ -198,34 +193,30 @@ mod impls {
 
         #[test]
         fn storage_rollback_keeps_flushed_versions() {
-            reset();
+            storage_reset();
             let key = [11u8; 32];
             let value_0 = [12u8; 32];
             let value_1 = [13u8; 32];
             let mut out = [0u8; 32];
-
             unsafe { storage_cache_bytes32(key.as_ptr(), value_0.as_ptr()) };
             unsafe { storage_flush_cache(false) };
             set_version(1);
             unsafe { storage_cache_bytes32(key.as_ptr(), value_1.as_ptr()) };
             unsafe { storage_flush_cache(false) };
             unsafe { storage_flush_cache(true) };
-
             unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
             assert_eq!(value_1, out);
         }
 
         #[test]
         fn storage_versions_are_capped_to_ten_entries() {
-            reset();
+            storage_reset();
             let key = [7u8; 32];
-
             for version in 0..11 {
                 set_version(version);
                 let value = [version as u8; 32];
                 unsafe { storage_cache_bytes32(key.as_ptr(), value.as_ptr()) };
             }
-
             STORAGE.with(|s| {
                 let storage = s.borrow();
                 let words = storage.get(&key).unwrap();

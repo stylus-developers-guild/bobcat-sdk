@@ -26,3 +26,5 @@ git tag -a $ver_next
 git push --tags -u origin release-$ver_next
 
 git checkout trunk
+
+git push

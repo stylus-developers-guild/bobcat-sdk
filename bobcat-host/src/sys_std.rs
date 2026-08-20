@@ -18,13 +18,15 @@ mod impls {
 
     const MAX_STORAGE_VERSIONS: usize = 10;
 
-    // The storage uses versioning, allowing it to be rolled back if
-    // the user uses a guard locally. There can only be 10 versions
-    // in circulation at a time.
+    // The storage uses versioning, allowing uncommitted native writes to
+    // be rolled back to the last flushed version. Loads always read the
+    // latest cached value; rollback removes newer uncommitted entries.
+    // There can only be 10 versions in circulation at a time.
     thread_local! {
         pub static STORAGE: RefCell<WordHashMap> = RefCell::default();
         pub static TRANSIENT: RefCell<WordHashMap> = RefCell::default();
         pub static VERSION: RefCell<u32> = RefCell::default();
+        static COMMITTED_VERSION: RefCell<u32> = RefCell::default();
     }
 
     pub fn storage_clear() {
@@ -53,18 +55,26 @@ mod impls {
         VERSION.with(|v| *v.borrow())
     }
 
-    fn load_versioned_word(words: &VecDeque<VersionedWord>, version: u32) -> [u8; 32] {
-        match words.back() {
-            Some((v, value)) if *v == version => *value,
-            Some(_) => words
-                .iter()
-                .rev()
-                .skip(1)
-                .find(|(v, _)| *v == version)
-                .map(|(_, value)| *value)
-                .unwrap_or([0u8; 32]),
-            None => [0u8; 32],
-        }
+    fn committed_version() -> u32 {
+        COMMITTED_VERSION.with(|v| *v.borrow())
+    }
+
+    fn set_committed_version(version: u32) {
+        COMMITTED_VERSION.with(|v| *v.borrow_mut() = version);
+    }
+
+    fn load_versioned_word(words: &VecDeque<VersionedWord>) -> [u8; 32] {
+        words.back().map(|(_, value)| *value).unwrap_or([0u8; 32])
+    }
+
+    fn rollback_uncommitted_storage(storage: &mut WordHashMap) {
+        let committed = committed_version();
+        storage.retain(|_, words| {
+            while matches!(words.back(), Some((version, _)) if *version > committed) {
+                words.pop_back();
+            }
+            !words.is_empty()
+        });
     }
 
     fn store_versioned_word(storage: &mut WordHashMap, key: [u8; 32], value: [u8; 32]) {
@@ -78,9 +88,8 @@ mod impls {
 
     pub unsafe fn storage_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
-        let version = current_version();
         let value = STORAGE.with(|s| match s.borrow().get(&k) {
-            Some(v) => load_versioned_word(v, version),
+            Some(v) => load_versioned_word(v),
             None => [0u8; 32],
         });
         unsafe { write_word(out, value) };
@@ -94,9 +103,8 @@ mod impls {
 
     pub unsafe fn transient_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
-        let version = current_version();
         let value = TRANSIENT.with(|s| match s.borrow().get(&k) {
-            Some(v) => load_versioned_word(v, version),
+            Some(v) => load_versioned_word(v),
             None => [0u8; 32],
         });
         unsafe { write_word(out, value) };
@@ -108,11 +116,15 @@ mod impls {
         TRANSIENT.with(|s| store_versioned_word(&mut s.borrow_mut(), k, v));
     }
 
-    pub unsafe fn storage_flush_cache(clear: bool) {
-        if clear {
-            storage_clear()
-        }
+    pub fn rollback_storage() {
+        STORAGE.with(|s| rollback_uncommitted_storage(&mut s.borrow_mut()));
     }
+
+    pub fn persist_storage() {
+        set_committed_version(current_version());
+    }
+
+    pub unsafe fn storage_flush_cache(_: bool) {}
 
     #[cfg(test)]
     mod tests {
@@ -126,10 +138,11 @@ mod impls {
             storage_clear();
             transient_clear();
             set_version(0);
+            set_committed_version(0);
         }
 
         #[test]
-        fn storage_loads_current_version_when_latest_is_newer() {
+        fn storage_loads_latest_even_when_current_version_is_older() {
             reset();
             let key = [1u8; 32];
             let value_0 = [2u8; 32];
@@ -140,16 +153,13 @@ mod impls {
             set_version(1);
             unsafe { storage_cache_bytes32(key.as_ptr(), value_1.as_ptr()) };
 
-            unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
-            assert_eq!(value_1, out);
-
             set_version(0);
             unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
-            assert_eq!(value_0, out);
+            assert_eq!(value_1, out);
         }
 
         #[test]
-        fn transient_loads_current_version_when_latest_is_newer() {
+        fn transient_loads_latest_even_when_current_version_is_older() {
             reset();
             let key = [4u8; 32];
             let value_0 = [5u8; 32];
@@ -160,12 +170,49 @@ mod impls {
             set_version(1);
             unsafe { transient_store_bytes32(key.as_ptr(), value_1.as_ptr()) };
 
-            unsafe { transient_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
-            assert_eq!(value_1, out);
-
             set_version(0);
             unsafe { transient_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
+            assert_eq!(value_1, out);
+        }
+
+        #[test]
+        fn storage_rollback_discards_versions_newer_than_committed() {
+            reset();
+            let key = [8u8; 32];
+            let value_0 = [9u8; 32];
+            let value_1 = [10u8; 32];
+            let mut out = [0u8; 32];
+
+            unsafe { storage_cache_bytes32(key.as_ptr(), value_0.as_ptr()) };
+            unsafe { storage_flush_cache(false) };
+
+            set_version(1);
+            unsafe { storage_cache_bytes32(key.as_ptr(), value_1.as_ptr()) };
+            unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
+            assert_eq!(value_1, out);
+
+            unsafe { storage_flush_cache(true) };
+            unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
             assert_eq!(value_0, out);
+        }
+
+        #[test]
+        fn storage_rollback_keeps_flushed_versions() {
+            reset();
+            let key = [11u8; 32];
+            let value_0 = [12u8; 32];
+            let value_1 = [13u8; 32];
+            let mut out = [0u8; 32];
+
+            unsafe { storage_cache_bytes32(key.as_ptr(), value_0.as_ptr()) };
+            unsafe { storage_flush_cache(false) };
+            set_version(1);
+            unsafe { storage_cache_bytes32(key.as_ptr(), value_1.as_ptr()) };
+            unsafe { storage_flush_cache(false) };
+            unsafe { storage_flush_cache(true) };
+
+            unsafe { storage_load_bytes32(key.as_ptr(), out.as_mut_ptr()) };
+            assert_eq!(value_1, out);
         }
 
         #[test]
@@ -389,6 +436,7 @@ mod impls {
     pub static STORAGE: LazyLock<Mutex<WordHashMap>> = LazyLock::new(|| Mutex::default());
     pub static TRANSIENT: LazyLock<Mutex<WordHashMap>> = LazyLock::new(|| Mutex::default());
     pub static VERSION: LazyLock<Mutex<u32>> = LazyLock::new(|| Mutex::default());
+    static COMMITTED_VERSION: LazyLock<Mutex<u32>> = LazyLock::new(|| Mutex::default());
 
     pub fn storage_clear() {
         STORAGE.lock().unwrap().clear()
@@ -416,18 +464,26 @@ mod impls {
         *VERSION.lock().unwrap()
     }
 
-    fn load_versioned_word(words: &VecDeque<VersionedWord>, version: u32) -> [u8; 32] {
-        match words.back() {
-            Some((v, value)) if *v == version => *value,
-            Some(_) => words
-                .iter()
-                .rev()
-                .skip(1)
-                .find(|(v, _)| *v == version)
-                .map(|(_, value)| *value)
-                .unwrap_or([0u8; 32]),
-            None => [0u8; 32],
-        }
+    fn committed_version() -> u32 {
+        *COMMITTED_VERSION.lock().unwrap()
+    }
+
+    fn set_committed_version(version: u32) {
+        *COMMITTED_VERSION.lock().unwrap() = version;
+    }
+
+    fn load_versioned_word(words: &VecDeque<VersionedWord>) -> [u8; 32] {
+        words.back().map(|(_, value)| *value).unwrap_or([0u8; 32])
+    }
+
+    fn rollback_uncommitted_storage(storage: &mut WordHashMap) {
+        let committed = committed_version();
+        storage.retain(|_, words| {
+            while matches!(words.back(), Some((version, _)) if *version > committed) {
+                words.pop_back();
+            }
+            !words.is_empty()
+        });
     }
 
     fn store_versioned_word(storage: &mut WordHashMap, key: [u8; 32], value: [u8; 32]) {
@@ -441,9 +497,8 @@ mod impls {
 
     pub unsafe fn storage_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
-        let version = current_version();
         let value = match STORAGE.lock().unwrap().get(&k) {
-            Some(v) => load_versioned_word(v, version),
+            Some(v) => load_versioned_word(v),
             None => [0u8; 32],
         };
         unsafe { write_word(out, value) };
@@ -457,9 +512,8 @@ mod impls {
 
     pub unsafe fn transient_load_bytes32(key: *const u8, out: *mut u8) {
         let k = unsafe { read_word(key) };
-        let version = current_version();
         let value = match TRANSIENT.lock().unwrap().get(&k) {
-            Some(v) => load_versioned_word(v, version),
+            Some(v) => load_versioned_word(v),
             None => [0u8; 32],
         };
         unsafe { write_word(out, value) };
@@ -473,7 +527,9 @@ mod impls {
 
     pub unsafe fn storage_flush_cache(clear: bool) {
         if clear {
-            storage_clear()
+            rollback_uncommitted_storage(&mut STORAGE.lock().unwrap());
+        } else {
+            set_committed_version(current_version());
         }
     }
 }

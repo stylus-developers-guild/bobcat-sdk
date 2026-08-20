@@ -84,6 +84,8 @@ pub fn flush_cache() {
     unsafe { host::storage_flush_cache(false) }
 }
 
+/// Boring flush guard function that runs `flush_cache` once the thunk
+/// has run.
 pub fn flush_guard<R, F: FnOnce() -> R>(f: F) -> R {
     let r = f();
     flush_cache();

@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-call"
-version = "0.8.5"
+version = "0.8.6"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for calling contracts with Arbitrum Stylus."
@@ -21,9 +21,9 @@ msg-on-sdk-err = ["bobcat-panic/msg-on-sdk-err"]
 detailed-errors = ["bobcat-panic/detailed-errors"]
 
 [dependencies]
-bobcat-entry = { version = "0.8.5", path = "../bobcat-entry" }
-bobcat-host = { version = "0.8.5", path = "../bobcat-host" }
-bobcat-maths = { version = "0.8.5", path = "../bobcat-maths" }
-bobcat-panic = { version = "0.8.5", path = "../bobcat-panic" }
+bobcat-entry = { version = "0.8.6", path = "../bobcat-entry" }
+bobcat-host = { version = "0.8.6", path = "../bobcat-host" }
+bobcat-maths = { version = "0.8.6", path = "../bobcat-maths" }
+bobcat-panic = { version = "0.8.6", path = "../bobcat-panic" }
 const-hex.workspace = true
 paste.workspace = true

@@ -7,6 +7,10 @@ description = "bobcat-sdk utilities for generating signautres  on Arbitrum Stylu
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
+[features]
+default = ["alloc"]
+alloc = []
+
 [lib]
 name = "bobcat_interfaces"
 

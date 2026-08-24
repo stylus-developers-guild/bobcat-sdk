@@ -16,6 +16,7 @@ pub mod chainlink_vrf;
 
 pub mod ninelives;
 
+pub mod stargate;
 pub mod superposition;
 
 pub use bobcat_cd;

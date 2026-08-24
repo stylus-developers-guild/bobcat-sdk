@@ -36,7 +36,8 @@ std = [
 	"bobcat-maths/std",
 	"bobcat-panic/std",
 	"bobcat-storage/std",
-	"bobcat-host/std"
+	"bobcat-host/std",
+	"bobcat-interfaces/alloc"
 ]
 alloc = [
 	"bobcat-create/alloc",
@@ -46,7 +47,8 @@ alloc = [
 	"bobcat-events/alloc",
 	"bobcat-maths/alloc",
 	"bobcat-precompiles/alloc",
-	"dep:bobcat-alloc"
+	"dep:bobcat-alloc",
+	"bobcat-interfaces/alloc"
 ]
 serde = ["bobcat-maths/serde"]
 borsh = ["bobcat-maths/borsh"]

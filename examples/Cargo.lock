@@ -71,6 +71,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
 
 [[package]]
+name = "bobcat-alloc"
+version = "0.8.7"
+dependencies = [
+ "mini-alloc",
+]
+
+[[package]]
 name = "bobcat-call"
 version = "0.8.7"
 dependencies = [
@@ -121,6 +128,13 @@ dependencies = [
  "array-concat",
  "bobcat-host",
  "bobcat-maths",
+]
+
+[[package]]
+name = "bobcat-examples-002"
+version = "0.6.0"
+dependencies = [
+ "bobcat-sdk",
 ]
 
 [[package]]
@@ -203,6 +217,7 @@ dependencies = [
 name = "bobcat-sdk"
 version = "0.8.7"
 dependencies = [
+ "bobcat-alloc",
  "bobcat-call",
  "bobcat-cd",
  "bobcat-create",
@@ -216,6 +231,21 @@ dependencies = [
  "bobcat-precompiles",
  "bobcat-proxy",
  "bobcat-storage",
+]
+
+[[package]]
+name = "bobcat-sdk-examples-001"
+version = "0.1.11"
+dependencies = [
+ "bobcat-sdk",
+]
+
+[[package]]
+name = "bobcat-sdk-examples-003"
+version = "0.1.0"
+dependencies = [
+ "bobcat-sdk",
+ "const-hex",
 ]
 
 [[package]]
@@ -318,6 +348,15 @@ name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+
+[[package]]
+name = "mini-alloc"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b620761d4c29ede39bb1351c4360dba54d3b414d9fb460d37cba4c98b37a0b9d"
+dependencies = [
+ "cfg-if",
+]
 
 [[package]]
 name = "mutants"
@@ -455,14 +494,7 @@ checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.3",
-]
-
-[[package]]
-name = "shadow"
-version = "0.1.0"
-dependencies = [
- "bobcat-sdk",
+ "syn 3.0.4",
 ]
 
 [[package]]
@@ -484,9 +516,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.3"
+version = "3.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53e9bae58849f64dfa4f5d5ae372c8341f7305f82a3868709269343628b659a3"
+checksum = "e6275cddf4610d1775e6d1fe9469b2e77d0f39fd98fb7450901b821e0c53649f"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -67,8 +67,7 @@ EOF
 cat >.cargo/config.toml <<EOF
 [target.wasm32-unknown-unknown]
 rustflags = [
-  "-C", "target-feature=-reference-types",
-  "-C", "target-feature=-multivalue"
+    "-C", "target-feature=-reference-types,-multivalue,-bulk-memory"
 ]
 EOF
 

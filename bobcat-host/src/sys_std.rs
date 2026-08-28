@@ -29,6 +29,11 @@ mod impls {
         static COMMITTED_VERSION: RefCell<u32> = RefCell::default();
     }
 
+    /// Copy the underlying storage for logging purposes.
+    pub fn storage_copy() -> WordHashMap {
+        STORAGE.with(|s| s.borrow().clone())
+    }
+
     pub fn storage_clear() {
         STORAGE.with(|s| s.borrow_mut().clear())
     }

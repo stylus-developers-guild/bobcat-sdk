@@ -36,6 +36,8 @@ macro_rules! storage_ops {
                     true
                 }
 
+                /// Attempt to exchange the value, returning what was set before if it
+                /// doesn't match the expected value.
                 pub fn [<$prefix _exchange_res>](k: &U, exp: &U, new: &U) -> Result<(), U> {
                     let t = [<$prefix _load>](k);
                     if &t != exp {

@@ -1652,14 +1652,6 @@ impl One for I {
     }
 }
 
-#[cfg(feature = "proptest")]
-pub fn strat_nonzero_addr() -> impl Strategy<Value = [u8; 20]> {
-    any::<[u8; 20]>().prop_filter(
-        "address must be non-zero",
-        |addr| addr.iter().any(|&byte| byte != 0),
-    )
-}
-
 #[test]
 fn test_is_zeroes() {
     assert!(U::ZERO.is_zero());

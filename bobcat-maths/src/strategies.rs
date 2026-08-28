@@ -1,6 +1,6 @@
 use crate::U;
 
-use proptest::{prelude::Rng, strategy::Strategy};
+use proptest::{prelude::*, strategy::Strategy};
 
 /// Simple strategy that generates values up to a million.
 pub fn strat_tiny_u256() -> impl proptest::prelude::Strategy<Value = U> {
@@ -39,40 +39,22 @@ pub fn strat_u(u: Uintsize) -> impl proptest::prelude::Strategy<Value = U> {
     })
 }
 
-pub fn strat_small_u() -> impl proptest::prelude::Strategy<Value = U> {
+pub fn strat_small_u() -> impl Strategy<Value = U> {
     strat_u(Uintsize::Small)
 }
 
-pub fn strat_medium_u() -> impl proptest::prelude::Strategy<Value = U> {
+pub fn strat_medium_u() -> impl Strategy<Value = U> {
     strat_u(Uintsize::Medium)
 }
 
-pub fn strat_large_u() -> impl proptest::prelude::Strategy<Value = U> {
+pub fn strat_large_u() -> impl Strategy<Value = U> {
     strat_u(Uintsize::Large)
 }
 
-pub fn strat_addr_not_empty() -> impl proptest::prelude::Strategy<Value = [u8; 20]> {
-    ([
-        1..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-        0..u8::MAX,
-    ])
-    .prop_map(|x| x)
+
+pub fn strat_addr_not_empty() -> impl Strategy<Value = [u8; 20]> {
+    any::<[u8; 20]>().prop_filter(
+        "address must be non-zero",
+        |addr| addr.iter().any(|&byte| byte != 0),
+    )
 }

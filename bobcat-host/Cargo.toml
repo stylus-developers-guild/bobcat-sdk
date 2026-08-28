@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-host"
-version = "0.8.8"
+version = "0.8.9"
 edition = "2024"
 license = "MIT"
 description = "Functions for interacting with the host with bobcat-sdk"

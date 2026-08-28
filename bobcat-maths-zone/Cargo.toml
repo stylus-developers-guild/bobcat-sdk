@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-maths-zone"
-version = "0.8.9"
+version = "0.8.10"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk DSL for math that makes checked math with drop-in Python code easy."
@@ -11,8 +11,8 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 proc-macro = true
 
 [dependencies]
-bobcat-maths = { version = "0.8.9", path = "../bobcat-maths", features = ["alloy-enabled"] }
-bobcat-panic = { version = "0.8.9", path = "../bobcat-panic" }
+bobcat-maths = { version = "0.8.10", path = "../bobcat-maths", features = ["alloy-enabled"] }
+bobcat-panic = { version = "0.8.10", path = "../bobcat-panic" }
 proc-macro2 = "1.0.86"
 quote = "1.0.37"
 syn = { version = "2.0.75", features = ["full"] }

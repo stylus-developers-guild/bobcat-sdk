@@ -303,7 +303,8 @@ macro_rules! emit {
         const DATA_LEN: usize = $data_len;
         const ALL_LEN: usize = DATA_LEN + 32;
         let t0: $crate::U = $t0.into();
-        $crate::emit_log_0_slice::<DATA_LEN, ALL_LEN>(&t0, $data)
+        let data: [u8; DATA_LEN] = $data.into();
+        $crate::emit_log_0_slice::<DATA_LEN, ALL_LEN>(&t0, data)
     }};
 
     ($t0:expr, $t1:expr) => {{
@@ -317,7 +318,8 @@ macro_rules! emit {
     ($t0:expr, $t1:expr, data: $data:expr) => {{
         let t0: $crate::U = $t0.into();
         let t1: $crate::U = $t1.into();
-        $crate::emit_log_1_vec(&t0, &t1, $data)
+        let data: Vec<u8> = $data.into();
+        $crate::emit_log_1_vec(&t0, &t1, data)
     }};
 
     ($t0:expr, $t1:expr, data: $data:expr, $data_len:expr) => {{
@@ -325,7 +327,8 @@ macro_rules! emit {
         const ALL_LEN: usize = DATA_LEN + 32 * 2;
         let t0: $crate::U = $t0.into();
         let t1: $crate::U = $t1.into();
-        $crate::emit_log_1_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, $data)
+        let data: [u8; DATA_LEN] = $data.into();
+        $crate::emit_log_1_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, data)
     }};
 
     ($t0:expr, $t1:expr, $t2:expr) => {{
@@ -341,6 +344,7 @@ macro_rules! emit {
         let t0: $crate::U = $t0.into();
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
+        let data: Vec<u8> = $data.into();
         $crate::emit_log_2_vec(&t0, &t1, &t2, $data)
     }};
 
@@ -350,7 +354,8 @@ macro_rules! emit {
         let t0: $crate::U = $t0.into();
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
-        $crate::emit_log_2_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, $data)
+        let data: [u8; DATA_LEN] = $data.into();
+        $crate::emit_log_2_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, data)
     }};
 
     ($t0:expr, $t1:expr, $t2:expr, $t3:expr) => {{
@@ -368,7 +373,8 @@ macro_rules! emit {
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
         let t3: $crate::U = $t3.into();
-        $crate::emit_log_3_vec(&t0, &t1, &t2, &t3, $data)
+        let data: Vec<u8> = $data.into();
+        $crate::emit_log_3_vec(&t0, &t1, &t2, &t3, data)
     }};
 
     ($t0:expr, $t1:expr, $t2:expr, $t3:expr, data: $data:expr, $data_len:expr) => {{
@@ -378,7 +384,8 @@ macro_rules! emit {
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
         let t3: $crate::U = $t3.into();
-        $crate::emit_log_3_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, &t3, $data)
+        let data: [u8; DATA_LEN] = $data.into();
+        $crate::emit_log_3_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, &t3, data)
     }};
 }
 
@@ -393,14 +400,16 @@ macro_rules! shadow {
 
     ($t0:expr, data: $data:expr) => {{
         let t0: $crate::U = $t0.into();
-        $crate::shadow_log_0_vec(&t0, $data)
+        let data: Vec<u8> = $data.into();
+        $crate::shadow_log_0_vec(&t0, data)
     }};
 
     ($t0:expr, data: $data:expr, $data_len:expr) => {{
         const DATA_LEN: usize = $data_len;
         const ALL_LEN: usize = DATA_LEN + 32;
         let t0: $crate::U = $t0.into();
-        $crate::shadow_log_0_slice::<DATA_LEN, ALL_LEN>(&t0, $data)
+        let data: [u8; DATA_LEN] = $data.into();
+        $crate::shadow_log_0_slice::<DATA_LEN, ALL_LEN>(&t0, data)
     }};
 
     ($t0:expr, $t1:expr) => {{
@@ -422,6 +431,7 @@ macro_rules! shadow {
         const ALL_LEN: usize = DATA_LEN + 32 * 2;
         let t0: $crate::U = $t0.into();
         let t1: $crate::U = $t1.into();
+        let data: [u8; DATA_LEN] = $data.into();
         $crate::shadow_log_1_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, $data)
     }};
 
@@ -438,6 +448,7 @@ macro_rules! shadow {
         let t0: $crate::U = $t0.into();
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
+        let data: Vec<u8> = $data.into();
         $crate::shadow_log_2_vec(&t0, &t1, &t2, $data)
     }};
 
@@ -447,7 +458,8 @@ macro_rules! shadow {
         let t0: $crate::U = $t0.into();
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
-        $crate::shadow_log_2_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, $data)
+        let data: [u8; DATA_LEN] = $data.into();
+        $crate::shadow_log_2_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, data)
     }};
 
     ($t0:expr, $t1:expr, $t2:expr, $t3:expr) => {{
@@ -465,7 +477,8 @@ macro_rules! shadow {
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
         let t3: $crate::U = $t3.into();
-        $crate::shadow_log_3_vec(&t0, &t1, &t2, &t3, $data)
+        let data: Vec<u8> = $data.into();
+        $crate::shadow_log_3_vec(&t0, &t1, &t2, &t3, data)
     }};
 
     ($t0:expr, $t1:expr, $t2:expr, $t3:expr, data: $data:expr, $data_len:expr) => {{
@@ -475,6 +488,7 @@ macro_rules! shadow {
         let t1: $crate::U = $t1.into();
         let t2: $crate::U = $t2.into();
         let t3: $crate::U = $t3.into();
-        $crate::shadow_log_3_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, &t3, $data)
+        let data: [u8; DATA_LEN] = $data.into();
+        $crate::shadow_log_3_slice::<DATA_LEN, ALL_LEN>(&t0, &t1, &t2, &t3, data)
     }};
 }

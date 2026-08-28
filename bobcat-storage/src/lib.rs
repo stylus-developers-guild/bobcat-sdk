@@ -46,21 +46,6 @@ macro_rules! storage_ops {
                     [<$prefix _store>](k, new);
                     Ok(())
                 }
-
-                /// Set the value given, checking that the value passed has the inverse
-                /// set set currently. So, passing true would check if false is set.
-                pub fn [<$prefix _exchange_bool>](k: &U, new: bool) -> bool {
-                    [<$prefix _exchange>](k, &U::from(!new), &U::from(new))
-                }
-
-                pub fn [<$prefix _exchange_bool_res>](k: &U, new: bool) -> Result<(), bool> {
-                   let x = [<$prefix _exchange_bool>](k, new);
-                   if x == !new {
-                       Ok(())
-                   } else {
-                       Err(x)
-                   }
-                }
             }
         )*
     };
@@ -155,7 +140,7 @@ pub fn slot_map_slot(k: &U, p: &U) -> U {
 
 pub fn reentrancy_guard_entry(x: &U) {
     assert!(x.len() <= 32, "too large");
-    assert!(transient_exchange_bool(x, true), "reentrancy alarm")
+    assert!(transient_exchange(x, &U::ZERO, &U::ONE), "reentrancy alarm")
 }
 
 pub fn reentrancy_guard_exit(x: &U) {

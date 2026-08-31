@@ -554,7 +554,7 @@ macro_rules! generate_call_variants {
             /// Safely call a contract, checking first if it has code. If it doesn't,
             /// then we return false. If the call reverts, we also return false.
             /// If the code succeeds, then we return true!
-            pub fn [<safe $base_fn _unit>](
+            pub fn [<safe_ $base_fn _unit>](
                 contract: Address,
                 calldata: &[u8],
                 $($value_param: $value_ty,)?

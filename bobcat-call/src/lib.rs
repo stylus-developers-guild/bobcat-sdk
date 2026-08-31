@@ -551,6 +551,23 @@ macro_rules! generate_call_variants {
                 }
             }
 
+            /// Safely call a contract, checking first if it has code. If it doesn't,
+            /// then we return false. If the call reverts, we also return false.
+            /// If the code succeeds, then we return true!
+            pub fn [<safe $base_fn _unit>](
+                contract: Address,
+                calldata: &[u8],
+                $($value_param: $value_ty,)?
+                gas: u64,
+            ) -> bool {
+                if addr_has_code(contract) {
+                    let (rc, _) = [<$base_fn _partial>](contract, calldata, $($value_param,)? gas);
+                    rc
+                } else {
+                    false
+                }
+            }
+
             /// Call a function, returning whether the call was successful. The vector contains
             /// revertdata if the call was unsuccessful. Does not read returndata.
             #[cfg(feature = "alloc")]

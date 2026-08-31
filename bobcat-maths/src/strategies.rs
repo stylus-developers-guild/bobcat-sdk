@@ -51,10 +51,8 @@ pub fn strat_large_u() -> impl Strategy<Value = U> {
     strat_u(Uintsize::Large)
 }
 
-
 pub fn strat_addr_not_empty() -> impl Strategy<Value = [u8; 20]> {
-    any::<[u8; 20]>().prop_filter(
-        "address must be non-zero",
-        |addr| addr.iter().any(|&byte| byte != 0),
-    )
+    any::<[u8; 20]>().prop_filter("address must be non-zero", |addr| {
+        addr.iter().any(|&byte| byte != 0)
+    })
 }

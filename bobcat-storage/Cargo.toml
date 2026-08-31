@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-storage"
-version = "0.9.1"
+version = "0.9.2"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for accessing storage on Arbitrum Stylus."
@@ -11,12 +11,12 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_storage"
 
 [dependencies]
-bobcat-maths = { version = "0.9.1", path = "../bobcat-maths" }
+bobcat-maths = { version = "0.9.2", path = "../bobcat-maths" }
 keccak-const.workspace = true
 proptest = { workspace = true, optional = true }
 array-concat = { workspace = true }
 paste.workspace = true
-bobcat-host = { version = "0.9.1", path = "../bobcat-host" }
+bobcat-host = { version = "0.9.2", path = "../bobcat-host" }
 
 [dev-dependencies]
 const-hex = { workspace = true }

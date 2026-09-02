@@ -11,7 +11,7 @@ name = "libbozo"
 
 [dependencies]
 array-concat = "0.5.5"
-bobcat-sdk = { path = "../../bobcat-sdk", features = ["panic-revert", "alloc"] }
+bobcat-sdk = { path = "../../bobcat-sdk", default-features = false, features = ["panic-revert", "alloc"] }
 concat-arrays = "0.1.2"
 const-hex = { version = "1.17.0", default-features = false, features = ["alloc"] }
 mini-alloc = "1.0.0"

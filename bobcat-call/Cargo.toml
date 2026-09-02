@@ -21,9 +21,9 @@ msg-on-sdk-err = ["bobcat-panic/msg-on-sdk-err"]
 detailed-errors = ["bobcat-panic/detailed-errors"]
 
 [dependencies]
-bobcat-entry = { version = "0.9.2", path = "../bobcat-entry" }
-bobcat-host = { version = "0.9.2", path = "../bobcat-host" }
-bobcat-maths = { version = "0.9.2", path = "../bobcat-maths" }
-bobcat-panic = { version = "0.9.2", path = "../bobcat-panic" }
+bobcat-entry = { version = "0.9.2", path = "../bobcat-entry", default-features = false }
+bobcat-host = { version = "0.9.2", path = "../bobcat-host", default-features = false }
+bobcat-maths = { version = "0.9.2", path = "../bobcat-maths", default-features = false }
+bobcat-panic = { version = "0.9.2", path = "../bobcat-panic", default-features = false }
 const-hex.workspace = true
 paste.workspace = true

@@ -6,8 +6,8 @@ edition = "2024"
 [dependencies]
 bobcat-sdk.workspace = true
 mini-alloc.workspace = true
-bobcat-maths-zone = { path = "../../bobcat-maths-zone" }
-bobcat-maths = { path = "../../bobcat-maths" }
+bobcat-maths-zone = { path = "../../bobcat-maths-zone", default-features = false }
+bobcat-maths = { path = "../../bobcat-maths", default-features = false }
 
 [[bin]]
 name = "math-example"

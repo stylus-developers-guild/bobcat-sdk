@@ -6,4 +6,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bobcat-sdk = { path = "../../bobcat-sdk", features = ["panic", "shadow"] }
+bobcat-sdk = { path = "../../bobcat-sdk", default-features = false, features = ["panic", "shadow"] }

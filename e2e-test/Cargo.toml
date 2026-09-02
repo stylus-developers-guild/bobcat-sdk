@@ -22,7 +22,7 @@ members = [
 ]
 
 [workspace.dependencies]
-bobcat-sdk = { path = "../bobcat-sdk", features = ["alloc", "panic-revert", "msg-on-sdk-err", "console"] }
+bobcat-sdk = { path = "../bobcat-sdk", default-features = false, features = ["alloc", "panic-revert", "msg-on-sdk-err", "console"] }
 mini-alloc = "1.0.0"
 
 [profile.release]

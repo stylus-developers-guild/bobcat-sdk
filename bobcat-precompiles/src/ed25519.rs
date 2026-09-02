@@ -7,7 +7,7 @@ use sha2::digest::{
 };
 
 #[derive(Debug, Clone, Copy)]
-struct PrecomputedSha512([u8; 64]);
+pub struct PrecomputedSha512([u8; 64]);
 
 impl OutputSizeUser for PrecomputedSha512 {
     type OutputSize = U64;

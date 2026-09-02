@@ -11,8 +11,8 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_cd"
 
 [dependencies]
-bobcat-maths = { version = "0.9.2", path = "../bobcat-maths" }
+bobcat-maths = { version = "0.9.2", path = "../bobcat-maths", default-features = false }
 array-concat = { workspace = true }
 proptest = { workspace = true, optional = true }
-bobcat-storage = { version = "0.9.2", path = "../bobcat-storage" }
+bobcat-storage = { version = "0.9.2", path = "../bobcat-storage", default-features = false }
 const-hex = { workspace = true }

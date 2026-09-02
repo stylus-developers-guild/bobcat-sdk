@@ -11,12 +11,12 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_features"
 
 [dependencies]
-bobcat-call = { version = "0.9.2", path = "../bobcat-call" }
-bobcat-entry = { version = "0.9.2", path = "../bobcat-entry" }
-bobcat-interfaces = { version = "0.9.2", path = "../bobcat-interfaces" }
-bobcat-storage = { version = "0.9.2", path = "../bobcat-storage" }
+bobcat-call = { version = "0.9.2", path = "../bobcat-call", default-features = false }
+bobcat-entry = { version = "0.9.2", path = "../bobcat-entry", default-features = false }
+bobcat-interfaces = { version = "0.9.2", path = "../bobcat-interfaces", default-features = false }
+bobcat-storage = { version = "0.9.2", path = "../bobcat-storage", default-features = false }
 paste.workspace = true
-bobcat-host = { version = "0.9.2", path = "../bobcat-host" }
+bobcat-host = { version = "0.9.2", path = "../bobcat-host", default-features = false }
 
 [features]
 default = ["std"]

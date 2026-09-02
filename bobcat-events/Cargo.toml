@@ -9,8 +9,8 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [dependencies]
 array-concat.workspace = true
-bobcat-maths = { version = "0.9.2", path = "../bobcat-maths" }
-bobcat-host = { version = "0.9.2", path = "../bobcat-host" }
+bobcat-maths = { version = "0.9.2", path = "../bobcat-maths", default-features = false }
+bobcat-host = { version = "0.9.2", path = "../bobcat-host", default-features = false }
 
 [features]
 default = ["alloc"]

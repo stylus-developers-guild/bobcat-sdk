@@ -41,7 +41,7 @@ name = "$lib_project_name"
 crate-type   = ["rlib", "cdylib"]
 
 [dependencies]
-bobcat-sdk = { version = "0.6.6", features = ["panic"] }
+bobcat-sdk = { version = "0.6.6", default-features = false, features = ["panic"] }
 
 [profile.release]
 codegen-units = 1

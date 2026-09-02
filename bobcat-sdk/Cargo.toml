@@ -29,7 +29,7 @@ bobcat-host = { version = "0.9.4", path = "../bobcat-host", default-features = f
 bobcat-alloc = { version = "0.9.4", path = "../bobcat-alloc", optional = true, default-features = false }
 
 [features]
-default = ["std"]
+default = ["std", "borsh", "serde", "ed25519-dalek", "sha512", "tickmath-local"]
 std = [
 	"bobcat-create/std",
 	"bobcat-entry/std",
@@ -50,8 +50,8 @@ alloc = [
 	"dep:bobcat-alloc",
 	"bobcat-interfaces/alloc"
 ]
-serde = ["bobcat-maths/serde"]
-borsh = ["bobcat-maths/borsh"]
+serde = ["bobcat-maths/serde", "bobcat-precompiles/serde"]
+borsh = ["bobcat-maths/borsh", "bobcat-precompiles/serde"]
 console = ["dep:bobcat-console", "bobcat-panic/console", "bobcat-host/console"]
 arbitrary = ["bobcat-maths/arbitrary"]
 proptest = ["bobcat-maths/proptest", "bobcat-storage/proptest"]

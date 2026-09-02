@@ -596,14 +596,14 @@ dependencies = [
 
 [[package]]
 name = "bobcat-alloc"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "mini-alloc",
 ]
 
 [[package]]
 name = "bobcat-call"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "bobcat-entry",
  "bobcat-host",
@@ -615,7 +615,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-cd"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "array-concat",
  "bobcat-maths",
@@ -626,14 +626,14 @@ dependencies = [
 
 [[package]]
 name = "bobcat-console"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "bobcat-host",
 ]
 
 [[package]]
 name = "bobcat-create"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -644,7 +644,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-entry"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "bobcat-cd",
  "bobcat-host",
@@ -655,7 +655,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-events"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -664,7 +664,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-features"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "bobcat-call",
  "bobcat-entry",
@@ -676,7 +676,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-host"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "const-hex",
  "keccak-const",
@@ -684,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-interfaces"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-macro",
@@ -699,7 +699,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "alloy-primitives",
  "arbitrary",
@@ -721,7 +721,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths-zone"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "bobcat-maths",
  "bobcat-panic",
@@ -732,7 +732,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-panic"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "bobcat-host",
  "const-hex",
@@ -742,21 +742,24 @@ dependencies = [
 
 [[package]]
 name = "bobcat-precompiles"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "array-concat",
  "bobcat-call",
  "bobcat-cd",
  "bobcat-maths",
  "bobcat-storage",
+ "borsh",
+ "const-hex",
  "ed25519-dalek",
  "markovgeist-precompiles-tickmath",
+ "serde",
  "sha2 0.11.0",
 ]
 
 [[package]]
 name = "bobcat-proxy"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "array-concat",
  "bobcat-interfaces",
@@ -766,7 +769,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-sdk"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "bobcat-alloc",
  "bobcat-call",
@@ -788,7 +791,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-storage"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "array-concat",
  "bobcat-host",

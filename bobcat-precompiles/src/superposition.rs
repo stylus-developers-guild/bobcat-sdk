@@ -6,6 +6,18 @@ use bobcat_cd::address;
 
 use bobcat_call::{static_call_slice, static_call_unit, static_call_word};
 
+#[cfg(feature = "borsh")]
+use borsh::{BorshDeserialize, BorshSerialize};
+
+#[cfg(feature = "serde")]
+use serde::{
+    de::Error,
+    Deserialize as SerdeDeserialize,
+    Deserializer as SerdeDeserializer,
+    Serialize as SerdeSerialize,
+    Serializer as SerdeSerializer,
+};
+
 #[cfg(feature = "alloc")]
 use bobcat_call::static_call_vec;
 
@@ -34,7 +46,8 @@ pub const ADDR_XA_DECOMPRESSOR: [u8; 20] = address!(b"c640a98ea2809dc65ad58385bb
 
 pub type Sig = [u8; 64];
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "borsh", derive(BorshDeserialize, BorshSerialize))]
 pub struct BcSha512(pub [u8; 64]);
 
 impl From<[u8; 64]> for BcSha512 {
@@ -43,9 +56,26 @@ impl From<[u8; 64]> for BcSha512 {
     }
 }
 
-impl From<BcSha512> for [u8; 64] {
-    fn from(BcSha512(x): BcSha512) -> Self {
-        x
+#[cfg(feature = "serde")]
+impl SerdeSerialize for BcSha512 {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: SerdeSerializer,
+    {
+        s.serialize_str(&const_hex::encode(self.0))
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> SerdeDeserialize<'de> for BcSha512 {
+    fn deserialize<D>(d: D) -> Result<Self, D::Error>
+    where
+        D: SerdeDeserializer<'de>,
+    {
+        let s = <&str>::deserialize(d)?;
+        let bytes = const_hex::decode_to_array::<_, 64>(s)
+            .map_err(D::Error::custom)?;
+        Ok(Self(bytes))
     }
 }
 
@@ -194,7 +224,7 @@ mod ed25519 {
     not(feature = "ed25519-dalek")
 ))]
 pub fn edphverify_post(digest: BcSha512, pub_key: U, sig: [u8; 64]) -> bool {
-    let cd: [u8; 64 * 2 + 32] = concat_arrays!(digest, pub_key.0, sig);
+    let cd: [u8; 64 * 2 + 32] = concat_arrays!(digest.0, pub_key.0, sig);
     static_call_unit(ADDR_EDVERIFY, &cd, u64::MAX)
 }
 

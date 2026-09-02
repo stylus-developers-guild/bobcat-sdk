@@ -51,7 +51,7 @@ alloc = [
 	"bobcat-interfaces/alloc"
 ]
 serde = ["bobcat-maths/serde", "bobcat-precompiles/serde"]
-borsh = ["bobcat-maths/borsh", "bobcat-precompiles/serde"]
+borsh = ["bobcat-maths/borsh", "bobcat-precompiles/borsh"]
 console = ["dep:bobcat-console", "bobcat-panic/console", "bobcat-host/console"]
 arbitrary = ["bobcat-maths/arbitrary"]
 proptest = ["bobcat-maths/proptest", "bobcat-storage/proptest"]

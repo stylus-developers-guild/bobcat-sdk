@@ -17,9 +17,6 @@ use array_concat::concat_arrays;
 #[cfg(feature = "sha512")]
 use sha2::{Digest, Sha512, digest::Update};
 
-#[cfg(feature = "ed25519-dalek")]
-pub use crate::ed25519::const_edphverify;
-
 /// EdVerify is deployed at this address on Arbitrum One and Superposition.
 pub const ADDR_EDVERIFY: [u8; 20] = address!(b"c3e443be2cfa4f41a5f5e4978d012847d355b419");
 
@@ -35,31 +32,168 @@ pub const ADDR_ROOTI: [u8; 20] = address!(b"e0efe3de50d40452bc53317e16a1b69764e2
 /// A xz decompressor smart contract.
 pub const ADDR_XA_DECOMPRESSOR: [u8; 20] = address!(b"c640a98ea2809dc65ad58385bbdd9038c529d5e5");
 
+pub type Sig = [u8; 64];
+
+#[derive(Debug, Clone, Copy)]
+pub struct BcSha512(pub [u8; 64]);
+
+impl From<[u8; 64]> for BcSha512 {
+    fn from(x: [u8; 64]) -> Self {
+        Self(x)
+    }
+}
+
+impl From<BcSha512> for [u8; 64] {
+    fn from(BcSha512(x): BcSha512) -> Self {
+        x
+    }
+}
+
 #[cfg(feature = "sha512")]
-pub fn const_sha512(x: &[u8]) -> [u8; 64] {
+pub fn const_sha512(x: &[u8]) -> BcSha512 {
     let mut d = Sha512::new();
     Update::update(&mut d, x);
-    d.finalize().into()
+    BcSha512(d.finalize().into())
 }
 
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-pub fn sha512(cd: &[u8]) -> [u8; 64] {
-    static_call_slice::<64>(ADDR_SHA512, cd, u64::MAX, 0).2
+pub fn sha512(cd: &[u8]) -> BcSha512 {
+    BcSha512(static_call_slice::<64>(ADDR_SHA512, cd, u64::MAX, 0).2)
 }
 
 #[cfg(all(
     not(all(target_family = "wasm", target_os = "unknown")),
     feature = "sha512"
 ))]
-pub fn sha512(x: &[u8]) -> [u8; 64] {
+pub fn sha512(x: &[u8]) -> BcSha512 {
     const_sha512(x)
+}
+
+#[cfg(feature = "ed25519-dalek")]
+mod ed25519 {
+    use bobcat_maths::U;
+
+    use ed25519_dalek::{Signature, SigningKey, VerifyingKey};
+
+    use super::{sha512, Sig, BcSha512};
+
+    use sha2::digest::{
+        Digest, FixedOutput, FixedOutputReset, Output, OutputSizeUser, Reset, Update, consts::U64,
+    };
+
+    impl OutputSizeUser for BcSha512 {
+        type OutputSize = U64;
+    }
+
+    impl Update for BcSha512 {
+        fn update(&mut self, data: &[u8]) {
+            let len = data.len().min(64);
+            self.0[..len].copy_from_slice(&data[..len]);
+        }
+    }
+
+    impl FixedOutput for BcSha512 {
+        fn finalize_into(self, out: &mut Output<Self>) {
+            *out = Output::<Self>::from(self.0);
+        }
+    }
+
+    impl Reset for BcSha512 {
+        fn reset(&mut self) {
+            self.0 = [0u8; 64];
+        }
+    }
+
+    impl FixedOutputReset for BcSha512 {
+        fn finalize_into_reset(&mut self, out: &mut Output<Self>) {
+            *out = Output::<Self>::from(self.0);
+            Reset::reset(self);
+        }
+    }
+
+    impl Digest for BcSha512 {
+        fn new() -> Self {
+            BcSha512([0u8; 64])
+        }
+
+        fn new_with_prefix(_data: impl AsRef<[u8]>) -> Self {
+            unimplemented!()
+        }
+
+        fn update(&mut self, data: impl AsRef<[u8]>) {
+            Update::update(self, data.as_ref());
+        }
+
+        fn chain_update(self, _data: impl AsRef<[u8]>) -> Self {
+            unimplemented!()
+        }
+
+        fn finalize(self) -> Output<Self> {
+            Output::<Self>::from(self.0)
+        }
+
+        fn finalize_into(self, out: &mut Output<Self>) {
+            FixedOutput::finalize_into(self, out);
+        }
+
+        fn finalize_reset(&mut self) -> Output<Self>
+        where
+            Self: FixedOutputReset,
+        {
+            let result = Output::<Self>::from(self.0);
+            Reset::reset(self);
+            result
+        }
+
+        fn finalize_into_reset(&mut self, out: &mut Output<Self>)
+        where
+            Self: FixedOutputReset,
+        {
+            FixedOutputReset::finalize_into_reset(self, out);
+        }
+
+        fn reset(&mut self)
+        where
+            Self: Reset,
+        {
+            Reset::reset(self);
+        }
+
+        fn output_size() -> usize {
+            64
+        }
+
+        fn digest(data: impl AsRef<[u8]>) -> Output<Self> {
+            let bytes = data.as_ref();
+            let mut result = [0u8; 64];
+            let len = bytes.len().min(64);
+            result[..len].copy_from_slice(&bytes[..len]);
+            Output::<Self>::from(result)
+        }
+    }
+
+    pub fn const_edphverify(digest: BcSha512, pub_key: U, sig: Sig) -> bool {
+        let key = VerifyingKey::from_bytes(&pub_key.0).unwrap();
+        let sig = Signature::from_bytes(&sig);
+        key.verify_prehashed_strict(digest, None, &sig).is_ok()
+    }
+
+    /// Sign using the ed25519 key using ph to get the same results when
+    /// verifying on-chain. Signs without a domain.
+    pub fn ed25519_sign_post(k: SigningKey, digest: BcSha512) -> Sig {
+        k.sign_prehashed(digest, None).unwrap().to_bytes()
+    }
+
+    pub fn ed25519_sign_pre(k: SigningKey, pre: &[u8]) -> Sig {
+        ed25519_sign_post(k, sha512(pre))
+    }
 }
 
 #[cfg(all(
     all(target_family = "wasm", target_os = "unknown"),
     not(feature = "ed25519-dalek")
 ))]
-pub fn edphverify_post(digest: [u8; 64], pub_key: U, sig: [u8; 64]) -> bool {
+pub fn edphverify_post(digest: BcSha512, pub_key: U, sig: [u8; 64]) -> bool {
     let cd: [u8; 64 * 2 + 32] = concat_arrays!(digest, pub_key.0, sig);
     static_call_unit(ADDR_EDVERIFY, &cd, u64::MAX)
 }
@@ -71,7 +205,7 @@ pub use const_edphverify as edphverify_post;
     all(target_family = "wasm", target_os = "unknown"),
     feature = "ed25519-dalek"
 ))]
-pub fn edphverify_post_opt(digest: [u8; 64], pub_key: U, sig: [u8; 64]) -> Option<()> {
+pub fn edphverify_post_opt(digest: BcSha512, pub_key: U, sig: [u8; 64]) -> Option<()> {
     if edphverify_post(digest, pub_key, sig) {
         Some(())
     } else {
@@ -134,3 +268,6 @@ pub fn xz_decompress_vec(cd: &[u8]) -> Option<Vec<u8>> {
     let (ok, rd) = static_call_vec(ADDR_XA_DECOMPRESSOR, &cd, u64::MAX, 0);
     if ok { Some(rd) } else { None }
 }
+
+#[cfg(feature = "ed25519-dalek")]
+pub use ed25519::*;

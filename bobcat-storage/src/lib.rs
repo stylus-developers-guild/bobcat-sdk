@@ -26,7 +26,8 @@ macro_rules! storage_ops {
                     [<$prefix _load>](x).into()
                 }
 
-                /// Attempt to "exchange" a value, returning whether the expected value was set.
+                /// Attempt to "exchange" a value, returning true if the new value was set
+                /// correctly. Returns false if the value we checked for wasn't set.
                 pub fn [<$prefix _exchange>](k: &U, exp: &U, new: &U) -> bool {
                     let t = [<$prefix _load>](k);
                     if &t != exp {

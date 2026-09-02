@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-interfaces"
-version = "0.9.4"
+version = "0.9.5"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for generating signautres  on Arbitrum Stylus."
@@ -16,14 +16,14 @@ name = "bobcat_interfaces"
 
 [dependencies]
 array-concat.workspace = true
-bobcat-cd = { version = "0.9.4", path = "../bobcat-cd", default-features = false }
-bobcat-maths = { version = "0.9.4", path = "../bobcat-maths", default-features = false }
-bobcat-storage = { version = "0.9.4", path = "../bobcat-storage", default-features = false }
+bobcat-cd = { version = "0.9.5", path = "../bobcat-cd", default-features = false }
+bobcat-maths = { version = "0.9.5", path = "../bobcat-maths", default-features = false }
+bobcat-storage = { version = "0.9.5", path = "../bobcat-storage", default-features = false }
 const-hex.workspace = true
 
 [dev-dependencies]
 alloy-sol-macro = "1.4.1"
 proptest.workspace = true
-bobcat-maths = { version = "0.9.4", path = "../bobcat-maths", features = ["proptest"] }
+bobcat-maths = { version = "0.9.5", path = "../bobcat-maths", features = ["proptest"] }
 alloy-primitives = "1.4.1"
 alloy-sol-types = "1.4.1"

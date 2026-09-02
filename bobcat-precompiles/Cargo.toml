@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-precompiles"
-version = "0.9.4"
+version = "0.9.5"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for using precompiles with Arbitrum Stylus."
@@ -19,10 +19,10 @@ serde = ["dep:serde"]
 
 [dependencies]
 array-concat.workspace = true
-bobcat-call = { version = "0.9.4", path = "../bobcat-call", default-features = false }
-bobcat-cd = { version = "0.9.4", path = "../bobcat-cd", default-features = false }
-bobcat-maths = { version = "0.9.4", path = "../bobcat-maths", default-features = false }
-bobcat-storage = { version = "0.9.4", path = "../bobcat-storage", default-features = false }
+bobcat-call = { version = "0.9.5", path = "../bobcat-call", default-features = false }
+bobcat-cd = { version = "0.9.5", path = "../bobcat-cd", default-features = false }
+bobcat-maths = { version = "0.9.5", path = "../bobcat-maths", default-features = false }
+bobcat-storage = { version = "0.9.5", path = "../bobcat-storage", default-features = false }
 ed25519-dalek = { version = ">=3.0.0", default-features = false, features = ["digest"], optional = true }
 sha2 = { version = ">=0.11.0", default-features = false, optional = true }
 markovgeist-precompiles-tickmath = { version = "0.1.4", optional = true }

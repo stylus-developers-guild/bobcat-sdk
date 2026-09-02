@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-proxy"
-version = "0.9.2"
+version = "0.9.3"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities for creating proxy code on Arbitrum Stylus."
@@ -13,5 +13,5 @@ name = "bobcat_proxy"
 [dependencies]
 array-concat = { workspace = true }
 const-hex = { workspace = true }
-bobcat-maths = { version = "0.9.2", path = "../bobcat-maths", default-features = false }
-bobcat-interfaces = { version = "0.9.2", path = "../bobcat-interfaces", default-features = false }
+bobcat-maths = { version = "0.9.3", path = "../bobcat-maths", default-features = false }
+bobcat-interfaces = { version = "0.9.3", path = "../bobcat-interfaces", default-features = false }

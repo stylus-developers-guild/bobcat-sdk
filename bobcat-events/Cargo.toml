@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-events"
-version = "0.9.2"
+version = "0.9.3"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk utilities performing event emission on Arbitrum Stylus."
@@ -9,8 +9,8 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [dependencies]
 array-concat.workspace = true
-bobcat-maths = { version = "0.9.2", path = "../bobcat-maths", default-features = false }
-bobcat-host = { version = "0.9.2", path = "../bobcat-host", default-features = false }
+bobcat-maths = { version = "0.9.3", path = "../bobcat-maths", default-features = false }
+bobcat-host = { version = "0.9.3", path = "../bobcat-host", default-features = false }
 
 [features]
 default = ["alloc"]

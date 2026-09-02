@@ -103,7 +103,9 @@ pub fn sha512(x: &[u8]) -> BcSha512 {
 mod ed25519 {
     use bobcat_maths::U;
 
-    use ed25519_dalek::{Signature, SigningKey, VerifyingKey};
+    use ed25519_dalek::{Signature, VerifyingKey};
+
+    pub use ed25519_dalek::SigningKey;
 
     use super::{sha512, Sig, BcSha512};
 

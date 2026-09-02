@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-sdk"
-version = "0.9.5"
+version = "0.9.6"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk is a codesize efficient Arbitrum Stylus SDK"
@@ -11,22 +11,22 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 name = "bobcat_sdk"
 
 [dependencies]
-bobcat-create = { version = "0.9.5", path = "../bobcat-create", default-features = false }
-bobcat-entry = { version = "0.9.5", path = "../bobcat-entry", default-features = false }
-bobcat-maths = { version = "0.9.5", path = "../bobcat-maths", default-features = false }
-bobcat-panic = { version = "0.9.5", path = "../bobcat-panic", optional = true, default-features = false }
-bobcat-proxy = { version = "0.9.5", path = "../bobcat-proxy", default-features = false }
-bobcat-storage = { version = "0.9.5", path = "../bobcat-storage", default-features = false }
-bobcat-cd = { version = "0.9.5", path = "../bobcat-cd", default-features = false }
-bobcat-interfaces = { version = "0.9.5", path = "../bobcat-interfaces", default-features = false }
-bobcat-call = { version = "0.9.5", path = "../bobcat-call", default-features = false }
-bobcat-console = { version = "0.9.5", path = "../bobcat-console", optional = true, default-features = false }
-bobcat-events = { version = "0.9.5", path = "../bobcat-events", default-features = false }
-bobcat-precompiles = { version = "0.9.5", path = "../bobcat-precompiles", default-features = false }
-bobcat-maths-zone = { version = "0.9.5", path = "../bobcat-maths-zone", optional = true, default-features = false }
-bobcat-features = { version = "0.9.5", path = "../bobcat-features", default-features = false }
-bobcat-host = { version = "0.9.5", path = "../bobcat-host", default-features = false }
-bobcat-alloc = { version = "0.9.5", path = "../bobcat-alloc", optional = true, default-features = false }
+bobcat-create = { version = "0.9.6", path = "../bobcat-create", default-features = false }
+bobcat-entry = { version = "0.9.6", path = "../bobcat-entry", default-features = false }
+bobcat-maths = { version = "0.9.6", path = "../bobcat-maths", default-features = false }
+bobcat-panic = { version = "0.9.6", path = "../bobcat-panic", optional = true, default-features = false }
+bobcat-proxy = { version = "0.9.6", path = "../bobcat-proxy", default-features = false }
+bobcat-storage = { version = "0.9.6", path = "../bobcat-storage", default-features = false }
+bobcat-cd = { version = "0.9.6", path = "../bobcat-cd", default-features = false }
+bobcat-interfaces = { version = "0.9.6", path = "../bobcat-interfaces", default-features = false }
+bobcat-call = { version = "0.9.6", path = "../bobcat-call", default-features = false }
+bobcat-console = { version = "0.9.6", path = "../bobcat-console", optional = true, default-features = false }
+bobcat-events = { version = "0.9.6", path = "../bobcat-events", default-features = false }
+bobcat-precompiles = { version = "0.9.6", path = "../bobcat-precompiles", default-features = false }
+bobcat-maths-zone = { version = "0.9.6", path = "../bobcat-maths-zone", optional = true, default-features = false }
+bobcat-features = { version = "0.9.6", path = "../bobcat-features", default-features = false }
+bobcat-host = { version = "0.9.6", path = "../bobcat-host", default-features = false }
+bobcat-alloc = { version = "0.9.6", path = "../bobcat-alloc", optional = true, default-features = false }
 
 [features]
 default = ["std", "borsh", "serde", "ed25519-dalek", "sha512", "tickmath-local"]

@@ -291,13 +291,13 @@ pub fn checked_root(x: U, y: u32) -> Option<U> {
 pub use bobcat_maths::checked_rooti as checked_root;
 
 pub fn xz_decompress_slice<const MAX_SLICE: usize>(cd: &[u8]) -> Option<([u8; MAX_SLICE], usize)> {
-    let (ok, rd, rc) = static_call_slice::<MAX_SLICE>(ADDR_XA_DECOMPRESSOR, &cd, u64::MAX, 0);
+    let (ok, rd, rc) = static_call_slice::<MAX_SLICE>(ADDR_XA_DECOMPRESSOR, cd, u64::MAX, 0);
     if ok { Some((rc, rd)) } else { None }
 }
 
 #[cfg(feature = "alloc")]
 pub fn xz_decompress_vec(cd: &[u8]) -> Option<Vec<u8>> {
-    let (ok, rd) = static_call_vec(ADDR_XA_DECOMPRESSOR, &cd, u64::MAX, 0);
+    let (ok, rd) = static_call_vec(ADDR_XA_DECOMPRESSOR, cd, u64::MAX, 0);
     if ok { Some(rd) } else { None }
 }
 

@@ -55,11 +55,11 @@ pub const fn make_fn_request_words_in_native_slice<
         "make_fn_request_words_in_native_slice inconsistent length"
     );
     assert!(
-        BASE_LEN % 32 == 0 || PADDING + BASE_LEN == (BASE_LEN + 31) & !31,
+        BASE_LEN.is_multiple_of(32) || PADDING + BASE_LEN == (BASE_LEN + 31) & !31,
         "padding inconsistent"
     );
     assert!(
-        (ALL_LEN - 4) % 32 == 0,
+        (ALL_LEN - 4).is_multiple_of(32),
         "length needs extra word to be % 32 = 0"
     );
     concat_arrays!(

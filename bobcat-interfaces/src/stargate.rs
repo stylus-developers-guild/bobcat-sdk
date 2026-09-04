@@ -24,7 +24,7 @@ pub const SEND_PARAM_BASE: usize = 10 * 32;
 
 pub const SEND_TOKEN_BASE: usize = 4 + 4 * 32 + SEND_PARAM_BASE;
 
-pub const QUOTE_OFT_BASE: usize = 4 + 1 * 32 + SEND_PARAM_BASE;
+pub const QUOTE_OFT_BASE: usize = 4 + 32 + SEND_PARAM_BASE;
 
 pub const QUOTE_SEND_BASE: usize = 4 + 2 * 32 + SEND_PARAM_BASE;
 
@@ -57,19 +57,19 @@ pub const fn make_fn_send_token_slice<
         "ALL inconsistent with SEND_TOKEN_BASE + field lengths"
     );
     assert!(
-        EO % 32 == 0 || EO + EO_PAD == (EO + 31) & !31,
+        EO.is_multiple_of(32) || EO + EO_PAD == (EO + 31) & !31,
         "extraOptions padding inconsistent"
     );
     assert!(
-        CM % 32 == 0 || CM + CM_PAD == (CM + 31) & !31,
+        CM.is_multiple_of(32) || CM + CM_PAD == (CM + 31) & !31,
         "composeMsg padding inconsistent"
     );
     assert!(
-        OC % 32 == 0 || OC + OC_PAD == (OC + 31) & !31,
+        OC.is_multiple_of(32) || OC + OC_PAD == (OC + 31) & !31,
         "oftCmd padding inconsistent"
     );
     assert!(
-        (ALL - 4) % 32 == 0,
+        (ALL - 4).is_multiple_of(32),
         "total length minus selector must be word-aligned"
     );
     concat_arrays!(
@@ -138,13 +138,13 @@ pub const fn make_fn_quote_oft_slice<
     oft_cmd: [u8; OC],
 ) -> [u8; ALL] {
     assert!(ALL == QUOTE_OFT_BASE + EO + EO_PAD + CM + CM_PAD + OC + OC_PAD);
-    assert!(EO % 32 == 0 || EO + EO_PAD == (EO + 31) & !31);
-    assert!(CM % 32 == 0 || CM + CM_PAD == (CM + 31) & !31);
-    assert!(OC % 32 == 0 || OC + OC_PAD == (OC + 31) & !31);
-    assert!((ALL - 4) % 32 == 0);
+    assert!(EO.is_multiple_of(32) || EO + EO_PAD == (EO + 31) & !31);
+    assert!(CM.is_multiple_of(32) || CM + CM_PAD == (CM + 31) & !31);
+    assert!(OC.is_multiple_of(32) || OC + OC_PAD == (OC + 31) & !31);
+    assert!((ALL - 4).is_multiple_of(32));
     concat_arrays!(
         SEL_QUOTE_OFT,
-        leftpad_usize(1 * 32),
+        leftpad_usize(32),
         leftpad_u32(dst_eid),
         to,
         amount_ld.0,
@@ -200,10 +200,10 @@ pub const fn make_fn_quote_send_slice<
     pay_in_lz_token: bool,
 ) -> [u8; ALL] {
     assert!(ALL == QUOTE_SEND_BASE + EO + EO_PAD + CM + CM_PAD + OC + OC_PAD);
-    assert!(EO % 32 == 0 || EO + EO_PAD == (EO + 31) & !31);
-    assert!(CM % 32 == 0 || CM + CM_PAD == (CM + 31) & !31);
-    assert!(OC % 32 == 0 || OC + OC_PAD == (OC + 31) & !31);
-    assert!((ALL - 4) % 32 == 0);
+    assert!(EO.is_multiple_of(32) || EO + EO_PAD == (EO + 31) & !31);
+    assert!(CM.is_multiple_of(32) || CM + CM_PAD == (CM + 31) & !31);
+    assert!(OC.is_multiple_of(32) || OC + OC_PAD == (OC + 31) & !31);
+    assert!((ALL - 4).is_multiple_of(32));
     concat_arrays!(
         SEL_QUOTE_SEND,
         leftpad_usize(2 * 32),
@@ -352,7 +352,7 @@ pub fn make_fn_quote_oft_vec(
         + ceil32(oft_cmd.len());
     let mut buf = Vec::with_capacity(cap);
     buf.extend_from_slice(&SEL_QUOTE_OFT);
-    buf.extend_from_slice(&leftpad_usize(1 * 32));
+    buf.extend_from_slice(&leftpad_usize(32));
     encode_send_param_vec(
         dst_eid,
         to,

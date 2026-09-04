@@ -319,7 +319,7 @@ fn make_fn_arb_sys_send_tx_to_l1<const N: usize, const PAD: usize, const TOTAL: 
     buf: &[u8; N],
 ) -> [u8; TOTAL] {
     assert_eq!(TOTAL, 100 + N + PAD, "total cap not consistent");
-    assert_eq!(PAD, ((N + 31) / 32) * 32 - N, "pad cap not consistent");
+    assert_eq!(PAD, N.div_ceil(32) * 32 - N, "pad cap not consistent");
     concat_arrays!(
         SEL_ARB_SYS_SENDTXTOL1,
         leftpad_addr(destination),
@@ -369,7 +369,7 @@ fn make_fn_arb_address_table_decompress<const N: usize, const PAD: usize, const 
     buf: &[u8; N],
 ) -> [u8; TOTAL] {
     assert_eq!(TOTAL, 100 + N + PAD, "total cap not consistent");
-    assert_eq!(PAD, ((N + 31) / 32) * 32 - N, "pad cap not consistent");
+    assert_eq!(PAD, N.div_ceil(32) * 32 - N, "pad cap not consistent");
     concat_arrays!(
         SEL_ARB_ADDRESS_TABLE_DECOMPRESS,
         leftpad_usize(64),
@@ -411,7 +411,7 @@ fn make_fn_arb_function_table_upload<const N: usize, const PAD: usize, const TOT
     buf: &[u8; N],
 ) -> [u8; TOTAL] {
     assert_eq!(TOTAL, 68 + N + PAD, "total cap not consistent");
-    assert_eq!(PAD, ((N + 31) / 32) * 32 - N, "pad cap not consistent");
+    assert_eq!(PAD, N.div_ceil(32) * 32 - N, "pad cap not consistent");
     concat_arrays!(
         SEL_ARB_FUNCTION_TABLE_UPLOAD,
         leftpad_usize(32),
@@ -848,7 +848,7 @@ fn make_fn_arb_retryable_tx_submit_retryable<const N: usize, const PAD: usize, c
     buf: &[u8; N],
 ) -> [u8; TOTAL] {
     assert_eq!(TOTAL, 388 + N + PAD, "total cap not consistent");
-    assert_eq!(PAD, ((N + 31) / 32) * 32 - N, "pad cap not consistent");
+    assert_eq!(PAD, N.div_ceil(32) * 32 - N, "pad cap not consistent");
     concat_arrays!(
         SEL_ARB_RETRYABLE_TX_SUBMITRETRYABLE,
         requestId,
@@ -1238,7 +1238,7 @@ fn make_fn_arb_owner_set_chain_config<const N: usize, const PAD: usize, const TO
     buf: &[u8; N],
 ) -> [u8; TOTAL] {
     assert_eq!(TOTAL, 68 + N + PAD, "total cap not consistent");
-    assert_eq!(PAD, ((N + 31) / 32) * 32 - N, "pad cap not consistent");
+    assert_eq!(PAD, N.div_ceil(32) * 32 - N, "pad cap not consistent");
     concat_arrays!(
         SEL_ARB_OWNER_SETCHAINCONFIG,
         leftpad_usize(32),
@@ -1493,7 +1493,7 @@ fn make_fn_arb_debug_overwrite_contract_code<const N: usize, const PAD: usize, c
     buf: &[u8; N],
 ) -> [u8; TOTAL] {
     assert_eq!(TOTAL, 100 + N + PAD, "total cap not consistent");
-    assert_eq!(PAD, ((N + 31) / 32) * 32 - N, "pad cap not consistent");
+    assert_eq!(PAD, N.div_ceil(32) * 32 - N, "pad cap not consistent");
     concat_arrays!(
         SEL_ARB_DEBUG_OVERWRITECONTRACTCODE,
         leftpad_addr(target),

@@ -339,7 +339,7 @@ mod impls {
     }
 
     pub unsafe fn chainid() -> u64 {
-        CHAIN_ID.with(|s| s.borrow().clone())
+        CHAIN_ID.with(|s| *s.borrow())
     }
 
     pub unsafe fn account_code_size(addr_: *const u8) -> usize {
@@ -394,8 +394,8 @@ mod impls {
             let b = s.borrow();
             let h = match b.get(&addr) {
                 None => EMPTY_HASH,
-                Some(b) if b.len() == 0 => EMPTY_HASH,
-                Some(b) => keccak256(&b),
+                Some(b) if b.is_empty() => EMPTY_HASH,
+                Some(b) => keccak256(b),
             };
             unsafe {
                 copy_nonoverlapping(h.as_ptr(), out, 32);

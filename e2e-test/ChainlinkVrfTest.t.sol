@@ -25,6 +25,6 @@ contract ChainlinkVrfTest is Test {
     }
 
     function testInitiate() public {
-        console.log(vrfCallback.initiate());
+        assertEq(100, vrfCallback.initiate());
     }
 }

@@ -30,7 +30,7 @@ pub const WORD_COUNT: usize = 5;
 
 // We're going to request 5 words from Chainlink. We need space for the
 // length, the offset, when we receive the callback:
-pub const WORD_BUFFER: usize = (WORD_COUNT + 2) * 32;
+pub const WORD_BUFFER: usize = (WORD_COUNT + 3) * 32;
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {

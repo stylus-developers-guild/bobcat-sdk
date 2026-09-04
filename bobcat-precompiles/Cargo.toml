@@ -29,3 +29,10 @@ markovgeist-precompiles-tickmath = { version = "0.1.4", optional = true }
 serde = { version = ">=1.0.0", default-features = false, features = ["derive"], optional = true }
 borsh = { version = ">=1.0.0", default-features = false, features = ["derive"], optional = true }
 const-hex.workspace = true
+
+[dev-dependencies]
+alloy-sol-macro = "1.4.1"
+alloy-sol-types = "1.4.1"
+alloy-primitives = "1.4.1"
+proptest.workspace = true
+bobcat-maths = { version = "0.9.6", path = "../bobcat-maths", features = ["proptest"] }

@@ -258,7 +258,10 @@ macro_rules! generate_call_variants {
             }
 
             /// Invoke call, only reading a single byte at the first word for a
-            /// check.
+            /// check. Will return false if the function reverted, or if the resulting
+            /// word is false. This function is best used for situations like checking
+            /// if it's safe to proceed, but not if something is paused, where a function
+            /// reverting should not be treated as safe to proceed.
             pub fn [<$base_fn _bool>](
                 contract: Address,
                 calldata: &[u8],
@@ -272,7 +275,8 @@ macro_rules! generate_call_variants {
             }
 
             /// Invoke call, only reading a single byte at the first word for a
-            /// check. Returns Some if success.
+            /// check. Returns Some if success. Has the same behaviour as
+            /// _bool, so if false is returned, None will be returned.
             pub fn [<$base_fn _bool_opt>](
                 contract: Address,
                 calldata: &[u8],
@@ -314,7 +318,7 @@ macro_rules! generate_call_variants {
                 }
             }
 
-            /// Check the codesize before invoking call, returning a Option<()> if
+            /// Check the codesize before invoking call, returning a Some(()) if
             /// the contract call worked, and the return value is true.
             pub fn [<safe_ $base_fn _bool_opt>](
                 contract: Address,
@@ -322,13 +326,17 @@ macro_rules! generate_call_variants {
                 $($value_param: $value_ty,)?
                 gas: u64,
             ) -> Option<()> {
-                if [<safe_ $base_fn _bool>](
-                    contract,
-                    calldata,
-                    $($value_param,)?
-                    gas
-                ) {
-                    Some(())
+                if addr_has_code(contract) {
+                    match [<$base_fn _partial>](contract, calldata, $($value_param,)? gas) {
+                        (true, 32) => {
+                            let mut b = [0u8; 1];
+                            unsafe { host::read_return_data(b.as_mut_ptr(), 31, 1) };
+                            Some(())
+                        }
+                        (true, 0) => Some(()),
+                        (true, _) => None,
+                        _ => None
+                    }
                 } else {
                     None
                 }

@@ -22,3 +22,5 @@ calldata decoding that know well. It can be used with `bobcat-cd-derive`.
 returning just the word/whatever argument they returned. The debug_
 functions will continue to return Option, because debug is not always
 available.
+
+4. Several decoding functions for strings/arrays were finally added to `bobcat-cd`.

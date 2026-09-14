@@ -177,7 +177,7 @@ macro_rules! generate_call_variants {
                 (rc, size, b)
             }
 
-            /// Call a contract, returning a word of the returndata/revertdata. Complains
+            /// Call a contract, returning a word of the returndata/revertdata. Panics
             /// if the other party does not write exactly a word, regardless of the reason!
             pub fn [<$base_fn _word>](
                 contract: Address,
@@ -192,6 +192,23 @@ macro_rules! generate_call_variants {
                     "response didn't write 32 length, length: {len}, contract: {contract:?}, calldata: {calldata:?}"
                 );
                 (rc, U::from(v))
+            }
+
+            /// Call a contract, returning a word of the returndata/revertdata.
+            /// Returns None if the callee reverts, and panics if we can't decode.
+            pub fn [<$base_fn _word_opt>](
+                contract: Address,
+                calldata: &[u8],
+                $($value_param: $value_ty,)?
+                gas: u64,
+                offset: usize,
+            ) -> Option<U> {
+                let (rc, w) = [<$base_fn _word>](contract, calldata, $($value_param,)? gas, offset);
+                if rc {
+                    Some(w)
+                } else {
+                    None
+                }
             }
 
             /// Same as the other slice function, though returning Option if error.
@@ -261,7 +278,8 @@ macro_rules! generate_call_variants {
             /// check. Will return false if the function reverted, or if the resulting
             /// word is false. This function is best used for situations like checking
             /// if it's safe to proceed, but not if something is paused, where a function
-            /// reverting should not be treated as safe to proceed.
+            /// reverting should not be treated as safe to proceed. It might be safer to
+            /// use _bool_opt depending on the context.
             pub fn [<$base_fn _bool>](
                 contract: Address,
                 calldata: &[u8],
@@ -275,8 +293,8 @@ macro_rules! generate_call_variants {
             }
 
             /// Invoke call, only reading a single byte at the first word for a
-            /// check. Returns Some if success. Has the same behaviour as
-            /// _bool, so if false is returned, None will be returned.
+            /// check. Returns Some(true) if success, None if a revert happened,
+            /// and Some(false) if we returned false.
             pub fn [<$base_fn _bool_opt>](
                 contract: Address,
                 calldata: &[u8],
@@ -293,7 +311,6 @@ macro_rules! generate_call_variants {
             /// Check the codesize before invoking call, only reading a single byte
             /// at the location for a bool check. If the contract doesn't return anything,
             /// then we assume everything went okay. If it does, then we check for true.
-            /// We don't return anything.
             pub fn [<safe_ $base_fn _bool>](
                 contract: Address,
                 calldata: &[u8],
@@ -318,8 +335,9 @@ macro_rules! generate_call_variants {
                 }
             }
 
-            /// Check the codesize before invoking call, returning a Some(()) if
-            /// the contract call worked, and the return value is true.
+            /// Check the codesize before invoking call, returning a Some(true) if
+            /// the contract call worked, and the return value is true. Returns None
+            /// if the contract has no code. Returns Some(false) if the return was false.
             pub fn [<safe_ $base_fn _bool_opt>](
                 contract: Address,
                 calldata: &[u8],

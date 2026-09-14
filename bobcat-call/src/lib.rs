@@ -300,9 +300,12 @@ macro_rules! generate_call_variants {
                 calldata: &[u8],
                 $($value_param: $value_ty,)?
                 gas: u64,
-            ) -> Option<()> {
-                if [<$base_fn _bool>](contract, calldata, $($value_param,)? gas) {
-                    Some(())
+            ) -> Option<bool> {
+                let (rc, _, v) = [<$base_fn _slice>]::<1>(
+                    contract, calldata, $($value_param,)? gas, 31,
+                );
+                if rc {
+                    Some(v[0] == 1)
                 } else {
                     None
                 }

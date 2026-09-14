@@ -1,4 +1,6 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
+
+pub mod serialisation;
 
 pub use bobcat_maths::U;
 
@@ -398,52 +400,33 @@ pub const fn const_keccak_two_sel(x: &[u8], y: &[u8]) -> [u8; 4] {
     [x[0], x[1], x[2], x[3]]
 }
 
-pub struct IoError;
-
-pub trait Write {
-    fn write(&mut self, buf: &[u8]) -> Result<usize, IoError>;
-    fn flush(&mut self) -> Result<(), IoError>;
-}
-
-pub trait EvmCdSerialise {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), IoError>;
-}
-
-pub trait Read {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, IoError>;
-}
-
-pub trait EvmCdDeserialise: Sized {
-    fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, IoError>;
-}
-
-pub fn decode_to_array<'a>(x: &'a [u8]) -> Option<&'a [u8]> {
-    if 64 > x.len() {
+pub fn decode_to_array(x: &[u8]) -> Option<&[u8]> {
+    if x.len() < 32 {
         return None;
     }
-    let offset = usize::from_be_bytes(x[32 - size_of::<usize>()..32].try_into().unwrap());
-    let len = usize::from_be_bytes(x[32 * 2 - size_of::<usize>()..32 * 2].try_into().unwrap());
-    Some(&x[32 * 2..32 + offset + len])
+    let offset = usize::from_be_bytes(
+        x[32 - size_of::<usize>()..32].try_into().unwrap()
+    );
+    if x.len() < offset + 32 {
+        return None;
+    }
+    let len = usize::from_be_bytes(
+        x[offset + 32 - size_of::<usize>()..offset + 32]
+            .try_into()
+            .unwrap()
+    );
+    let start = offset + 32;
+    let end = start.checked_add(len)?;
+    x.get(start..end)
 }
 
-/// Decode a &[u8] to a &str, only using the bytes that we can use for a
-/// usize length to get the offset and length.
-pub fn decode_to_str<'a>(x: &'a [u8]) -> Option<&'a str> {
-    if let Some(x) = decode_to_array(x) {
-        str::from_utf8(x).ok()
-    } else {
-        None
-    }
+pub fn decode_to_str(x: &[u8]) -> Option<&str> {
+    str::from_utf8(decode_to_array(x)?).ok()
 }
 
 #[cfg(feature = "alloc")]
 pub fn decode_to_string(x: &[u8]) -> Option<String> {
-    if 64 > x.len() {
-        return None;
-    }
-    let offset = usize::from_be_bytes(x[32 - size_of::<usize>()..32].try_into().unwrap());
-    let len = usize::from_be_bytes(x[32 * 2 - size_of::<usize>()..32 * 2].try_into().unwrap());
-    Some(String::from_utf8_lossy(&x[32 * 2..32 + offset + len]).into_owned())
+    Some(String::from_utf8_lossy(decode_to_array(x)?).into_owned())
 }
 
 #[test]

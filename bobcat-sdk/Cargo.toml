@@ -36,7 +36,8 @@ std = [
 	"bobcat-panic/std",
 	"bobcat-storage/std",
 	"bobcat-host/std",
-	"bobcat-interfaces/alloc"
+	"bobcat-interfaces/alloc",
+	"bobcat-cd/std"
 ]
 alloc = [
 	"bobcat-create/alloc",

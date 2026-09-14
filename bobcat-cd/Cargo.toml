@@ -22,5 +22,7 @@ alloy-primitives = { version = ">=1.0.0", default-features = false }
 alloy-sol-types = { version = ">=1.0.0", default-features = false }
 
 [features]
+default = ["std"]
 alloc = []
 proptest = ["dep:proptest", "alloc"]
+std = []

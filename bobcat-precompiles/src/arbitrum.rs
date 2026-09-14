@@ -5536,11 +5536,7 @@ pub fn call_arb_debug_overwrite_contract_code<
     rc.then_some(v)
 }
 
-pub fn call_arb_debug_events(
-    flag: bool,
-    value: [u8; 32],
-    call_value: &U,
-) -> Option<([u8; 20], U)> {
+pub fn call_arb_debug_events(flag: bool, value: [u8; 32], call_value: &U) -> Option<([u8; 20], U)> {
     let cd = make_fn_arb_debug_events(flag, value);
     let (rc, _, rd) = call_slice::<{ 32 * 2 }>(ADDR_ARB_DEBUG, &cd, call_value, u64::MAX, 0);
     rc.then(|| (addr_from(word_at(&rd, 0)), word_at(&rd, 32)))

@@ -1,4 +1,3 @@
-
 use array_concat::concat_arrays;
 
 use bobcat_cd::leftpad_addr;
@@ -56,7 +55,6 @@ pub const fn make_fn_new_ui_multiplier() -> [u8; 4] {
     SEL_NEW_UI_MULTIPLIER
 }
 
-/// Returns the timestamp at which the scheduled UI multiplier takes effect.
 pub const fn make_fn_effective_at() -> [u8; 4] {
     SEL_EFFECTIVE_AT
 }

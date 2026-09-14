@@ -8,6 +8,12 @@ pub use const_hex::const_decode_to_array as const_hex_decode_to_array;
 
 use array_concat::concat_arrays;
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(feature = "alloc")]
+use alloc::string::String;
+
 #[macro_export]
 macro_rules! address {
     ($a:expr) => {{
@@ -392,21 +398,52 @@ pub const fn const_keccak_two_sel(x: &[u8], y: &[u8]) -> [u8; 4] {
     [x[0], x[1], x[2], x[3]]
 }
 
+pub struct IoError;
+
 pub trait Write {
-    fn write(&mut self, buf: &[u8]) -> Result<usize, Error>;
-    fn flush(&mut self) -> Result<(), Error>;
+    fn write(&mut self, buf: &[u8]) -> Result<usize, IoError>;
+    fn flush(&mut self) -> Result<(), IoError>;
 }
 
 pub trait EvmCdSerialise {
-    pub fn serialise<W: Write>(&self, writer: &mut W) -> Result<()>;
+    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), IoError>;
 }
 
 pub trait Read {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error>;
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, IoError>;
 }
 
 pub trait EvmCdDeserialise: Sized {
-    pub fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self>;
+    fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, IoError>;
+}
+
+pub fn decode_to_array<'a>(x: &'a [u8]) -> Option<&'a [u8]> {
+    if 64 > x.len() {
+        return None;
+    }
+    let offset = usize::from_be_bytes(x[32 - size_of::<usize>()..32].try_into().unwrap());
+    let len = usize::from_be_bytes(x[32 * 2 - size_of::<usize>()..32 * 2].try_into().unwrap());
+    Some(&x[32 * 2..32 + offset + len])
+}
+
+/// Decode a &[u8] to a &str, only using the bytes that we can use for a
+/// usize length to get the offset and length.
+pub fn decode_to_str<'a>(x: &'a [u8]) -> Option<&'a str> {
+    if let Some(x) = decode_to_array(x) {
+        str::from_utf8(x).ok()
+    } else {
+        None
+    }
+}
+
+#[cfg(feature = "alloc")]
+pub fn decode_to_string(x: &[u8]) -> Option<String> {
+    if 64 > x.len() {
+        return None;
+    }
+    let offset = usize::from_be_bytes(x[32 - size_of::<usize>()..32].try_into().unwrap());
+    let len = usize::from_be_bytes(x[32 * 2 - size_of::<usize>()..32 * 2].try_into().unwrap());
+    Some(String::from_utf8_lossy(&x[32 * 2..32 + offset + len]).into_owned())
 }
 
 #[test]
@@ -420,4 +457,30 @@ fn test_access() {
 #[test]
 fn test_address() {
     address!(b"6221a9c005f6e47eb398fd867784cacfdcfff4e7");
+}
+
+#[cfg(all(test, feature = "proptest"))]
+mod test {
+    use proptest::prelude::*;
+
+    use super::*;
+
+    use alloc::string::String;
+
+    use alloy_sol_types::SolType;
+
+    proptest! {
+        #[test]
+        fn test_array_decoding(x in proptest::collection::vec(any::<u8>(), 1..20000usize)) {
+            let e = alloy_sol_types::sol_data::Bytes::abi_encode(&x);
+            assert_eq!(&x, decode_to_array(&e).unwrap());
+        }
+
+        #[test]
+        fn test_string_decoding(x in any::<String>()) {
+            let e = alloy_sol_types::sol_data::String::abi_encode(&x);
+            assert_eq!(x, decode_to_string(&e).unwrap());
+            assert_eq!(x, decode_to_str(&e).unwrap());
+        }
+    }
 }

@@ -321,7 +321,7 @@ mod test_2 {
     );
 
     #[test]
-    fn test() {
+    fn test_feature_sets() {
         feature_set_f1(true);
         feature_set_f2(true);
         feature_set_f3(true);

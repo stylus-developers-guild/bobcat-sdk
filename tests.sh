@@ -2,7 +2,7 @@
 
 features=std,proptest,alloy-enabled,alloc
 
-cargo test --features $features -- --nocapture $@
+cargo test --no-default-features --features $features -- --nocapture $@
 
 cd examples
 

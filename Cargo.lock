@@ -617,6 +617,8 @@ dependencies = [
 name = "bobcat-cd"
 version = "0.9.6"
 dependencies = [
+ "alloy-primitives",
+ "alloy-sol-types",
  "array-concat",
  "bobcat-maths",
  "bobcat-storage",

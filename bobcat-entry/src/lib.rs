@@ -46,18 +46,18 @@ pub fn write_result_bool(v: bool) {
     write_result_slice(&U::from(v).0)
 }
 
-const OFFSET_ARR: [u8; 32] =  U::from_u32(32).0;
+const OFFSET_ARR: [u8; 32] = U::from_u32(32).0;
 
 /// Helper function that create a fresh array with the length and offset
 /// by concatinating arrays.
 pub fn write_result_array_slice<const ARR_LEN: usize, const CD_LEN: usize>(arr: [u8; ARR_LEN]) {
-    assert!(ARR_LEN + 32 * 2 == CD_LEN, "bad array length, need: {}", ARR_LEN + 32 * 2);
-    let U(len_arr) = U::from_usize(ARR_LEN);
-    let x: [u8; ARR_LEN] = concat_arrays!(
-        OFFSET_ARR,
-        len_arr,
-        arr
+    assert!(
+        ARR_LEN + 32 * 2 == CD_LEN,
+        "bad array length, need: {}",
+        ARR_LEN + 32 * 2
     );
+    let U(len_arr) = U::from_usize(ARR_LEN);
+    let x: [u8; ARR_LEN] = concat_arrays!(OFFSET_ARR, len_arr, arr);
     write_result_slice(&x)
 }
 

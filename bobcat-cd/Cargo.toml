@@ -17,5 +17,10 @@ proptest = { workspace = true, optional = true }
 bobcat-storage = { version = "0.9.6", path = "../bobcat-storage", default-features = false }
 const-hex = { workspace = true }
 
+[dev-dependencies]
+alloy-primitives = { version = ">=1.0.0", default-features = false }
+alloy-sol-types = { version = ">=1.0.0", default-features = false }
+
 [features]
-derive = []
+alloc = []
+proptest = ["dep:proptest", "alloc"]

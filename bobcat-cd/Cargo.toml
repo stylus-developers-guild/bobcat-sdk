@@ -16,3 +16,6 @@ array-concat = { workspace = true }
 proptest = { workspace = true, optional = true }
 bobcat-storage = { version = "0.9.6", path = "../bobcat-storage", default-features = false }
 const-hex = { workspace = true }
+
+[features]
+derive = []

@@ -23,13 +23,12 @@ bobcat-call = { version = "0.9.6", path = "../bobcat-call", default-features = f
 bobcat-console = { version = "0.9.6", path = "../bobcat-console", optional = true, default-features = false }
 bobcat-events = { version = "0.9.6", path = "../bobcat-events", default-features = false }
 bobcat-precompiles = { version = "0.9.6", path = "../bobcat-precompiles", default-features = false }
-bobcat-maths-zone = { version = "0.9.6", path = "../bobcat-maths-zone", optional = true, default-features = false }
 bobcat-features = { version = "0.9.6", path = "../bobcat-features", default-features = false }
 bobcat-host = { version = "0.9.6", path = "../bobcat-host", default-features = false }
 bobcat-alloc = { version = "0.9.6", path = "../bobcat-alloc", optional = true, default-features = false }
 
 [features]
-default = ["std", "borsh", "serde", "ed25519-dalek", "sha512", "tickmath-local"]
+default = ["std", "borsh", "serde", "ed25519-dalek", "sha512"]
 std = [
 	"bobcat-create/std",
 	"bobcat-entry/std",
@@ -82,6 +81,4 @@ ed25519-dalek = ["bobcat-precompiles/ed25519-dalek"]
 shadow = ["bobcat-events/shadow"]
 mutex = ["bobcat-storage/mutex"]
 detailed-errors = ["bobcat-call/detailed-errors"]
-tickmath-local = ["bobcat-precompiles/tickmath-local"]
-maths-zone = ["dep:bobcat-maths-zone"]
 sha512 = ["bobcat-precompiles/sha512"]

@@ -13,11 +13,10 @@ members = [
 	"bobcat-console",
 	"bobcat-events",
 	"bobcat-precompiles",
-	"bobcat-maths-zone",
 	"bobcat-features",
 	"bobcat-host",
 	"bobcat-alloc"
-]
+, "bobcat-cd-derive"]
 exclude = ["fuzz"]
 
 [workspace.dependencies]

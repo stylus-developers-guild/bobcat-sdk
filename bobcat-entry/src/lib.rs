@@ -14,6 +14,8 @@ pub use bobcat_cd::read_words;
 
 pub use bobcat_host as host;
 
+use array_concat::concat_arrays;
+
 pub fn balance(addr: Address) -> U {
     let mut out = U::ZERO;
     unsafe { host::account_balance(addr.as_ptr(), out.as_mut_ptr()) }
@@ -31,11 +33,6 @@ pub unsafe fn mark_used() {
     panic!();
 }
 
-/// Write a result array, avoiding a copy.
-pub fn write_result_arr<const CAP: usize>(s: [u8; CAP]) {
-    unsafe { host::write_result(s.as_ptr(), s.len()) }
-}
-
 /// Write a result slice.
 pub fn write_result_slice(s: &[u8]) {
     unsafe { host::write_result(s.as_ptr(), s.len()) }
@@ -47,6 +44,30 @@ pub fn write_result_word(s: &U) {
 
 pub fn write_result_bool(v: bool) {
     write_result_slice(&U::from(v).0)
+}
+
+const OFFSET_ARR: [u8; 32] =  U::from_u32(32).0;
+
+/// Helper function that create a fresh array with the length and offset
+/// by concatinating arrays.
+pub fn write_result_array_slice<const ARR_LEN: usize, const CD_LEN: usize>(arr: [u8; ARR_LEN]) {
+    assert!(ARR_LEN + 32 * 2 == CD_LEN, "bad array length, need: {}", ARR_LEN + 32 * 2);
+    let U(len_arr) = U::from_usize(ARR_LEN);
+    let x: [u8; ARR_LEN] = concat_arrays!(
+        OFFSET_ARR,
+        len_arr,
+        arr
+    );
+    write_result_slice(&x)
+}
+
+#[cfg(feature = "alloc")]
+pub fn write_result_array_vec(arr: Vec<u8>) {
+    let mut v = Vec::with_capacity(32 * 2 + arr.len());
+    v.extend_from_slice(&U::from_usize(32).0);
+    v.extend_from_slice(&U::from_usize(arr.len()).0);
+    v.extend(arr);
+    write_result_slice(&v)
 }
 
 pub fn return_data_size() -> usize {

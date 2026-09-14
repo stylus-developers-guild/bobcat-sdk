@@ -11,11 +11,8 @@ use borsh::{BorshDeserialize, BorshSerialize};
 
 #[cfg(feature = "serde")]
 use serde::{
-    de::Error,
-    Deserialize as SerdeDeserialize,
-    Deserializer as SerdeDeserializer,
-    Serialize as SerdeSerialize,
-    Serializer as SerdeSerializer,
+    Deserialize as SerdeDeserialize, Deserializer as SerdeDeserializer,
+    Serialize as SerdeSerialize, Serializer as SerdeSerializer, de::Error,
 };
 
 #[cfg(feature = "alloc")]
@@ -73,8 +70,7 @@ impl<'de> SerdeDeserialize<'de> for BcSha512 {
         D: SerdeDeserializer<'de>,
     {
         let s = <&str>::deserialize(d)?;
-        let bytes = const_hex::decode_to_array::<_, 64>(s)
-            .map_err(D::Error::custom)?;
+        let bytes = const_hex::decode_to_array::<_, 64>(s).map_err(D::Error::custom)?;
         Ok(Self(bytes))
     }
 }
@@ -107,7 +103,7 @@ mod ed25519 {
 
     pub use ed25519_dalek::SigningKey;
 
-    use super::{sha512, Sig, BcSha512};
+    use super::{BcSha512, Sig, sha512};
 
     use sha2::digest::{
         Digest, FixedOutput, FixedOutputReset, Output, OutputSizeUser, Reset, Update, consts::U64,

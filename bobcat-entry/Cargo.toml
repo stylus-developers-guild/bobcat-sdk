@@ -22,4 +22,5 @@ bobcat-cd = { version = "0.9.6", path = "../bobcat-cd", default-features = false
 bobcat-host = { version = "0.9.6", path = "../bobcat-host", default-features = false }
 bobcat-maths = { version = "0.9.6", path = "../bobcat-maths", default-features = false }
 bobcat-storage = { version = "0.9.6", path = "../bobcat-storage", default-features = false }
-const-hex = { workspace = true }
+const-hex.workspace = true
+array-concat.workspace = true

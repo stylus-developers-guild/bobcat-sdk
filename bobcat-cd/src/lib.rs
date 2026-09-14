@@ -392,6 +392,23 @@ pub const fn const_keccak_two_sel(x: &[u8], y: &[u8]) -> [u8; 4] {
     [x[0], x[1], x[2], x[3]]
 }
 
+pub trait Write {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Error>;
+    fn flush(&mut self) -> Result<(), Error>;
+}
+
+pub trait EvmCdSerialise {
+    pub fn serialise<W: Write>(&self, writer: &mut W) -> Result<()>;
+}
+
+pub trait Read {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error>;
+}
+
+pub trait EvmCdDeserialise: Sized {
+    pub fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self>;
+}
+
 #[test]
 fn test_access() {
     let cd = const_hex_decode_to_array::<{ 32 * 2 + 4 }>(b"a9059cbb0000000000000000000000006221a9c005f6e47eb398fd867784cacfdcfff4e7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap();

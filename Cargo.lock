@@ -625,6 +625,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "bobcat-cd-derive"
+version = "0.1.0"
+
+[[package]]
 name = "bobcat-console"
 version = "0.9.6"
 dependencies = [
@@ -646,6 +650,7 @@ dependencies = [
 name = "bobcat-entry"
 version = "0.9.6"
 dependencies = [
+ "array-concat",
  "bobcat-cd",
  "bobcat-host",
  "bobcat-maths",
@@ -720,17 +725,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bobcat-maths-zone"
-version = "0.9.6"
-dependencies = [
- "bobcat-maths",
- "bobcat-panic",
- "proc-macro2",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
 name = "bobcat-panic"
 version = "0.9.6"
 dependencies = [
@@ -786,7 +780,6 @@ dependencies = [
  "bobcat-host",
  "bobcat-interfaces",
  "bobcat-maths",
- "bobcat-maths-zone",
  "bobcat-panic",
  "bobcat-precompiles",
  "bobcat-proxy",

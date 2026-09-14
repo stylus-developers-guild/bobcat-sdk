@@ -3,12 +3,18 @@
 
 use bobcat_maths::U;
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
+
 #[cfg(not(feature = "std"))]
 mod no_std {
     #[derive(Debug, Clone, PartialEq)]
     pub enum Error {
-        WRITE_ALL_EOF,
-        READ_EXACT_EOF,
+        WriteAllEof,
+        ReadExactEof,
     }
 
     pub trait Write {
@@ -20,7 +26,7 @@ mod no_std {
             while !buf.is_empty() {
                 match self.write(buf) {
                     Ok(0) => {
-                        return Err(Error::WRITE_ALL_EOF);
+                        return Err(Error::WriteAllEof);
                     }
                     Ok(n) => buf = &buf[n..],
                     Err(e) => return Err(e),
@@ -44,7 +50,7 @@ mod no_std {
                 }
             }
             if !buf.is_empty() {
-                Err(Error::READ_EXACT_EOF)
+                Err(Error::ReadExactEof)
             } else {
                 Ok(())
             }
@@ -104,6 +110,21 @@ for_ints! { u8, u16, u32, u64, u128, usize }
 
 impl<const N: usize> EvmCdSerialise for [u8; N] {
     fn serialise<W: Write>(&self, w: &mut W) -> Result<(), Error> {
+        w.write_all(self)
+    }
+}
+
+impl<const N: usize> EvmCdDeserialise for [u8; N] {
+    fn deserialise_reader<R: Read>(r: &mut R) -> Result<Self, Error> {
+        let mut out = [0u8; N];
+        r.read_exact(&mut out)?;
+        Ok(out)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl EvmCdSerialise for Vec<u8> {
+    fn serialise<W: Write>(&self, w: &mut W) -> Result<(), Error> {
         w.write_all(&U::from_u32(32).0)?;
         w.write_all(&U::from_usize(N).0)?;
         w.write_all(self)?;
@@ -111,12 +132,13 @@ impl<const N: usize> EvmCdSerialise for [u8; N] {
     }
 }
 
-impl<const N: usize> EvmCdDeserialise for [u8; N] {
+#[cfg(feature = "alloc")]
+impl EvmCdDeserialise for Vec<u8> {
     fn deserialise_reader<R: Read>(r: &mut R) -> Result<Self, Error> {
         let mut head = [0u8; 64];
         r.read_exact(&mut head)?;
-
-        let mut out = [0u8; N];
+        let mut out =
+            Vec::with_capacity(usize::from_be_bytes(head[32..32 * 2].try_into().unwrap()));
         r.read_exact(&mut out)?;
         Ok(out)
     }

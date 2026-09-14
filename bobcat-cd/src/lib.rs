@@ -404,16 +404,14 @@ pub fn decode_to_array(x: &[u8]) -> Option<&[u8]> {
     if x.len() < 32 {
         return None;
     }
-    let offset = usize::from_be_bytes(
-        x[32 - size_of::<usize>()..32].try_into().unwrap()
-    );
+    let offset = usize::from_be_bytes(x[32 - size_of::<usize>()..32].try_into().unwrap());
     if x.len() < offset + 32 {
         return None;
     }
     let len = usize::from_be_bytes(
         x[offset + 32 - size_of::<usize>()..offset + 32]
             .try_into()
-            .unwrap()
+            .unwrap(),
     );
     let start = offset + 32;
     let end = start.checked_add(len)?;

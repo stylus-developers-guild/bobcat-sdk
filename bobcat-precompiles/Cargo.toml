@@ -8,7 +8,6 @@ homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [features]
-default = ["alloc"]
 ed25519-dalek = ["dep:ed25519-dalek", "sha512"]
 alloc = ["bobcat-call/alloc"]
 sha512 = ["dep:sha2"]

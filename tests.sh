@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-features=std,proptest,alloy-enabled,alloc
+features=std,proptest,alloy-enabled,alloc,derive
 
 cargo test --no-default-features --features $features -- --nocapture $@
 

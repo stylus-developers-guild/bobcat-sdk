@@ -620,6 +620,7 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "array-concat",
+ "bobcat-cd-derive",
  "bobcat-maths",
  "bobcat-storage",
  "const-hex",
@@ -628,7 +629,15 @@ dependencies = [
 
 [[package]]
 name = "bobcat-cd-derive"
-version = "0.1.0"
+version = "0.9.8"
+dependencies = [
+ "bobcat-cd",
+ "heck",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
 
 [[package]]
 name = "bobcat-console"

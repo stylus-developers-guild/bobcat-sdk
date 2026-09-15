@@ -28,7 +28,7 @@ bobcat-host = { version = "0.9.8", path = "../bobcat-host", default-features = f
 bobcat-alloc = { version = "0.9.8", path = "../bobcat-alloc", optional = true, default-features = false }
 
 [features]
-default = ["std", "borsh", "serde", "ed25519-dalek", "sha512"]
+default = ["derive"]
 std = [
 	"bobcat-create/std",
 	"bobcat-entry/std",
@@ -47,6 +47,7 @@ alloc = [
 	"bobcat-events/alloc",
 	"bobcat-maths/alloc",
 	"bobcat-precompiles/alloc",
+	"bobcat-cd/alloc",
 	"dep:bobcat-alloc",
 	"bobcat-interfaces/alloc"
 ]
@@ -81,5 +82,6 @@ wasm-bindgen-wasi = ["bobcat-maths/wasm-bindgen-wasi"]
 ed25519-dalek = ["bobcat-precompiles/ed25519-dalek"]
 shadow = ["bobcat-events/shadow"]
 mutex = ["bobcat-storage/mutex"]
+derive = ["bobcat-cd/derive"]
 detailed-errors = ["bobcat-call/detailed-errors"]
 sha512 = ["bobcat-precompiles/sha512"]

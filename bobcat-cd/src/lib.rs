@@ -2,6 +2,14 @@
 
 pub mod serialisation;
 
+pub use serialisation::{
+    Address, Error as EvmCdError, EvmCdArray, EvmCdArrayError, EvmCdDeserialise, EvmCdSerialise,
+    EvmCdString, EvmCdStringError, Read as EvmCdRead, Write as EvmCdWrite,
+};
+
+#[cfg(feature = "derive")]
+pub use bobcat_cd_derive::{EvmCdDeserialise, EvmCdSerialise};
+
 pub use bobcat_maths::U;
 
 pub use bobcat_storage::{const_keccak256, const_keccak256_two};

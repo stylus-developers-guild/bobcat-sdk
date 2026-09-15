@@ -1479,6 +1479,24 @@ macro_rules! from_ints {
                         Self::from_be_bytes(x.into())
                     }
                 }
+
+                impl PartialEq<$t> for U {
+                    fn eq(&self, rhs: &$t) -> bool {
+                        *self == U::from(*rhs)
+                    }
+                }
+
+                impl PartialOrd<$t> for U {
+                    fn partial_cmp(&self, rhs: &$t) -> Option<Ordering> {
+                        let rhs = rhs.to_be_bytes();
+                        let n = core::mem::size_of::<$t>();
+                        let split = 32 - n;
+                        if self.0[..split].iter().any(|&b| b != 0) {
+                            return Some(Ordering::Greater);
+                        }
+                        Some(self.0[split..].cmp(&rhs))
+                    }
+                }
             }
         )+
     };

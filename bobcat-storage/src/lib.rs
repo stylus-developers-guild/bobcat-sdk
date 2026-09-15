@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use keccak_const::Keccak256;
+pub use keccak_const::Keccak256;
 
 use array_concat::concat_arrays;
 
@@ -191,6 +191,10 @@ pub const fn const_keccak256_two(x: &[u8], y: &[u8]) -> U {
 
 pub const fn const_keccak256_two_off_curve(x: &[u8], y: &[u8]) -> U {
     wrapping_sub(&const_keccak256_two(x, y), &U::ONE)
+}
+
+pub fn keccak256_builder() -> Keccak256 {
+    Keccak256::new()
 }
 
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]

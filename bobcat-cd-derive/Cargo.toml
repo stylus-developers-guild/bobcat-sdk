@@ -1,10 +1,21 @@
 [package]
 name = "bobcat-cd-derive"
-version = "0.1.0"
+version = "0.9.8"
 edition = "2024"
-publish = false
+license = "MIT"
+description = "Derive macros for bobcat-sdk EVM calldata types."
+homepage = "https://stylusup.sh"
+repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
 [lib]
 proc-macro = true
 
 [dependencies]
+proc-macro-crate = "3"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full"] }
+heck = "0.5"
+
+[dev-dependencies]
+bobcat-cd = { path = "../bobcat-cd", features = ["std"] }

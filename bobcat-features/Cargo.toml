@@ -19,7 +19,6 @@ paste.workspace = true
 bobcat-host = { version = "0.9.8", path = "../bobcat-host", default-features = false }
 
 [features]
-default = ["std"]
 std = ["bobcat-storage/std", "bobcat-entry/std", "bobcat-host/std"]
 mutex = ["bobcat-storage/mutex"]
 alloy-enabled = ["bobcat-entry/alloy-enabled", "bobcat-storage/alloy-enabled"]

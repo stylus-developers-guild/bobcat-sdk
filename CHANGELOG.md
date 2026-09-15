@@ -24,3 +24,5 @@ functions will continue to return Option, because debug is not always
 available.
 
 4. Several decoding functions for strings/arrays were finally added to `bobcat-cd`. `*_call_bool_opt` was updated to return `Some(the return result)` to improve its ergonomics. Also added `*_call_word_opt` to return a word with Option.
+
+5. Added several comparison functions for lower integers.

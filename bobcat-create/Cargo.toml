@@ -18,6 +18,5 @@ array-concat.workspace = true
 bobcat-host = { version = "0.9.8", path = "../bobcat-host", default-features = false }
 
 [features]
-default = ["std"]
 alloc = []
 std = ["alloc"]

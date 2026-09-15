@@ -11,6 +11,19 @@ enum Call {
     SetCount(usize),
 }
 
+#[cfg(feature = "alloc")]
+#[test]
+fn serialises_directly_into_a_mut_vec() {
+    let mut encoded = vec![0xff];
+
+    0x1234u16.serialise(&mut encoded).unwrap();
+
+    assert_eq!(encoded.len(), 33);
+    assert_eq!(encoded[0], 0xff, "serialisation appends to the vector");
+    assert!(encoded[1..31].iter().all(|byte| *byte == 0));
+    assert_eq!(&encoded[31..], &[0x12, 0x34]);
+}
+
 #[test]
 fn selector_hasher_supports_signatures_larger_than_512_bytes() {
     let signature = [b'a'; 600];

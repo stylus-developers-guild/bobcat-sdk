@@ -18,7 +18,7 @@ official stylus-sdk repository first.
 
 ## Usage (with standard EVM calldata)
 
-This is a zero allocation example coming in at 16kb:
+This is a zero allocation example coming in at 8k:
 
 ```rust
 // main.rs

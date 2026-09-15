@@ -10,6 +10,9 @@ use alloc::{string::String, vec::Vec};
 
 #[cfg(not(feature = "std"))]
 mod no_std {
+    #[cfg(feature = "alloc")]
+    use alloc::vec::Vec;
+
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub enum Error {
         WriteAllEof,
@@ -71,6 +74,22 @@ mod no_std {
 
         fn is_empty(&self) -> bool {
             <[u8]>::is_empty(self)
+        }
+    }
+
+    #[cfg(feature = "alloc")]
+    impl Write for Vec<u8> {
+        fn write(&mut self, buf: &[u8]) -> Result<usize, Error> {
+            self.extend_from_slice(buf);
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> Result<(), Error> {
+            Ok(())
+        }
+
+        fn is_empty(&self) -> bool {
+            Vec::is_empty(self)
         }
     }
 

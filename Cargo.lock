@@ -633,6 +633,7 @@ version = "0.10.1"
 dependencies = [
  "bobcat-cd",
  "heck",
+ "keccak-const",
  "proc-macro-crate",
  "proc-macro2",
  "quote",

@@ -51,18 +51,28 @@ form is intended only for fieldless enums.
 compatibility, but is now redundant because selector-free value encoding is the
 default. It cannot be combined with `#[evm_entrypoint]`.
 
-Currently inferred ABI names include:
+Inferred ABI names include:
 
 - `u8`, `u16`, `u32`, `u64`, and `u128` as their corresponding `uintN`;
+
 - `usize` as `uint32`;
+
 - `bobcat_maths::U` as `uint256`;
+
 - `[u8; N]` as `bytesN`;
+
 - `Address` as `address` (left-padded to an ABI word);
+
 - `Vec<u8>` as `bytes` when allocation support is enabled;
+
 - `Vec<T>` as `T[]` for every other serialisable element type;
+
 - `EvmCdArray<T, MIN, CAP>` as `T[]` without allocation;
+
 - `EvmCdString<MIN, CAP>` as `string`;
+
 - derived structs as Solidity tuple types;
+
 - derived enums used as fields as `uint8`.
 
 Because ABI names are supplied through trait methods, Rust type aliases work:
@@ -74,14 +84,6 @@ allocation. `MIN` and `CAP` are byte lengths. Its standalone representation is
 a 32-byte offset word, a 32-byte length word, the UTF-8 bytes, and zero padding
 to a 32-byte boundary. Within an enum variant's arguments it participates in
 the normal ABI head/tail layout.
-
-The `derive` feature is enabled by default in both `bobcat-cd` and
-`bobcat-sdk`. When default features are disabled, enable it explicitly:
-
-```toml
-[dependencies]
-bobcat-cd = { version = "0.10.1", features = ["derive"] }
-```
 
 ```rust
 use bobcat_cd::{EvmCdDeserialise, EvmCdSerialise, EvmCdString};

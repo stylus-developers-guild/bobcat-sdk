@@ -495,12 +495,131 @@ fn append_types(
     }
 }
 
+/// Try to compute the canonical Solidity ABI type name for a type the derive
+/// can resolve syntactically (bobcat primitives and SDK container types only).
+///
+/// Returns `None` for anything that would need compile-time trait-based name
+/// resolution (type aliases, derived structs/enums, generic parameters, user
+/// types). The caller then falls back to the runtime `SelectorHasher` path, so
+/// behaviour is unchanged for unresolvable field types.
+fn abi_type_name(ty: &Type) -> Option<Vec<u8>> {
+    match ty {
+        Type::Path(path) => {
+            if path.qself.is_some() {
+                return None;
+            }
+            path_abi_type_name(&path.path)
+        }
+        Type::Array(arr) => {
+            // The SDK implements `EvmCdSerialise for [u8; N]` only.
+            let is_u8 = matches!(
+                arr.elem.as_ref(),
+                Type::Path(elem) if elem.qself.is_none() && elem.path.is_ident("u8")
+            );
+            if !is_u8 {
+                return None;
+            }
+            // The length must be a plain integer literal to resolve here.
+            let n: u64 = match &arr.len {
+                syn::Expr::Lit(lit) => match &lit.lit {
+                    syn::Lit::Int(int) => int.base10_parse().ok()?,
+                    _ => return None,
+                },
+                _ => return None,
+            };
+            Some(format!("bytes{n}").into_bytes())
+        }
+        _ => None,
+    }
+}
+
+fn path_abi_type_name(path: &syn::Path) -> Option<Vec<u8>> {
+    let segment = path.segments.last()?;
+    let name = segment.ident.to_string();
+    // First generic type argument, if the path is generic (e.g. `Vec<T>`).
+    let first_type_arg = || -> Option<&Type> {
+        let syn::PathArguments::AngleBracketed(args) = &segment.arguments else {
+            return None;
+        };
+        args.args.iter().find_map(|arg| match arg {
+            syn::GenericArgument::Type(ty) => Some(ty),
+            _ => None,
+        })
+    };
+    let is_u8_ty = |ty: &Type| {
+        matches!(
+            ty,
+            Type::Path(elem) if elem.qself.is_none() && elem.path.is_ident("u8")
+        )
+    };
+    match name.as_str() {
+        "U" => Some(b"uint256".to_vec()),
+        "u8" => Some(b"uint8".to_vec()),
+        "u16" => Some(b"uint16".to_vec()),
+        "u32" => Some(b"uint32".to_vec()),
+        "u64" => Some(b"uint64".to_vec()),
+        "u128" => Some(b"uint128".to_vec()),
+        "usize" => Some(b"uint32".to_vec()),
+        "EvmCdAddress" | "Address" => Some(b"address".to_vec()),
+        "EvmCdString" => Some(b"string".to_vec()),
+        "Vec" => {
+            let elem = first_type_arg()?;
+            if is_u8_ty(elem) {
+                Some(b"bytes".to_vec())
+            } else {
+                let mut out = abi_type_name(elem)?;
+                out.extend_from_slice(b"[]");
+                Some(out)
+            }
+        }
+        "EvmCdArray" => {
+            let elem = first_type_arg()?;
+            let mut out = abi_type_name(elem)?;
+            out.extend_from_slice(b"[]");
+            Some(out)
+        }
+        _ => None,
+    }
+}
+
+/// Build the canonical selector signature `"name(type1,...,typeN)"` for a
+/// variant if every field type can be resolved to an ABI name at expansion
+/// time; otherwise `None` (the caller uses the runtime hasher).
+fn try_selector_signature(variant: &syn::Variant, function_name: &str) -> Option<Vec<u8>> {
+    let mut sig = function_name.as_bytes().to_vec();
+    sig.extend_from_slice(b"(");
+    for (index, field) in variant.fields.iter().enumerate() {
+        if index > 0 {
+            sig.extend_from_slice(b",");
+        }
+        sig.extend_from_slice(&abi_type_name(&field.ty)?);
+    }
+    sig.push(b')');
+    Some(sig)
+}
+
+/// Keccak-256 of the signature, truncated to the EVM 4-byte selector.
+fn selector_literal(signature: &[u8]) -> [u8; 4] {
+    let digest = keccak_const::Keccak256::new().update(signature).finalize();
+    [digest[0], digest[1], digest[2], digest[3]]
+}
+
 fn selector_expr(
     variant: &syn::Variant,
     trait_path: &TokenStream2,
     cd: &TokenStream2,
 ) -> TokenStream2 {
     let function_name = variant.ident.to_string().to_lower_camel_case();
+
+    // Preferred path: precompute the 4-byte selector at macro-expansion time so
+    // no keccak code is emitted into (or linked by) the contract wasm.
+    if let Some(signature) = try_selector_signature(variant, &function_name) {
+        let [a, b, c, d] = selector_literal(&signature);
+        return quote!([#a, #b, #c, #d]);
+    }
+
+    // Fallback: runtime trait-based hashing for types the derive can't resolve
+    // syntactically (aliases, derived structs/enums, generic parameters).
     let prefix = format!("{function_name}(");
     let prefix = syn::LitByteStr::new(prefix.as_bytes(), variant.ident.span());
     let types: Vec<_> = variant.fields.iter().map(|field| &field.ty).collect();
@@ -872,4 +991,74 @@ fn deserialise_enum_value(
             _ => ::core::result::Result::Err(#cd::serialisation::invalid_data()),
         }
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use keccak_const::Keccak256;
+
+    fn sel(signature: &str) -> [u8; 4] {
+        let digest = Keccak256::new().update(signature.as_bytes()).finalize();
+        [digest[0], digest[1], digest[2], digest[3]]
+    }
+
+    fn abi(ty: &str) -> String {
+        let ty: Type = syn::parse_str(ty).unwrap();
+        String::from_utf8(abi_type_name(&ty).expect("should resolve")).unwrap()
+    }
+
+    #[test]
+    fn abi_type_names_match_the_sdk_trait_impls() {
+        assert_eq!(abi("U"), "uint256");
+        assert_eq!(abi("bobcat_maths::U"), "uint256");
+        assert_eq!(abi("u8"), "uint8");
+        assert_eq!(abi("u16"), "uint16");
+        assert_eq!(abi("u32"), "uint32");
+        assert_eq!(abi("u64"), "uint64");
+        assert_eq!(abi("u128"), "uint128");
+        assert_eq!(abi("usize"), "uint32");
+        assert_eq!(abi("EvmCdAddress"), "address");
+        assert_eq!(abi("Address"), "address");
+        assert_eq!(abi("[u8; 4]"), "bytes4");
+        assert_eq!(abi("[u8; 20]"), "bytes20");
+        assert_eq!(abi("Vec<u8>"), "bytes");
+        assert_eq!(abi("Vec<U>"), "uint256[]");
+        assert_eq!(abi("Vec<EvmCdAddress>"), "address[]");
+        assert_eq!(abi("EvmCdArray<u8, 0, 4>"), "uint8[]");
+        assert_eq!(abi("EvmCdArray<U, 0, 4>"), "uint256[]");
+        assert_eq!(abi("EvmCdString<0, 32>"), "string");
+    }
+
+    #[test]
+    fn unresolvable_types_fall_back_to_runtime_hashing() {
+        for ty_str in [
+            "Name",     // type alias
+            "Asset",    // derived enum -> uint8 (only known via its impl)
+            "DogRecord", // derived struct -> tuple (only known via its impl)
+            "T",        // generic parameter
+            "&[u8]",    // not a supported ABI type
+            "[u32; 4]", // SDK implements [u8; N] only
+        ] {
+            let ty: Type = syn::parse_str(ty_str).unwrap();
+            assert!(abi_type_name(&ty).is_none(), "{ty_str} should be unresolvable");
+        }
+    }
+
+    #[test]
+    fn precomputed_variant_selectors_match_the_reference_keccak() {
+        let variants = [
+            ("setNumber(uint256)", "SetNumber(U)"),
+            ("fixedBytes(bytes4,uint8)", "FixedBytes([u8; 4], u8)"),
+            ("addNumber(uint256)", "AddNumber(U)"),
+            ("number()", "Number"),
+        ];
+        for (expected_sig, variant_text) in variants {
+            let variant: syn::Variant = syn::parse_str(variant_text).unwrap();
+            let function_name = variant.ident.to_string().to_lower_camel_case();
+            let signature = try_selector_signature(&variant, &function_name).unwrap();
+            assert_eq!(signature, expected_sig.as_bytes());
+            assert_eq!(selector_literal(&signature), sel(expected_sig));
+        }
+    }
 }

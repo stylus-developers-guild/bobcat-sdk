@@ -19,6 +19,9 @@ proc-macro2 = "1"
 quote = "1"
 syn = { version = "2", features = ["full"] }
 heck = "0.5"
+# Computes entrypoint selectors at macro-expansion time (host side) so the
+# keccak implementation is never pulled into a contract's wasm.
+keccak-const.workspace = true
 
 [dev-dependencies]
 bobcat-cd = { path = "../bobcat-cd", features = ["std"] }

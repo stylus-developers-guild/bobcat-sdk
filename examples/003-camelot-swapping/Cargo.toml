@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bobcat-sdk = { workspace = true, features = ["panic", "alloc"] }
+bobcat-sdk = { workspace = true, features = ["panic"] }
 const-hex = { version = "1.17.0", default-features = false }
 

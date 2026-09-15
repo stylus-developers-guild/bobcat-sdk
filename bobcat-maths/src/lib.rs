@@ -1114,6 +1114,10 @@ impl U {
         Some(U(b))
     }
 
+    pub fn addr(self) -> [u8; 20] {
+        self.into()
+    }
+
     #[cfg(feature = "alloc")]
     pub fn as_vec(self) -> Vec<u8> {
         self.0.to_vec()

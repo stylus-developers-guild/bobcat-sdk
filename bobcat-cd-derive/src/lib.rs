@@ -9,7 +9,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{Data, DataEnum, DataStruct, DeriveInput, Fields, Generics, Type, parse_macro_input};
 
-#[proc_macro_derive(EvmCdSerialise)]
+#[proc_macro_derive(EvmCdSerialise, attributes(evm_values))]
 pub fn derive_evm_cd_serialise(input: TokenStream) -> TokenStream {
     expand(
         parse_macro_input!(input as DeriveInput),
@@ -19,7 +19,7 @@ pub fn derive_evm_cd_serialise(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(EvmCdDeserialise)]
+#[proc_macro_derive(EvmCdDeserialise, attributes(evm_values))]
 pub fn derive_evm_cd_deserialise(input: TokenStream) -> TokenStream {
     expand(
         parse_macro_input!(input as DeriveInput),
@@ -38,6 +38,7 @@ enum Direction {
 fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2> {
     let cd = bobcat_cd_path()?;
     let name = &input.ident;
+    let evm_values = has_evm_values(&input)?;
     let io_ident = fresh_type_ident(
         &input.generics,
         match direction {
@@ -53,6 +54,12 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
     let body = match (&input.data, direction) {
         (Data::Struct(data), Direction::Serialise) => serialise_struct(data, &cd),
         (Data::Struct(data), Direction::Deserialise) => deserialise_struct(data, &cd),
+        (Data::Enum(data), Direction::Serialise) if evm_values => {
+            serialise_enum_value(name, data, &cd, true)?
+        }
+        (Data::Enum(data), Direction::Deserialise) if evm_values => {
+            deserialise_enum_value(name, data, &cd, true)?
+        }
         (Data::Enum(data), Direction::Serialise) => serialise_enum(name, data, &cd)?,
         (Data::Enum(data), Direction::Deserialise) => deserialise_enum(name, data, &cd)?,
         (Data::Union(data), _) => {
@@ -66,7 +73,7 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
     let abi_methods = abi_methods(&input.data, direction, &trait_path, &cd, &io_ident);
     let value_method = match (&input.data, direction) {
         (Data::Enum(data), Direction::Serialise) => {
-            let body = serialise_enum_value(name, data, &cd)?;
+            let body = serialise_enum_value(name, data, &cd, evm_values)?;
             quote! {
                 fn serialise_value<#io_ident: #cd::serialisation::Write>(
                     &self,
@@ -77,7 +84,7 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
             }
         }
         (Data::Enum(data), Direction::Deserialise) => {
-            let body = deserialise_enum_value(name, data, &cd)?;
+            let body = deserialise_enum_value(name, data, &cd, evm_values)?;
             quote! {
                 fn deserialise_value<#io_ident: #cd::serialisation::Read>(
                     reader: &mut #io_ident,
@@ -133,6 +140,35 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
         },
     };
     Ok(output)
+}
+
+fn has_evm_values(input: &DeriveInput) -> syn::Result<bool> {
+    let mut attributes = input
+        .attrs
+        .iter()
+        .filter(|attribute| attribute.path().is_ident("evm_values"));
+    let Some(attribute) = attributes.next() else {
+        return Ok(false);
+    };
+    if !matches!(attribute.meta, syn::Meta::Path(_)) {
+        return Err(syn::Error::new_spanned(
+            attribute,
+            "`evm_values` does not accept arguments",
+        ));
+    }
+    if let Some(duplicate) = attributes.next() {
+        return Err(syn::Error::new_spanned(
+            duplicate,
+            "duplicate `evm_values` attribute",
+        ));
+    }
+    if !matches!(input.data, Data::Enum(_)) {
+        return Err(syn::Error::new_spanned(
+            attribute,
+            "`evm_values` is only supported on enums",
+        ));
+    }
+    Ok(true)
 }
 
 fn fresh_type_ident(generics: &Generics, base: &str) -> syn::Ident {
@@ -487,7 +523,7 @@ fn deserialise_struct(data: &DataStruct, cd: &TokenStream2) -> TokenStream2 {
     }
 }
 
-fn validate_enum(data: &DataEnum) -> syn::Result<()> {
+fn validate_enum(data: &DataEnum, evm_values: bool) -> syn::Result<()> {
     if data.variants.len() > 256 {
         return Err(syn::Error::new_spanned(
             &data.variants[256],
@@ -495,10 +531,16 @@ fn validate_enum(data: &DataEnum) -> syn::Result<()> {
         ));
     }
     for variant in &data.variants {
-        if variant.discriminant.is_some() {
+        if evm_values && !matches!(variant.fields, Fields::Unit) {
             return Err(syn::Error::new_spanned(
                 variant,
-                "explicit enum discriminants are not supported; variants are encoded by declaration order when nested",
+                "`evm_values` enums may only contain fieldless variants",
+            ));
+        }
+        if !evm_values && variant.discriminant.is_some() {
+            return Err(syn::Error::new_spanned(
+                variant,
+                "explicit enum discriminants are not supported; variants are encoded by declaration order when nested; add #[evm_values] if this enum represents uint8 values rather than function selectors",
             ));
         }
     }
@@ -537,7 +579,7 @@ fn serialise_enum(
     data: &DataEnum,
     cd: &TokenStream2,
 ) -> syn::Result<TokenStream2> {
-    validate_enum(data)?;
+    validate_enum(data, false)?;
     let trait_path = trait_path(Direction::Serialise, cd);
     let selectors: Vec<_> = data
         .variants
@@ -584,17 +626,37 @@ fn serialise_enum_value(
     name: &syn::Ident,
     data: &DataEnum,
     cd: &TokenStream2,
+    evm_values: bool,
 ) -> syn::Result<TokenStream2> {
-    validate_enum(data)?;
+    validate_enum(data, evm_values)?;
     let arms = data.variants.iter().enumerate().map(|(index, variant)| {
         let (pattern, _) = variant_pattern(name, variant);
         let discriminant = index as u8;
         if matches!(variant.fields, Fields::Unit) {
-            quote! {
-                #pattern => #cd::serialisation::EvmCdSerialise::serialise_value(
-                    &#discriminant,
-                    writer,
-                )
+            if evm_values {
+                let variant_name = &variant.ident;
+                quote! {
+                    #pattern => match <u8 as ::core::convert::TryFrom<i128>>::try_from(
+                        #name::#variant_name as i128,
+                    ) {
+                        ::core::result::Result::Ok(discriminant) => {
+                            #cd::serialisation::EvmCdSerialise::serialise_value(
+                                &discriminant,
+                                writer,
+                            )
+                        }
+                        ::core::result::Result::Err(_) => {
+                            ::core::result::Result::Err(#cd::serialisation::invalid_data())
+                        }
+                    }
+                }
+            } else {
+                quote! {
+                    #pattern => #cd::serialisation::EvmCdSerialise::serialise_value(
+                        &#discriminant,
+                        writer,
+                    )
+                }
             }
         } else {
             quote! {
@@ -639,7 +701,7 @@ fn deserialise_enum(
     data: &DataEnum,
     cd: &TokenStream2,
 ) -> syn::Result<TokenStream2> {
-    validate_enum(data)?;
+    validate_enum(data, false)?;
     let trait_path = trait_path(Direction::Deserialise, cd);
     let selectors: Vec<_> = data
         .variants
@@ -707,13 +769,21 @@ fn deserialise_enum_value(
     name: &syn::Ident,
     data: &DataEnum,
     cd: &TokenStream2,
+    evm_values: bool,
 ) -> syn::Result<TokenStream2> {
-    validate_enum(data)?;
+    validate_enum(data, evm_values)?;
     let arms = data.variants.iter().enumerate().map(|(index, variant)| {
         let discriminant = index as u8;
         if matches!(variant.fields, Fields::Unit) {
             let value = deserialise_variant(name, variant, cd);
-            quote!(#discriminant => #value)
+            if evm_values {
+                let variant_name = &variant.ident;
+                quote! {
+                    discriminant if discriminant as i128 == #name::#variant_name as i128 => #value
+                }
+            } else {
+                quote!(#discriminant => #value)
+            }
         } else {
             quote!(#discriminant => ::core::result::Result::Err(#cd::serialisation::invalid_data()))
         }

@@ -18,8 +18,28 @@ For example, `EnrollDogInHotel(EvmCdString<0, 100>)` uses the selector for
 
 When an enum is itself used as a field, it is represented by its zero-based
 variant index in a 32-byte `uint8` word. This is intended for fieldless
-Solidity-style enums. An enum may contain at most 256 variants. Explicit Rust
-discriminants and unions are rejected.
+Solidity-style enums. By default, however, serialising the enum itself still
+produces top-level function calldata with a selector, and explicit Rust enum
+discriminants are rejected. If the enum represents values rather than a family
+of function calls, add `#[evm_values]`:
+
+```rust
+#[derive(EvmCdSerialise, EvmCdDeserialise)]
+#[evm_values]
+pub enum Asset {
+    USDC = 0,
+    ARB = 1,
+    WETH = 2,
+}
+```
+
+An `evm_values` enum must contain only fieldless variants whose Rust
+discriminants fit in `uint8`. Its top-level and nested representations are both
+a single 32-byte `uint8` ABI word; no function selector is written or read.
+Explicit and non-contiguous discriminants are preserved. Without `evm_values`,
+variants are encoded by declaration order when nested. An enum may contain at
+most 256 variants. Explicit Rust discriminants on an unmarked call enum produce
+a diagnostic directing the user to enable `evm_values`.
 
 Currently inferred ABI names include:
 

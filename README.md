@@ -18,60 +18,54 @@ official stylus-sdk repository first.
 
 ## Usage (with standard EVM calldata)
 
+This is a zero allocation example coming in at 16kb:
+
 ```rust
 // main.rs
 
 #![no_main]
 #![no_std]
 
-use bobcat_sdk::{
-    cd::{const_keccak_sel, read_words},
-    entry::*,
-    maths::U,
-    storage::*,
-};
+use bobcat_sdk::prelude::*;
 
-const SEL_NUMBER: [u8; 4] = const_keccak_sel(b"number()");
-const SEL_SET_NUMBER: [u8; 4] = const_keccak_sel(b"setNumber(uint256)");
-const SEL_MUL_NUMBER: [u8; 4] = const_keccak_sel(b"mulNumber(uint256)");
-const SEL_ADD_NUMBER: [u8; 4] = const_keccak_sel(b"addNumber(uint256)");
-const SEL_INCREMENT: [u8; 4] = const_keccak_sel(b"increment()");
-const SEL_ADD_FROM_MSG_VALUE: [u8; 4] = const_keccak_sel(b"addFromMsgValue()");
+#[derive(Debug, Clone, EvmCdSerialise, EvmCdDeserialise)]
+pub enum Entry {
+    Number,
+    SetNumber(U),
+    MulNumber(U),
+    AddNumber(U),
+    Increment,
+    AddFromMsgValue,
+}
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
-    let args = read_args_safe!(args_len, { 32 + 4 });
-    let sel: [u8; 4] = args[..4].try_into().unwrap();
-    let w = read_words!(&args[4..], 1);
-    flush_guard(|| match sel {
-        SEL_NUMBER => write_result_word(&storage_load(&U::ZERO)),
-        SEL_SET_NUMBER => storage_store(&U::ZERO, w),
-        SEL_MUL_NUMBER => storage_wrapping_mul(&U::ZERO, w),
-        SEL_ADD_NUMBER => storage_wrapping_add(&U::ZERO, w),
-        SEL_INCREMENT => storage_wrapping_add(&U::ONE, w),
-        SEL_ADD_FROM_MSG_VALUE => storage_wrapping_add(&msg_value(), w),
-        _ => unimplemented!(),
+pub unsafe extern "C" fn user_entrypoint(len: usize) -> usize {
+    flush_guard(|| match Entry::from_cd(len).unwrap() {
+        Entry::Number => write_result_word(&storage_load(&U::ZERO)),
+        Entry::SetNumber(w) => storage_store(&U::ZERO, &w),
+        Entry::MulNumber(w) => storage_wrapping_mul(&U::ZERO, &w),
+        Entry::AddNumber(w) => storage_wrapping_add(&U::ZERO, &w),
+        Entry::Increment => storage_wrapping_add(&U::ZERO, &U::ONE),
+        Entry::AddFromMsgValue => storage_wrapping_add(&U::ZERO, &msg_value()),
     });
     0
 }
-
 ```
 
 ## Features
 
-The feature flags below are the user-facing options for the `bobcat-sdk` crate. Workspace
-crates also define internal/testing flags for examples and tooling; those are omitted
-here intentionally.
+`bobcat-sdk` provides helpers for calldata decoding, a custom panic handler that reverts with the stack trace on-chain, property testing features for the builtin types, and more. These are the following features:
 
-- `std`: Enable standard library support across the bobcat subcrates that ship with the
-SDK.
+- `std`: Enable Rust standard library support across bobcat-sdk.
 
-- `alloc`: Enable allocator-backed APIs (including the optional `bobcat-alloc`) across the
-SDK crates that need heap support.
+- `alloc`: Enable allocator support.
 
 - `serde`: Add `serde` derives/traits for math types via `bobcat-maths`.
 
 - `borsh`: Add `borsh` derives/traits for math types via `bobcat-maths`.
+
+- `derive`: Add deriving functions using `EvmCdDeserialise` and `EvmCdSerialise` to
+support EVM calldata decoding and encoding.
 
 - `console`: Enable console logging via `bobcat-console` plus panic/host console hooks.
 
@@ -112,7 +106,6 @@ types.
 
 - `mutex`: Allow the storage implementation to use a mutex for multi-threaded access in
 host-backed environments.
-
 
 ## Goals
 

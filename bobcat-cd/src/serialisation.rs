@@ -178,6 +178,14 @@ pub enum EvmCdHead<T> {
 }
 
 pub trait EvmCdDeserialise: Sized {
+    fn deserialise<B>(bytes: &B) -> Result<Self, Error>
+    where
+        B: AsRef<[u8]> + ?Sized,
+    {
+        let mut reader = bytes.as_ref();
+        Self::deserialise_reader(&mut reader)
+    }
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error>;
 
     #[doc(hidden)]

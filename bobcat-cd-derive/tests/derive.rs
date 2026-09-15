@@ -26,6 +26,27 @@ enum Message {
 type Name = EvmCdString<0, 32>;
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_values]
+pub enum Asset {
+    USDC = 0,
+    ARB = 1,
+    WETH = 2,
+}
+
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_values]
+enum SparseAsset {
+    USDC = 3,
+    ARB = 17,
+    WETH = 255,
+}
+
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+enum AssetCall {
+    SetAsset(Asset),
+}
+
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
 enum Treat {
     Biscuit,
     Cheese,
@@ -82,6 +103,39 @@ where
 }
 
 #[test]
+fn deserialises_from_arrays_slices_references_and_boxed_slices() {
+    let value = Named {
+        small: 7,
+        large: 0x1234_5678,
+    };
+    let mut encoded = [0u8; 64];
+    value.serialise(&mut encoded.as_mut_slice()).unwrap();
+
+    fn from_array_of_any_size<T, const N: usize>(bytes: &[u8; N]) -> Result<T, std::io::Error>
+    where
+        T: EvmCdDeserialise,
+    {
+        T::deserialise(bytes)
+    }
+
+    assert_eq!(
+        from_array_of_any_size::<Named, 64>(&encoded).unwrap(),
+        value
+    );
+    assert!(from_array_of_any_size::<Named, 0>(&[]).is_err());
+
+    let slice = encoded.as_slice();
+    assert_eq!(Named::deserialise(slice).unwrap(), value);
+    assert_eq!(Named::deserialise(&slice).unwrap(), value);
+
+    let slice_reference = &slice;
+    assert_eq!(Named::deserialise(slice_reference).unwrap(), value);
+
+    let boxed: Box<[u8]> = encoded.into();
+    assert_eq!(Named::deserialise(&boxed).unwrap(), value);
+}
+
+#[test]
 fn derives_structs_in_field_order() {
     let value = Named {
         small: 7,
@@ -96,6 +150,47 @@ fn derives_structs_in_field_order() {
     round_trip(value);
     round_trip(Tuple(0x1234, 9));
     round_trip(Unit);
+}
+
+#[test]
+fn evm_values_enums_encode_uint8_values_without_selectors() {
+    for (asset, discriminant) in [(Asset::USDC, 0), (Asset::ARB, 1), (Asset::WETH, 2)] {
+        let mut encoded = Vec::new();
+        asset.serialise(&mut encoded).unwrap();
+
+        assert_eq!(encoded.len(), 32);
+        assert!(encoded[..31].iter().all(|byte| *byte == 0));
+        assert_eq!(encoded[31], discriminant);
+        assert_eq!(Asset::deserialise(&encoded).unwrap(), asset);
+    }
+
+    for (asset, discriminant) in [
+        (SparseAsset::USDC, 3),
+        (SparseAsset::ARB, 17),
+        (SparseAsset::WETH, 255),
+    ] {
+        let mut encoded = Vec::new();
+        asset.serialise(&mut encoded).unwrap();
+        assert_eq!(encoded[31], discriminant);
+        assert_eq!(SparseAsset::deserialise(&encoded).unwrap(), asset);
+    }
+
+    let mut unknown = [0u8; 32];
+    unknown[31] = 4;
+    assert!(SparseAsset::deserialise(&unknown).is_err());
+}
+
+#[test]
+fn evm_values_enums_remain_uint8_when_nested_in_calls() {
+    let value = AssetCall::SetAsset(Asset::WETH);
+    let mut encoded = Vec::new();
+    value.serialise(&mut encoded).unwrap();
+
+    assert_eq!(&encoded[..4], &const_keccak_sel(b"setAsset(uint8)"));
+    assert_eq!(encoded.len(), 36);
+    assert!(encoded[4..35].iter().all(|byte| *byte == 0));
+    assert_eq!(encoded[35], 2);
+    assert_eq!(AssetCall::deserialise(&encoded).unwrap(), value);
 }
 
 #[test]

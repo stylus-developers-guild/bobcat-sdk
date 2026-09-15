@@ -1,12 +1,12 @@
 use bobcat_cd::serialisation::SelectorHasher;
 use bobcat_cd::{
-    Address, EvmCdArray, EvmCdArrayError, EvmCdDeserialise, EvmCdSerialise, EvmCdString,
+    EvmCdAddress, EvmCdArray, EvmCdArrayError, EvmCdDeserialise, EvmCdSerialise, EvmCdString,
     const_keccak_sel,
 };
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
 enum Call {
-    Store(Address, EvmCdArray<u16, 0, 3>),
+    Store(EvmCdAddress, EvmCdArray<u16, 0, 3>),
     SetCount(usize),
 }
 
@@ -48,7 +48,7 @@ fn usize_uses_uint32_abi_encoding() {
 
 #[test]
 fn address_is_left_padded_and_uses_the_address_abi_type() {
-    let address = Address::from([0xabu8; 20]);
+    let address = EvmCdAddress::from([0xabu8; 20]);
     let values = EvmCdArray::try_from_array([7, 9, 0], 2).unwrap();
     let call = Call::Store(address, values);
     let mut encoded = Vec::new();

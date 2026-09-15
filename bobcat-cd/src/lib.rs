@@ -3,7 +3,7 @@
 pub mod serialisation;
 
 pub use serialisation::{
-    Address, Error as EvmCdError, EvmCdArray, EvmCdArrayError, EvmCdDeserialise, EvmCdSerialise,
+    EvmCdAddress, Error as EvmCdError, EvmCdArray, EvmCdArrayError, EvmCdDeserialise, EvmCdSerialise,
     EvmCdString, EvmCdStringError, Read as EvmCdRead, Write as EvmCdWrite,
 };
 

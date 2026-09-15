@@ -375,9 +375,9 @@ impl EvmCdDeserialise for usize {
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Address([u8; 20]);
+pub struct EvmCdAddress([u8; 20]);
 
-impl Address {
+impl EvmCdAddress {
     pub const fn new(bytes: [u8; 20]) -> Self {
         Self(bytes)
     }
@@ -391,31 +391,31 @@ impl Address {
     }
 }
 
-impl From<[u8; 20]> for Address {
+impl From<[u8; 20]> for EvmCdAddress {
     fn from(bytes: [u8; 20]) -> Self {
         Self::new(bytes)
     }
 }
 
-impl From<Address> for [u8; 20] {
-    fn from(address: Address) -> Self {
+impl From<EvmCdAddress> for [u8; 20] {
+    fn from(address: EvmCdAddress) -> Self {
         address.into_array()
     }
 }
 
-impl AsRef<[u8; 20]> for Address {
+impl AsRef<[u8; 20]> for EvmCdAddress {
     fn as_ref(&self) -> &[u8; 20] {
         self.as_array()
     }
 }
 
-impl AsRef<[u8]> for Address {
+impl AsRef<[u8]> for EvmCdAddress {
     fn as_ref(&self) -> &[u8] {
         self.as_array()
     }
 }
 
-impl EvmCdSerialise for Address {
+impl EvmCdSerialise for EvmCdAddress {
     fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         writer.write_all(&[0; 12])?;
         writer.write_all(&self.0)
@@ -426,7 +426,7 @@ impl EvmCdSerialise for Address {
     }
 }
 
-impl EvmCdDeserialise for Address {
+impl EvmCdDeserialise for EvmCdAddress {
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let mut word = [0u8; 32];
         reader.read_exact(&mut word)?;

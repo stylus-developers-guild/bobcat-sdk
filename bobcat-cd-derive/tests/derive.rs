@@ -191,6 +191,60 @@ fn derives_structs_in_field_order() {
 }
 
 #[test]
+fn serialises_directly_into_arrays_of_any_size() {
+    let value = Named {
+        small: 7,
+        large: 0x1234_5678,
+    };
+    let mut encoded = [0u8; 64];
+
+    value.serialise(&mut encoded).unwrap();
+
+    assert_eq!(encoded[31], 7);
+    assert_eq!(&encoded[60..64], &0x1234_5678u32.to_be_bytes());
+}
+
+#[test]
+fn generated_write_slice_returns_only_the_written_prefix() {
+    let value = Named {
+        small: 7,
+        large: 0x1234_5678,
+    };
+    let mut storage = [0xa5; 80];
+
+    let encoded = value.write_slice(&mut storage).unwrap();
+
+    assert_eq!(encoded.len(), 64);
+    assert_eq!(encoded[31], 7);
+    assert_eq!(&encoded[60..64], &0x1234_5678u32.to_be_bytes());
+    assert!(storage[64..].iter().all(|byte| *byte == 0xa5));
+}
+
+#[test]
+fn generated_write_slice_rejects_a_short_buffer() {
+    let value = Named {
+        small: 7,
+        large: 0x1234_5678,
+    };
+    let mut storage = [0u8; 63];
+
+    assert!(value.write_slice(&mut storage).is_err());
+}
+
+#[test]
+fn generated_to_evm_array_uses_the_compile_time_encoded_size() {
+    let value = Named {
+        small: 7,
+        large: 0x1234_5678,
+    };
+
+    let encoded: [u8; 64] = value.to_evm_array().unwrap();
+
+    assert_eq!(encoded[31], 7);
+    assert_eq!(&encoded[60..64], &0x1234_5678u32.to_be_bytes());
+}
+
+#[test]
 fn deserialise_derive_generates_buffers_for_values_and_entrypoints() {
     assert_generated_buffer_fits(&Named {
         small: 7,

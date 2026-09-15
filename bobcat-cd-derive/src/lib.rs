@@ -53,6 +53,7 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
             Direction::Deserialise => "__EvmCdReader",
         },
     );
+    let slice_lifetime = fresh_lifetime_ident(&input.generics, "__evm_cd_slice");
     let field_types = all_field_types(&input.data);
     let trait_path = trait_path(direction, &cd);
     let generics = add_field_bounds(input.generics.clone(), &field_types, &trait_path);
@@ -111,12 +112,33 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
             deserialise_buffer_type(&input.data, evm_entrypoint, &trait_path, &cd)
         }
     };
+    let to_evm_array_method = match (&input.data, direction) {
+        (Data::Struct(data), Direction::Serialise) => static_struct_serialised_size(data)
+            .map(|size| {
+                quote! {
+                    pub fn to_evm_array(
+                        &self,
+                    ) -> ::core::result::Result<[u8; #size], #cd::serialisation::Error> {
+                        let mut output = [0u8; #size];
+                        let mut writer = output.as_mut_slice();
+                        <Self as #cd::serialisation::EvmCdSerialise>::serialise_writer(
+                            self,
+                            &mut writer,
+                        )?;
+                        debug_assert!(writer.is_empty());
+                        ::core::result::Result::Ok(output)
+                    }
+                }
+            })
+            .unwrap_or_default(),
+        _ => TokenStream2::new(),
+    };
 
     let output = match direction {
         Direction::Serialise => quote! {
             #[automatically_derived]
             impl #impl_generics #cd::serialisation::EvmCdSerialise for #name #ty_generics #where_clause {
-                fn serialise<#io_ident: #cd::serialisation::Write>(
+                fn serialise_writer<#io_ident: #cd::serialisation::Write>(
                     &self,
                     writer: &mut #io_ident,
                 ) -> ::core::result::Result<(), #cd::serialisation::Error> {
@@ -132,6 +154,26 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
                 ) -> #cd::serialisation::SelectorHasher {
                     #abi_type
                 }
+            }
+
+            #[automatically_derived]
+            impl #impl_generics #name #ty_generics #where_clause {
+                /// Serialises into `output` and returns its written prefix.
+                pub fn write_slice<#slice_lifetime>(
+                    &self,
+                    output: &#slice_lifetime mut [u8],
+                ) -> ::core::result::Result<&#slice_lifetime mut [u8], #cd::serialisation::Error> {
+                    let output_len = output.len();
+                    let mut writer = &mut *output;
+                    <Self as #cd::serialisation::EvmCdSerialise>::serialise_writer(
+                        self,
+                        &mut writer,
+                    )?;
+                    let written = output_len - writer.len();
+                    ::core::result::Result::Ok(&mut output[..written])
+                }
+
+                #to_evm_array_method
             }
         },
         Direction::Deserialise => quote! {
@@ -235,6 +277,20 @@ fn fresh_type_ident(generics: &Generics, base: &str) -> syn::Ident {
         candidate = format!("{base}{suffix}");
     }
     format_ident!("{candidate}")
+}
+
+fn fresh_lifetime_ident(generics: &Generics, base: &str) -> syn::Lifetime {
+    let existing: ::std::collections::HashSet<_> = generics
+        .lifetimes()
+        .map(|param| param.lifetime.ident.to_string())
+        .collect();
+    let mut candidate = base.to_owned();
+    let mut suffix = 0usize;
+    while existing.contains(&candidate) {
+        suffix += 1;
+        candidate = format!("{base}{suffix}");
+    }
+    syn::Lifetime::new(&format!("'{candidate}"), proc_macro2::Span::call_site())
 }
 
 fn trait_path(direction: Direction, cd: &TokenStream2) -> TokenStream2 {
@@ -460,6 +516,39 @@ fn abi_methods(
                 }
             }
         }
+    }
+}
+
+fn static_struct_serialised_size(data: &DataStruct) -> Option<usize> {
+    data.fields.iter().try_fold(0usize, |size, field| {
+        size.checked_add(static_abi_value_size(&field.ty)?)
+    })
+}
+
+fn static_abi_value_size(ty: &Type) -> Option<usize> {
+    match ty {
+        Type::Path(path) if path.qself.is_none() => {
+            let segment = path.path.segments.last()?;
+            if !matches!(segment.arguments, syn::PathArguments::None) {
+                return None;
+            }
+            matches!(
+                segment.ident.to_string().as_str(),
+                "U" | "u8" | "u16" | "u32" | "u64" | "u128" | "usize" | "EvmCdAddress" | "Address"
+            )
+            .then_some(32)
+        }
+        Type::Array(array)
+            if matches!(
+                array.elem.as_ref(),
+                Type::Path(elem) if elem.qself.is_none() && elem.path.is_ident("u8")
+            ) =>
+        {
+            Some(32)
+        }
+        Type::Group(group) => static_abi_value_size(&group.elem),
+        Type::Paren(paren) => static_abi_value_size(&paren.elem),
+        _ => None,
     }
 }
 
@@ -1033,15 +1122,18 @@ mod tests {
     #[test]
     fn unresolvable_types_fall_back_to_runtime_hashing() {
         for ty_str in [
-            "Name",     // type alias
-            "Asset",    // derived enum -> uint8 (only known via its impl)
+            "Name",      // type alias
+            "Asset",     // derived enum -> uint8 (only known via its impl)
             "DogRecord", // derived struct -> tuple (only known via its impl)
-            "T",        // generic parameter
-            "&[u8]",    // not a supported ABI type
-            "[u32; 4]", // SDK implements [u8; N] only
+            "T",         // generic parameter
+            "&[u8]",     // not a supported ABI type
+            "[u32; 4]",  // SDK implements [u8; N] only
         ] {
             let ty: Type = syn::parse_str(ty_str).unwrap();
-            assert!(abi_type_name(&ty).is_none(), "{ty_str} should be unresolvable");
+            assert!(
+                abi_type_name(&ty).is_none(),
+                "{ty_str} should be unresolvable"
+            );
         }
     }
 

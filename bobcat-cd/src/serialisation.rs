@@ -93,11 +93,37 @@ mod no_std {
         }
     }
 
+    #[cfg(feature = "alloc")]
+    impl Write for &mut Vec<u8> {
+        fn write(&mut self, buf: &[u8]) -> Result<usize, Error> {
+            (**self).write(buf)
+        }
+
+        fn flush(&mut self) -> Result<(), Error> {
+            (**self).flush()
+        }
+
+        fn is_empty(&self) -> bool {
+            Vec::is_empty(self)
+        }
+    }
+
     impl Read for &[u8] {
         fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
             let len = core::cmp::min(self.len(), buf.len());
             buf[..len].copy_from_slice(&self[..len]);
             *self = &self[len..];
+            Ok(len)
+        }
+    }
+
+    impl Read for &mut [u8] {
+        fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
+            let len = core::cmp::min(self.len(), buf.len());
+            let source = core::mem::take(self);
+            let (read, remaining) = source.split_at_mut(len);
+            buf[..len].copy_from_slice(read);
+            *self = remaining;
             Ok(len)
         }
     }
@@ -148,12 +174,61 @@ impl Default for SelectorHasher {
     }
 }
 
+pub trait EvmCdWriteTarget {
+    type Writer<'a>: Write
+    where
+        Self: 'a;
+
+    fn writer(&mut self) -> Self::Writer<'_>;
+}
+
+impl EvmCdWriteTarget for [u8] {
+    type Writer<'a> = &'a mut [u8];
+
+    fn writer(&mut self) -> Self::Writer<'_> {
+        self
+    }
+}
+
+impl EvmCdWriteTarget for &mut [u8] {
+    type Writer<'a>
+        = &'a mut [u8]
+    where
+        Self: 'a;
+
+    fn writer(&mut self) -> Self::Writer<'_> {
+        self
+    }
+}
+
+impl<const N: usize> EvmCdWriteTarget for [u8; N] {
+    type Writer<'a> = &'a mut [u8];
+
+    fn writer(&mut self) -> Self::Writer<'_> {
+        self.as_mut_slice()
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl EvmCdWriteTarget for Vec<u8> {
+    type Writer<'a> = &'a mut Vec<u8>;
+
+    fn writer(&mut self) -> Self::Writer<'_> {
+        self
+    }
+}
+
 pub trait EvmCdSerialise {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error>;
+    fn serialise<W: EvmCdWriteTarget + ?Sized>(&self, writer: &mut W) -> Result<(), Error> {
+        self.serialise_writer(&mut writer.writer())
+    }
+
+    #[doc(hidden)]
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error>;
 
     #[doc(hidden)]
     fn serialise_value<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
-        self.serialise(writer)
+        self.serialise_writer(writer)
     }
 
     #[doc(hidden)]
@@ -433,7 +508,7 @@ macro_rules! fixed_deserialise_buffer {
 }
 
 impl EvmCdSerialise for U {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         writer.write_all(&self.0)
     }
 
@@ -460,7 +535,7 @@ macro_rules! for_ints {
     ($($ty:ty => $abi:literal),+ $(,)?) => {
         $(
             impl EvmCdSerialise for $ty {
-                fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+                fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
                     writer.write_all(&[0u8; 32 - size_of::<$ty>()])?;
                     writer.write_all(&self.to_be_bytes())
                 }
@@ -500,10 +575,11 @@ for_ints! {
 }
 
 impl EvmCdSerialise for usize {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
-        u32::try_from(*self)
-            .map_err(|_| invalid_data())?
-            .serialise(writer)
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+        <u32 as EvmCdSerialise>::serialise_value(
+            &u32::try_from(*self).map_err(|_| invalid_data())?,
+            writer,
+        )
     }
 
     fn append_abi_type(hasher: SelectorHasher) -> SelectorHasher {
@@ -565,7 +641,7 @@ impl AsRef<[u8]> for EvmCdAddress {
 }
 
 impl EvmCdSerialise for EvmCdAddress {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         writer.write_all(&[0; 12])?;
         writer.write_all(&self.0)
     }
@@ -593,7 +669,7 @@ impl EvmCdDeserialise for EvmCdAddress {
 }
 
 impl<const N: usize> EvmCdSerialise for [u8; N] {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         if N == 0 || N > 32 {
             return Err(invalid_data());
         }
@@ -747,7 +823,7 @@ impl<T, const MIN: usize, const CAP: usize> EvmCdSerialise for EvmCdArray<T, MIN
 where
     T: EvmCdSerialise,
 {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         U::from_u32(32).serialise_value(writer)?;
         self.serialise_abi_tail(writer)
     }
@@ -990,7 +1066,7 @@ impl<const MIN: usize, const CAP: usize> core::str::FromStr for EvmCdString<MIN,
 }
 
 impl<const MIN: usize, const CAP: usize> EvmCdSerialise for EvmCdString<MIN, CAP> {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         write_dynamic_bytes(self.as_bytes(), writer)
     }
 
@@ -1094,7 +1170,7 @@ impl<T> EvmCdSerialise for Vec<T>
 where
     T: EvmCdSerialise + 'static,
 {
-    fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
+    fn serialise_writer<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         U::from_u32(32).serialise_value(writer)?;
         self.serialise_abi_tail(writer)
     }
@@ -1319,5 +1395,35 @@ where
         } else {
             T::append_abi_type(hasher).update(b"[]")
         }
+    }
+}
+
+#[cfg(all(test, not(feature = "std")))]
+mod tests {
+    use super::{EvmCdDeserialise, EvmCdSerialise};
+
+    #[derive(
+        Debug, PartialEq, Eq, bobcat_cd_derive::EvmCdSerialise, bobcat_cd_derive::EvmCdDeserialise,
+    )]
+    struct SliceValue {
+        small: u8,
+        large: u32,
+    }
+
+    #[test]
+    fn mutable_slice_is_a_serialisation_writer_and_deserialisation_reader() {
+        let value = SliceValue {
+            small: 7,
+            large: 0x1234_5678,
+        };
+        let mut storage = [0u8; 64];
+
+        let mut writer = storage.as_mut_slice();
+        value.serialise(&mut writer).unwrap();
+        assert!(writer.is_empty());
+
+        let mut reader = storage.as_mut_slice();
+        assert_eq!(SliceValue::deserialise_reader(&mut reader).unwrap(), value);
+        assert!(reader.is_empty());
     }
 }

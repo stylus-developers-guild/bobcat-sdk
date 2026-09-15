@@ -1,5 +1,7 @@
 # bobcat-cd-derive
 
+Be warned that most of this crate is vibe coded.
+
 Derive macros for `bobcat_cd::EvmCdSerialise` and
 `bobcat_cd::EvmCdDeserialise`.
 

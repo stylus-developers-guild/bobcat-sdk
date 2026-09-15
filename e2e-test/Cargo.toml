@@ -16,13 +16,12 @@ members = [
 	"safe-erc20",
 	"tracing-counter",
 	"features",
-	"math-example",
 	"zeroise-check",
 	"slot-key"
 ]
 
 [workspace.dependencies]
-bobcat-sdk = { path = "../bobcat-sdk", default-features = false, features = ["alloc", "panic-revert", "msg-on-sdk-err", "console"] }
+bobcat-sdk = { path = "../bobcat-sdk", default-features = false, features = ["alloc", "panic-revert", "msg-on-sdk-err", "console", "derive"] }
 mini-alloc = "1.0.0"
 
 [profile.release]

@@ -7,5 +7,8 @@ description = "bobcat-alloc provides allocators for wasm32 and riscv32im."
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 mini-alloc = "1.0.0"

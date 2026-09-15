@@ -10,7 +10,7 @@ pub use bobcat_maths::U;
 
 type Address = [u8; 20];
 
-pub use bobcat_cd::read_words;
+pub use bobcat_cd::{EvmCdDeserialise, EvmCdError, read_words};
 
 pub use bobcat_host as host;
 
@@ -184,6 +184,19 @@ pub fn args_len() -> usize {
     unsafe { host::args_len() }
 }
 
+/// Read args and deserialise them into W, returning an error when the
+/// generated or built-in buffer cannot hold the calldata.
+pub fn read_cd_res<W: EvmCdDeserialise>(len: usize) -> Result<W, EvmCdError> {
+    let mut args = W::new_buffer(len)?;
+    unsafe { host::read_args(args.as_mut().as_mut_ptr()) };
+    W::deserialise(&args.as_ref()[..len])
+}
+
+/// Read args and deserialise them into W, panicking on invalid calldata.
+pub fn read_cd<W: EvmCdDeserialise>(len: usize) -> W {
+    read_cd_res::<W>(len).unwrap()
+}
+
 #[macro_export]
 macro_rules! read_args_safe {
     ($len:expr, $max_len:expr) => {{
@@ -282,4 +295,19 @@ pub unsafe fn exit_early(code: usize) -> ! {
 
 pub unsafe fn storage_flush_cache(clear: bool) {
     unsafe { host::storage_flush_cache(clear) }
+}
+
+#[cfg(all(test, feature = "std"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn read_cd_uses_the_deserialiser_buffer() {
+        let mut args = vec![0u8; 32];
+        args[28..].copy_from_slice(&7u32.to_be_bytes());
+        host::set_args(args);
+
+        assert_eq!(read_cd_res::<u32>(32).unwrap(), 7);
+        assert!(read_cd_res::<u32>(33).is_err());
+    }
 }

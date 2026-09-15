@@ -17,6 +17,13 @@ struct Tuple(u16, u8);
 struct Unit;
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_values]
+struct Swag {
+    yolo: [u8; 20],
+}
+
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
 enum Message {
     Ping,
     Tuple(u16, u8),
@@ -26,7 +33,6 @@ enum Message {
 type Name = EvmCdString<0, 32>;
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
-#[evm_values]
 pub enum Asset {
     USDC = 0,
     ARB = 1,
@@ -34,7 +40,6 @@ pub enum Asset {
 }
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
-#[evm_values]
 enum SparseAsset {
     USDC = 3,
     ARB = 17,
@@ -42,6 +47,7 @@ enum SparseAsset {
 }
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
 enum AssetCall {
     SetAsset(Asset),
 }
@@ -53,6 +59,7 @@ enum Treat {
 }
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
 enum DogCommand {
     DogsInHotel,
     EnrollDogInHotel(Name),
@@ -66,6 +73,7 @@ struct DogRecord {
 }
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
 enum RecordCommand {
     Save(DogRecord),
     AwkwardNames { writer: u8, tail_offset: u8 },
@@ -87,9 +95,29 @@ struct GenericNameCollision<__EvmCdWriter, __EvmCdReader> {
 }
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
 enum SelectorCollision {
     XMLHttp(u8),
     XmlHttp(u8),
+}
+
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+struct FromArgs {
+    asset: Asset,
+    to_take: u32,
+    max_unspent: u32,
+}
+
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+struct SolveArgs {
+    from: Vec<FromArgs>,
+    cd: Vec<u8>,
+}
+
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
+enum SolverCall {
+    Solve(SolveArgs),
 }
 
 fn round_trip<T>(value: T)
@@ -100,6 +128,16 @@ where
     value.serialise(&mut encoded).unwrap();
     let decoded = T::deserialise_reader(&mut encoded.as_slice()).unwrap();
     assert_eq!(decoded, value);
+}
+
+fn assert_generated_buffer_fits<T>(value: &T)
+where
+    T: EvmCdSerialise + EvmCdDeserialise,
+{
+    let mut encoded = Vec::new();
+    value.serialise(&mut encoded).unwrap();
+    let buffer = T::new_buffer(encoded.len()).unwrap();
+    assert!(buffer.as_ref().len() >= encoded.len());
 }
 
 #[test]
@@ -153,6 +191,39 @@ fn derives_structs_in_field_order() {
 }
 
 #[test]
+fn deserialise_derive_generates_buffers_for_values_and_entrypoints() {
+    assert_generated_buffer_fits(&Named {
+        small: 7,
+        large: 11,
+    });
+    assert_generated_buffer_fits(&Generic { value: 13u16 });
+    assert_generated_buffer_fits(&DogCommand::EnrollDogInHotel(
+        Name::try_from("Cerberus").unwrap(),
+    ));
+
+    let solve = SolverCall::Solve(SolveArgs {
+        from: Vec::new(),
+        cd: vec![1, 2, 3],
+    });
+    assert_generated_buffer_fits(&solve);
+    assert_eq!(SolverCall::new_buffer(123).unwrap().as_ref().len(), 123);
+}
+
+#[test]
+fn evm_values_structs_encode_solidity_values_without_selectors() {
+    let value = Swag {
+        yolo: *b"0123456789abcdefghij",
+    };
+    let mut encoded = Vec::new();
+    value.serialise(&mut encoded).unwrap();
+
+    assert_eq!(encoded.len(), 32);
+    assert_eq!(&encoded[..20], &value.yolo);
+    assert!(encoded[20..].iter().all(|byte| *byte == 0));
+    assert_eq!(Swag::deserialise(&encoded).unwrap(), value);
+}
+
+#[test]
 fn evm_values_enums_encode_uint8_values_without_selectors() {
     for (asset, discriminant) in [(Asset::USDC, 0), (Asset::ARB, 1), (Asset::WETH, 2)] {
         let mut encoded = Vec::new();
@@ -191,6 +262,47 @@ fn evm_values_enums_remain_uint8_when_nested_in_calls() {
     assert!(encoded[4..35].iter().all(|byte| *byte == 0));
     assert_eq!(encoded[35], 2);
     assert_eq!(AssetCall::deserialise(&encoded).unwrap(), value);
+}
+
+#[test]
+fn derived_values_compose_through_generic_vec_like_borsh() {
+    let value = SolveArgs {
+        from: vec![
+            FromArgs {
+                asset: Asset::ARB,
+                to_take: 7,
+                max_unspent: 11,
+            },
+            FromArgs {
+                asset: Asset::WETH,
+                to_take: 13,
+                max_unspent: 17,
+            },
+        ],
+        cd: vec![0xde, 0xad, 0xbe, 0xef],
+    };
+
+    round_trip(value);
+}
+
+#[test]
+fn evm_entrypoint_prefixes_selector_and_preserves_vec_u8_as_bytes() {
+    let value = SolverCall::Solve(SolveArgs {
+        from: vec![FromArgs {
+            asset: Asset::USDC,
+            to_take: 1,
+            max_unspent: 2,
+        }],
+        cd: vec![0xaa, 0xbb],
+    });
+    let mut encoded = Vec::new();
+    value.serialise(&mut encoded).unwrap();
+
+    assert_eq!(
+        &encoded[..4],
+        &const_keccak_sel(b"solve(((uint8,uint32,uint32)[],bytes))")
+    );
+    assert_eq!(SolverCall::deserialise(&encoded).unwrap(), value);
 }
 
 #[test]

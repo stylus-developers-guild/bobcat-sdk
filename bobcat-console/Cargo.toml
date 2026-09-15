@@ -7,5 +7,8 @@ description = "bobcat-sdk console makes printing easy with Arbitrum Stylus, usin
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 bobcat-host = { version = "0.10.1", path = "../bobcat-host", features = ["console"], default-features = false }

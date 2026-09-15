@@ -9,7 +9,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{Data, DataEnum, DataStruct, DeriveInput, Fields, Generics, Type, parse_macro_input};
 
-#[proc_macro_derive(EvmCdSerialise, attributes(evm_values))]
+#[proc_macro_derive(EvmCdSerialise, attributes(evm_values, evm_entrypoint))]
 pub fn derive_evm_cd_serialise(input: TokenStream) -> TokenStream {
     expand(
         parse_macro_input!(input as DeriveInput),
@@ -19,7 +19,7 @@ pub fn derive_evm_cd_serialise(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(EvmCdDeserialise, attributes(evm_values))]
+#[proc_macro_derive(EvmCdDeserialise, attributes(evm_values, evm_entrypoint))]
 pub fn derive_evm_cd_deserialise(input: TokenStream) -> TokenStream {
     expand(
         parse_macro_input!(input as DeriveInput),
@@ -39,6 +39,13 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
     let cd = bobcat_cd_path()?;
     let name = &input.ident;
     let evm_values = has_evm_values(&input)?;
+    let evm_entrypoint = has_evm_entrypoint(&input)?;
+    if evm_values && evm_entrypoint {
+        return Err(syn::Error::new_spanned(
+            &input.ident,
+            "`evm_values` and `evm_entrypoint` cannot be used together",
+        ));
+    }
     let io_ident = fresh_type_ident(
         &input.generics,
         match direction {
@@ -54,14 +61,16 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
     let body = match (&input.data, direction) {
         (Data::Struct(data), Direction::Serialise) => serialise_struct(data, &cd),
         (Data::Struct(data), Direction::Deserialise) => deserialise_struct(data, &cd),
-        (Data::Enum(data), Direction::Serialise) if evm_values => {
-            serialise_enum_value(name, data, &cd, true)?
+        (Data::Enum(data), Direction::Serialise) if evm_entrypoint => {
+            serialise_enum(name, data, &cd)?
         }
-        (Data::Enum(data), Direction::Deserialise) if evm_values => {
+        (Data::Enum(data), Direction::Deserialise) if evm_entrypoint => {
+            deserialise_enum(name, data, &cd)?
+        }
+        (Data::Enum(data), Direction::Serialise) => serialise_enum_value(name, data, &cd, true)?,
+        (Data::Enum(data), Direction::Deserialise) => {
             deserialise_enum_value(name, data, &cd, true)?
         }
-        (Data::Enum(data), Direction::Serialise) => serialise_enum(name, data, &cd)?,
-        (Data::Enum(data), Direction::Deserialise) => deserialise_enum(name, data, &cd)?,
         (Data::Union(data), _) => {
             return Err(syn::Error::new_spanned(
                 data.union_token,
@@ -73,7 +82,7 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
     let abi_methods = abi_methods(&input.data, direction, &trait_path, &cd, &io_ident);
     let value_method = match (&input.data, direction) {
         (Data::Enum(data), Direction::Serialise) => {
-            let body = serialise_enum_value(name, data, &cd, evm_values)?;
+            let body = serialise_enum_value(name, data, &cd, !evm_entrypoint)?;
             quote! {
                 fn serialise_value<#io_ident: #cd::serialisation::Write>(
                     &self,
@@ -84,7 +93,7 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
             }
         }
         (Data::Enum(data), Direction::Deserialise) => {
-            let body = deserialise_enum_value(name, data, &cd, evm_values)?;
+            let body = deserialise_enum_value(name, data, &cd, !evm_entrypoint)?;
             quote! {
                 fn deserialise_value<#io_ident: #cd::serialisation::Read>(
                     reader: &mut #io_ident,
@@ -94,6 +103,13 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
             }
         }
         _ => TokenStream2::new(),
+    };
+
+    let buffer_type = match direction {
+        Direction::Serialise => TokenStream2::new(),
+        Direction::Deserialise => {
+            deserialise_buffer_type(&input.data, evm_entrypoint, &trait_path, &cd)
+        }
     };
 
     let output = match direction {
@@ -121,6 +137,8 @@ fn expand(input: DeriveInput, direction: Direction) -> syn::Result<TokenStream2>
         Direction::Deserialise => quote! {
             #[automatically_derived]
             impl #impl_generics #cd::serialisation::EvmCdDeserialise for #name #ty_generics #where_clause {
+                #buffer_type
+
                 fn deserialise_reader<#io_ident: #cd::serialisation::Read>(
                     reader: &mut #io_ident,
                 ) -> ::core::result::Result<Self, #cd::serialisation::Error> {
@@ -162,10 +180,39 @@ fn has_evm_values(input: &DeriveInput) -> syn::Result<bool> {
             "duplicate `evm_values` attribute",
         ));
     }
+    if matches!(input.data, Data::Union(_)) {
+        return Err(syn::Error::new_spanned(
+            attribute,
+            "`evm_values` is only supported on structs and enums",
+        ));
+    }
+    Ok(true)
+}
+
+fn has_evm_entrypoint(input: &DeriveInput) -> syn::Result<bool> {
+    let mut attributes = input
+        .attrs
+        .iter()
+        .filter(|attribute| attribute.path().is_ident("evm_entrypoint"));
+    let Some(attribute) = attributes.next() else {
+        return Ok(false);
+    };
+    if !matches!(attribute.meta, syn::Meta::Path(_)) {
+        return Err(syn::Error::new_spanned(
+            attribute,
+            "`evm_entrypoint` does not accept arguments",
+        ));
+    }
+    if let Some(duplicate) = attributes.next() {
+        return Err(syn::Error::new_spanned(
+            duplicate,
+            "duplicate `evm_entrypoint` attribute",
+        ));
+    }
     if !matches!(input.data, Data::Enum(_)) {
         return Err(syn::Error::new_spanned(
             attribute,
-            "`evm_values` is only supported on enums",
+            "`evm_entrypoint` is only supported on enums",
         ));
     }
     Ok(true)
@@ -257,6 +304,36 @@ fn field_accesses(fields: &Fields) -> Vec<syn::Member> {
             )
         })
         .collect()
+}
+
+fn deserialise_buffer_type(
+    data: &Data,
+    evm_entrypoint: bool,
+    trait_path: &TokenStream2,
+    cd: &TokenStream2,
+) -> TokenStream2 {
+    if matches!(data, Data::Enum(_)) && !evm_entrypoint {
+        return quote! {
+            type Buffer = #cd::serialisation::EvmCdBuffer<[u8; 32]>;
+        };
+    }
+
+    let mut storage = if evm_entrypoint {
+        quote!([u8; 4])
+    } else {
+        quote!(())
+    };
+    let mut kind = quote!(#cd::serialisation::EvmCdStaticBufferKind);
+    for ty in all_field_types(data).iter().rev() {
+        storage = quote!((<#ty as #trait_path>::Buffer, #storage));
+        kind = quote! {
+            <<<#ty as #trait_path>::Buffer as #cd::serialisation::EvmCdDecodeBuffer>::Kind
+                as #cd::serialisation::EvmCdBufferKind>::Combined<#kind>
+        };
+    }
+    quote! {
+        type Buffer = <#kind as #cd::serialisation::EvmCdBufferKind>::Buffer<#storage>;
+    }
 }
 
 fn abi_methods(
@@ -534,13 +611,13 @@ fn validate_enum(data: &DataEnum, evm_values: bool) -> syn::Result<()> {
         if evm_values && !matches!(variant.fields, Fields::Unit) {
             return Err(syn::Error::new_spanned(
                 variant,
-                "`evm_values` enums may only contain fieldless variants",
+                "EVM value enums may only contain fieldless variants; add #[evm_entrypoint] if this enum represents function calls",
             ));
         }
         if !evm_values && variant.discriminant.is_some() {
             return Err(syn::Error::new_spanned(
                 variant,
-                "explicit enum discriminants are not supported; variants are encoded by declaration order when nested; add #[evm_values] if this enum represents uint8 values rather than function selectors",
+                "explicit enum discriminants are not supported on #[evm_entrypoint] enums; entrypoint variants are encoded by declaration order when nested",
             ));
         }
     }

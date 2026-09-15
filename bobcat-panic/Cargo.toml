@@ -7,6 +7,19 @@ description = "Bobcat utilities with a panic handler on Arbitrum Stylus."
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
+[package.metadata.docs.rs]
+no-default-features = true
+features = [
+	"alloc",
+	"console",
+	"detailed-errors",
+	"msg-on-sdk-err",
+	"panic-code",
+	"panic-trace",
+	"proptest",
+	"std",
+]
+
 [lib]
 name = "bobcat_panic"
 

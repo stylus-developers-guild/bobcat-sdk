@@ -7,6 +7,9 @@ description = "bobcat-sdk utilities for accessing calldata on Arbitrum Stylus."
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [lib]
 name = "bobcat_cd"
 

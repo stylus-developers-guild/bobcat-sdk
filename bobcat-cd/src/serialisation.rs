@@ -1,4 +1,3 @@
-
 use bobcat_maths::U;
 
 use bobcat_storage::{Keccak256, keccak256_builder};
@@ -177,7 +176,118 @@ pub enum EvmCdHead<T> {
     Offset(usize),
 }
 
+#[doc(hidden)]
+pub struct EvmCdStaticBufferKind;
+
+#[cfg(feature = "alloc")]
+#[doc(hidden)]
+pub struct EvmCdDynamicBufferKind;
+
+#[doc(hidden)]
+pub trait EvmCdBufferKind {
+    type Buffer<S>: EvmCdDecodeBuffer;
+    type Combined<Rhs: EvmCdBufferKind>: EvmCdBufferKind;
+}
+
+impl EvmCdBufferKind for EvmCdStaticBufferKind {
+    type Buffer<S> = EvmCdBuffer<S>;
+    type Combined<Rhs: EvmCdBufferKind> = Rhs;
+}
+
+#[cfg(feature = "alloc")]
+impl EvmCdBufferKind for EvmCdDynamicBufferKind {
+    type Buffer<S> = EvmCdDynamicBuffer<S>;
+    type Combined<Rhs: EvmCdBufferKind> = EvmCdDynamicBufferKind;
+}
+
+#[doc(hidden)]
+pub trait EvmCdDecodeBuffer: AsRef<[u8]> + AsMut<[u8]> + Sized {
+    type Kind: EvmCdBufferKind;
+
+    fn new(len: usize) -> Result<Self, Error>;
+}
+
+#[doc(hidden)]
+pub struct EvmCdBuffer<S> {
+    storage: core::mem::MaybeUninit<S>,
+}
+
+impl<S> EvmCdDecodeBuffer for EvmCdBuffer<S> {
+    type Kind = EvmCdStaticBufferKind;
+
+    fn new(len: usize) -> Result<Self, Error> {
+        if len > size_of::<S>() {
+            return Err(invalid_data());
+        }
+        let mut storage = core::mem::MaybeUninit::<S>::uninit();
+        // SAFETY: the storage remains wrapped in MaybeUninit and is only exposed as bytes.
+        // Zeroing every byte makes the complete u8 slice valid without constructing an S.
+        unsafe {
+            storage
+                .as_mut_ptr()
+                .cast::<u8>()
+                .write_bytes(0, size_of::<S>())
+        };
+        Ok(Self { storage })
+    }
+}
+
+impl<S> AsRef<[u8]> for EvmCdBuffer<S> {
+    fn as_ref(&self) -> &[u8] {
+        // SAFETY: new() zero-initializes every byte before constructing Self.
+        unsafe { core::slice::from_raw_parts(self.storage.as_ptr().cast::<u8>(), size_of::<S>()) }
+    }
+}
+
+impl<S> AsMut<[u8]> for EvmCdBuffer<S> {
+    fn as_mut(&mut self) -> &mut [u8] {
+        // SAFETY: new() zero-initializes every byte before constructing Self.
+        unsafe {
+            core::slice::from_raw_parts_mut(self.storage.as_mut_ptr().cast::<u8>(), size_of::<S>())
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+#[doc(hidden)]
+pub struct EvmCdDynamicBuffer<S>(Vec<u8>, core::marker::PhantomData<S>);
+
+#[cfg(feature = "alloc")]
+impl<S> EvmCdDecodeBuffer for EvmCdDynamicBuffer<S> {
+    type Kind = EvmCdDynamicBufferKind;
+
+    fn new(len: usize) -> Result<Self, Error> {
+        if len > MAX_ALLOC_DESERIALISE_LEN {
+            return Err(invalid_data());
+        }
+        let mut bytes = Vec::new();
+        bytes.try_reserve_exact(len).map_err(|_| invalid_data())?;
+        bytes.resize(len, 0);
+        Ok(Self(bytes, core::marker::PhantomData))
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<S> AsRef<[u8]> for EvmCdDynamicBuffer<S> {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<S> AsMut<[u8]> for EvmCdDynamicBuffer<S> {
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+}
+
 pub trait EvmCdDeserialise: Sized {
+    type Buffer: EvmCdDecodeBuffer;
+
+    fn new_buffer(len: usize) -> Result<Self::Buffer, Error> {
+        Self::Buffer::new(len)
+    }
+
     fn deserialise<B>(bytes: &B) -> Result<Self, Error>
     where
         B: AsRef<[u8]> + ?Sized,
@@ -297,6 +407,12 @@ fn read_dynamic_bytes<const CAP: usize, R: Read>(
     read_dynamic_tail(reader)
 }
 
+macro_rules! fixed_deserialise_buffer {
+    ($storage:ty) => {
+        type Buffer = EvmCdBuffer<$storage>;
+    };
+}
+
 impl EvmCdSerialise for U {
     fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
         writer.write_all(&self.0)
@@ -308,6 +424,8 @@ impl EvmCdSerialise for U {
 }
 
 impl EvmCdDeserialise for U {
+    fixed_deserialise_buffer!([u8; 32]);
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let mut buf = [0u8; 32];
         reader.read_exact(&mut buf)?;
@@ -334,6 +452,8 @@ macro_rules! for_ints {
             }
 
             impl EvmCdDeserialise for $ty {
+                fixed_deserialise_buffer!([u8; 32]);
+
                 fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
                     let U(word) = U::deserialise_reader(reader)?;
                     if word[..32 - size_of::<$ty>()].iter().any(|byte| *byte != 0) {
@@ -373,6 +493,8 @@ impl EvmCdSerialise for usize {
 }
 
 impl EvmCdDeserialise for usize {
+    fixed_deserialise_buffer!([u8; 32]);
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         Ok(u32::deserialise_reader(reader)? as usize)
     }
@@ -435,6 +557,8 @@ impl EvmCdSerialise for EvmCdAddress {
 }
 
 impl EvmCdDeserialise for EvmCdAddress {
+    fixed_deserialise_buffer!([u8; 32]);
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         let mut word = [0u8; 32];
         reader.read_exact(&mut word)?;
@@ -465,6 +589,8 @@ impl<const N: usize> EvmCdSerialise for [u8; N] {
 }
 
 impl<const N: usize> EvmCdDeserialise for [u8; N] {
+    fixed_deserialise_buffer!([u8; 32]);
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         if N == 0 || N > 32 {
             return Err(invalid_data());
@@ -655,6 +781,11 @@ impl<T, const MIN: usize, const CAP: usize> EvmCdDeserialise for EvmCdArray<T, M
 where
     T: EvmCdDeserialise,
 {
+    type Buffer = <<T::Buffer as EvmCdDecodeBuffer>::Kind as EvmCdBufferKind>::Buffer<(
+        [u8; 64],
+        [T::Buffer; CAP],
+    )>;
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         if read_usize_word(reader)? != 32 {
             return Err(invalid_data());
@@ -870,6 +1001,8 @@ impl<const MIN: usize, const CAP: usize> EvmCdSerialise for EvmCdString<MIN, CAP
 }
 
 impl<const MIN: usize, const CAP: usize> EvmCdDeserialise for EvmCdString<MIN, CAP> {
+    type Buffer = EvmCdBuffer<([u8; 64], [u8; CAP], [u8; 31])>;
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         if MIN > CAP {
             return Err(invalid_data());
@@ -926,9 +1059,25 @@ impl<const MIN: usize, const CAP: usize> From<EvmCdString<MIN, CAP>> for String 
 }
 
 #[cfg(feature = "alloc")]
-impl EvmCdSerialise for Vec<u8> {
+fn vec_is_bytes<T: 'static>() -> bool {
+    core::any::TypeId::of::<T>() == core::any::TypeId::of::<u8>()
+}
+
+#[cfg(feature = "alloc")]
+fn vec_as_bytes<T: 'static>(values: &[T]) -> &[u8] {
+    debug_assert!(vec_is_bytes::<T>());
+    // SAFETY: this helper is called only when TypeId proves that T is u8.
+    unsafe { core::slice::from_raw_parts(values.as_ptr().cast::<u8>(), values.len()) }
+}
+
+#[cfg(feature = "alloc")]
+impl<T> EvmCdSerialise for Vec<T>
+where
+    T: EvmCdSerialise + 'static,
+{
     fn serialise<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
-        write_dynamic_bytes(self, writer)
+        U::from_u32(32).serialise_value(writer)?;
+        self.serialise_abi_tail(writer)
     }
 
     fn is_abi_dynamic() -> bool {
@@ -936,7 +1085,16 @@ impl EvmCdSerialise for Vec<u8> {
     }
 
     fn abi_tail_size(&self) -> usize {
-        dynamic_tail_size(self.len())
+        if vec_is_bytes::<T>() {
+            dynamic_tail_size(self.len())
+        } else {
+            self.len()
+                .saturating_mul(T::abi_head_size())
+                .saturating_add(32)
+                .saturating_add(self.iter().fold(0usize, |size, value| {
+                    size.saturating_add(value.abi_tail_size())
+                }))
+        }
     }
 
     fn serialise_abi_head<W: Write>(
@@ -948,17 +1106,41 @@ impl EvmCdSerialise for Vec<u8> {
     }
 
     fn serialise_abi_tail<W: Write>(&self, writer: &mut W) -> Result<(), Error> {
-        write_dynamic_tail(self, writer)
+        if vec_is_bytes::<T>() {
+            return write_dynamic_tail(vec_as_bytes(self), writer);
+        }
+
+        U::from_usize(self.len()).serialise_value(writer)?;
+        let mut tail_offset = self
+            .len()
+            .checked_mul(T::abi_head_size())
+            .ok_or_else(invalid_data)?;
+        for value in self {
+            value.serialise_abi_head(tail_offset, writer)?;
+            tail_offset = tail_offset
+                .checked_add(value.abi_tail_size())
+                .ok_or_else(invalid_data)?;
+        }
+        for value in self {
+            value.serialise_abi_tail(writer)?;
+        }
+        Ok(())
     }
 
     fn append_abi_type(hasher: SelectorHasher) -> SelectorHasher {
-        hasher.update(b"bytes")
+        if vec_is_bytes::<T>() {
+            hasher.update(b"bytes")
+        } else {
+            T::append_abi_type(hasher).update(b"[]")
+        }
     }
 }
 
 #[cfg(feature = "alloc")]
-fn read_vec_tail<R: Read>(reader: &mut R) -> Result<Vec<u8>, Error> {
-    const MAX_ALLOC_DESERIALISE_LEN: usize = 16 * 1024 * 1024;
+const MAX_ALLOC_DESERIALISE_LEN: usize = 16 * 1024 * 1024;
+
+#[cfg(feature = "alloc")]
+fn read_vec_bytes_tail<R: Read>(reader: &mut R) -> Result<Vec<u8>, Error> {
     let len = read_usize_word(reader)?;
     if len > MAX_ALLOC_DESERIALISE_LEN {
         return Err(invalid_data());
@@ -977,7 +1159,102 @@ fn read_vec_tail<R: Read>(reader: &mut R) -> Result<Vec<u8>, Error> {
 }
 
 #[cfg(feature = "alloc")]
-impl EvmCdDeserialise for Vec<u8> {
+fn bytes_into_vec<T: 'static>(bytes: Vec<u8>) -> Vec<T> {
+    debug_assert!(vec_is_bytes::<T>());
+    let mut bytes = core::mem::ManuallyDrop::new(bytes);
+    // SAFETY: TypeId proves that T is u8, so the allocation layout and elements match.
+    unsafe {
+        Vec::from_raw_parts(
+            bytes.as_mut_ptr().cast::<T>(),
+            bytes.len(),
+            bytes.capacity(),
+        )
+    }
+}
+
+#[cfg(feature = "alloc")]
+fn validate_vec_array_len<T: EvmCdDeserialise>(len: usize) -> Result<(), Error> {
+    let head_bytes = len
+        .checked_mul(T::abi_head_size())
+        .ok_or_else(invalid_data)?;
+    let value_bytes = len
+        .checked_mul(core::mem::size_of::<T>())
+        .ok_or_else(invalid_data)?;
+    let offset_bytes = if T::is_abi_dynamic() {
+        len.checked_mul(core::mem::size_of::<usize>())
+            .ok_or_else(invalid_data)?
+    } else {
+        0
+    };
+    if head_bytes > MAX_ALLOC_DESERIALISE_LEN
+        || value_bytes > MAX_ALLOC_DESERIALISE_LEN
+        || offset_bytes > MAX_ALLOC_DESERIALISE_LEN
+    {
+        return Err(invalid_data());
+    }
+    Ok(())
+}
+
+#[cfg(feature = "alloc")]
+fn read_vec_array_tail<T, R>(reader: &mut R) -> Result<Vec<T>, Error>
+where
+    T: EvmCdDeserialise + 'static,
+    R: Read,
+{
+    let len = read_usize_word(reader)?;
+    validate_vec_array_len::<T>(len)?;
+
+    let mut out = Vec::new();
+    out.try_reserve_exact(len).map_err(|_| invalid_data())?;
+    if T::is_abi_dynamic() {
+        let mut offsets = Vec::new();
+        offsets.try_reserve_exact(len).map_err(|_| invalid_data())?;
+        for _ in 0..len {
+            match T::deserialise_abi_head(reader)? {
+                EvmCdHead::Offset(offset) => offsets.push(offset),
+                EvmCdHead::Value(_) => return Err(invalid_data()),
+            }
+        }
+        let mut expected_tail_offset = len
+            .checked_mul(T::abi_head_size())
+            .ok_or_else(invalid_data)?;
+        for offset in offsets {
+            let value =
+                T::deserialise_abi_finish(EvmCdHead::Offset(offset), expected_tail_offset, reader)?;
+            expected_tail_offset = expected_tail_offset
+                .checked_add(value.abi_tail_size())
+                .ok_or_else(invalid_data)?;
+            out.push(value);
+        }
+    } else {
+        for _ in 0..len {
+            let head = T::deserialise_abi_head(reader)?;
+            out.push(T::deserialise_abi_finish(head, 0, reader)?);
+        }
+    }
+    Ok(out)
+}
+
+#[cfg(feature = "alloc")]
+fn read_vec_tail<T, R>(reader: &mut R) -> Result<Vec<T>, Error>
+where
+    T: EvmCdDeserialise + 'static,
+    R: Read,
+{
+    if vec_is_bytes::<T>() {
+        read_vec_bytes_tail(reader).map(bytes_into_vec)
+    } else {
+        read_vec_array_tail(reader)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<T> EvmCdDeserialise for Vec<T>
+where
+    T: EvmCdDeserialise + 'static,
+{
+    type Buffer = EvmCdDynamicBuffer<()>;
+
     fn deserialise_reader<R: Read>(reader: &mut R) -> Result<Self, Error> {
         if read_usize_word(reader)? != 32 {
             return Err(invalid_data());
@@ -990,7 +1267,16 @@ impl EvmCdDeserialise for Vec<u8> {
     }
 
     fn abi_tail_size(&self) -> usize {
-        dynamic_tail_size(self.len())
+        if vec_is_bytes::<T>() {
+            dynamic_tail_size(self.len())
+        } else {
+            self.len()
+                .saturating_mul(T::abi_head_size())
+                .saturating_add(32)
+                .saturating_add(self.iter().fold(0usize, |size, value| {
+                    size.saturating_add(value.abi_tail_size())
+                }))
+        }
     }
 
     fn deserialise_abi_head<R: Read>(reader: &mut R) -> Result<EvmCdHead<Self>, Error> {
@@ -1009,6 +1295,10 @@ impl EvmCdDeserialise for Vec<u8> {
     }
 
     fn append_abi_type(hasher: SelectorHasher) -> SelectorHasher {
-        hasher.update(b"bytes")
+        if vec_is_bytes::<T>() {
+            hasher.update(b"bytes")
+        } else {
+            T::append_abi_type(hasher).update(b"[]")
+        }
     }
 }

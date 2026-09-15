@@ -7,6 +7,31 @@ description = "bobcat-sdk is a codesize efficient Arbitrum Stylus SDK"
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
+[package.metadata.docs.rs]
+no-default-features = true
+features = [
+	"alloc",
+	"alloy-enabled",
+	"arbitrary",
+	"borsh",
+	"console",
+	"derive",
+	"detailed-errors",
+	"dont-define-symbols",
+	"ed25519-dalek",
+	"msg-on-sdk-err",
+	"mutex",
+	"panic-trace",
+	"proptest",
+	"ruint-enabled",
+	"serde",
+	"sha512",
+	"shadow",
+	"std",
+	"wasm-bindgen",
+	"wasm-bindgen-wasi",
+]
+
 [lib]
 name = "bobcat_sdk"
 

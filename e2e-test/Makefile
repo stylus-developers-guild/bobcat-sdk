@@ -21,7 +21,6 @@ PROJECTS := \
 	panic-trace \
 	shadow \
 	features \
-	math-example \
 	zeroise-check \
 	slot-key
 
@@ -51,7 +50,6 @@ wasm: \
 	shadow.wasm \
 	features.wasm \
 	math-example.wasm \
-	zeroise-check.wasm \
 	slot-key.wasm
 
 chainlink-vrf-test.wasm: ${BUILT}
@@ -123,10 +121,6 @@ features.wasm: ${BUILT}
 	@# We don't post process features since wat2wasm hangs due to some kind of bug:
 	@cp ${RELEASE}/features.wasm features.wasm
 
-math-example.wasm: ${BUILT}
-	@rm -f math-example.wasm
-	@./wasm-post.sh ${RELEASE}/math-example.wasm math-example.wasm
-
 zeroise-check.wasm: ${BUILT}
 	@rm -f zeroise-check.wasm
 	@./wasm-post.sh ${RELEASE}/zeroise-check.wasm zeroise-check.wasm
@@ -155,6 +149,5 @@ clean:
 		panic-trace.wasm \
 		shadow.wasm \
 		features.wasm \
-		math-example.wasm \
 		zeroise-check.wasm \
 		slot-key.wasm

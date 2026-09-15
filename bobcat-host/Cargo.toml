@@ -7,6 +7,9 @@ description = "Functions for interacting with the host with bobcat-sdk"
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 keccak-const.workspace = true
 const-hex.workspace = true

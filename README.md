@@ -29,6 +29,7 @@ This is a zero allocation example coming in at 16kb:
 use bobcat_sdk::prelude::*;
 
 #[derive(Debug, Clone, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
 pub enum Entry {
     Number,
     SetNumber(U),

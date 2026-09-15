@@ -3,29 +3,17 @@
 Derive macros for `bobcat_cd::EvmCdSerialise` and
 `bobcat_cd::EvmCdDeserialise`.
 
-The derives support named, tuple, and unit structs, plus unit, tuple, and
-struct enum variants. A top-level derived enum is an EVM function-call sum
-type:
+The derives support named, tuple, and unit structs plus fieldless enums. These
+are value types by default, so serialisation never adds a function selector.
+Like Borsh derives, generated implementations compose whenever every field type
+implements `EvmCdSerialise` or `EvmCdDeserialise`.
 
-- the Rust variant name is converted to lower camel case;
-- its field types provide their canonical Solidity ABI type names;
-- the first four bytes of `keccak256("name(type,...)")` are written first;
-- deserialisation reads those four bytes and uses them to select the variant;
-- variant fields use Solidity ABI head/tail layout, including dynamic strings.
-
-For example, `EnrollDogInHotel(EvmCdString<0, 100>)` uses the selector for
-`enrollDogInHotel(string)`.
-
-When an enum is itself used as a field, it is represented by its zero-based
-variant index in a 32-byte `uint8` word. This is intended for fieldless
-Solidity-style enums. By default, however, serialising the enum itself still
-produces top-level function calldata with a selector, and explicit Rust enum
-discriminants are rejected. If the enum represents values rather than a family
-of function calls, add `#[evm_values]`:
+A fieldless enum is represented by its Rust discriminant in a 32-byte `uint8`
+word. Explicit and non-contiguous discriminants are preserved, and values
+outside `uint8` are rejected. For example:
 
 ```rust
 #[derive(EvmCdSerialise, EvmCdDeserialise)]
-#[evm_values]
 pub enum Asset {
     USDC = 0,
     ARB = 1,
@@ -33,13 +21,35 @@ pub enum Asset {
 }
 ```
 
-An `evm_values` enum must contain only fieldless variants whose Rust
-discriminants fit in `uint8`. Its top-level and nested representations are both
-a single 32-byte `uint8` ABI word; no function selector is written or read.
-Explicit and non-contiguous discriminants are preserved. Without `evm_values`,
-variants are encoded by declaration order when nested. An enum may contain at
-most 256 variants. Explicit Rust discriminants on an unmarked call enum produce
-a diagnostic directing the user to enable `evm_values`.
+To derive a top-level EVM function-call sum type, add `#[evm_entrypoint]` to an
+enum:
+
+```rust
+#[derive(EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
+enum DogsHotelCalifornia {
+    DogsInHotel,
+    EnrollDogInHotel(EvmCdString<0, 100>),
+}
+```
+
+For an `evm_entrypoint` enum:
+
+- the Rust variant name is converted to lower camel case;
+- its field types provide their canonical Solidity ABI type names;
+- the first four bytes of `keccak256("name(type,...)")` are written first;
+- deserialisation reads those four bytes and uses them to select the variant;
+- variant fields use Solidity ABI head/tail layout.
+
+For example, `EnrollDogInHotel(EvmCdString<0, 100>)` uses the selector for
+`enrollDogInHotel(string)`. Entrypoint enum variants may carry fields but may
+not have explicit Rust discriminants. When nested as a field, an entrypoint enum
+is still represented by its zero-based variant index as `uint8`; this nested
+form is intended only for fieldless enums.
+
+`#[evm_values]` remains accepted on structs and fieldless enums for source
+compatibility, but is now redundant because selector-free value encoding is the
+default. It cannot be combined with `#[evm_entrypoint]`.
 
 Currently inferred ABI names include:
 
@@ -49,6 +59,7 @@ Currently inferred ABI names include:
 - `[u8; N]` as `bytesN`;
 - `Address` as `address` (left-padded to an ABI word);
 - `Vec<u8>` as `bytes` when allocation support is enabled;
+- `Vec<T>` as `T[]` for every other serialisable element type;
 - `EvmCdArray<T, MIN, CAP>` as `T[]` without allocation;
 - `EvmCdString<MIN, CAP>` as `string`;
 - derived structs as Solidity tuple types;
@@ -69,7 +80,7 @@ The `derive` feature is enabled by default in both `bobcat-cd` and
 
 ```toml
 [dependencies]
-bobcat-cd = { version = "0.9.8", features = ["derive"] }
+bobcat-cd = { version = "0.10.1", features = ["derive"] }
 ```
 
 ```rust
@@ -84,6 +95,7 @@ enum DogTreat {
 }
 
 #[derive(Debug, PartialEq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
 enum DogsHotelCalifornia {
     DogsInHotel,
     EnrollDogInHotel(DogName),
@@ -107,5 +119,5 @@ assert_eq!(decoded, command);
 ```
 
 Derived structs concatenate their fields and do not add a selector of their
-own. A selector belongs to an enum variant because the variant supplies the
-function name and argument list.
+own. A selector is added only by an `#[evm_entrypoint]` enum variant, which
+supplies the function name and argument list.

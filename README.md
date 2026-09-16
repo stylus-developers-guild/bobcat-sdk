@@ -28,6 +28,11 @@ This is a zero allocation example coming in at 8k:
 
 use bobcat_sdk::prelude::*;
 
+#[link(wasm_import_module = "vm_hooks")]
+unsafe extern "C" {
+    fn msg_reentrant() -> bool;
+}
+
 #[derive(Debug, Clone, EvmCdSerialise, EvmCdDeserialise)]
 #[evm_entrypoint]
 pub enum Entry {
@@ -40,8 +45,9 @@ pub enum Entry {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn user_entrypoint(len: usize) -> usize {
-    flush_guard(|| match Entry::from_cd(len).unwrap() {
+pub unsafe extern "C" fn user_entrypoint(args_len: usize) -> usize {
+    assert!(!unsafe { msg_reentrant() });
+    flush_guard(|| match read_cd::<_>(args_len) {
         Entry::Number => write_result_word(&storage_load(&U::ZERO)),
         Entry::SetNumber(w) => storage_store(&U::ZERO, &w),
         Entry::MulNumber(w) => storage_wrapping_mul(&U::ZERO, &w),

@@ -1,4 +1,3 @@
-
 macro_rules! storage {
     ($($name:ident($($param:ident),*)),* $(,)?) => {
         storage! {

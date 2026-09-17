@@ -5,14 +5,14 @@ use core::cmp::{max, min};
 pub use bobcat_sdk;
 
 use bobcat_sdk::{
-    cd::{address, const_keccak_sel, EvmCdAddress, EvmCdDeserialise, EvmCdSerialise},
+    cd::{EvmCdAddress, EvmCdDeserialise, EvmCdSerialise, address, const_keccak_sel},
     entry::{
         block_timestamp, contract_address, msg_sender, read_cd, write_result_slice,
         write_result_word,
     },
     events::emit,
     interfaces::eip1967::{TOPIC_ADMIN_CHANGED, TOPIC_UPGRADED},
-    maths::{u, U},
+    maths::{U, u},
     storage::{
         const_keccak256, const_slot_off_curve, flush_guard, keccak256, reentrancy_guard_sel,
         storage_load, storage_store,

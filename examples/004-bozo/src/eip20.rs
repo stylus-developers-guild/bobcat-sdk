@@ -7,26 +7,28 @@ mod impls {
     use super::*;
 
     use bobcat_sdk::{
-        call::safe_call_bool_err_vec,
+        call::safe_call_bool,
         interfaces::eip20::{make_fn_transfer, make_fn_transfer_from},
     };
 
     pub fn transfer_from(addr: Address, from: Address, to: Address, amt: &U) -> Option<()> {
-        match safe_call_bool_err_vec(
+        if safe_call_bool(
             addr,
             &make_fn_transfer_from(from, to, amt),
             &U::ZERO,
             u64::MAX,
         ) {
-            (true, _) => Some(()),
-            _ => None,
+            Some(())
+        } else {
+            None
         }
     }
 
     pub fn transfer(addr: Address, recipient: Address, amt: &U) -> Option<()> {
-        match safe_call_bool_err_vec(addr, &make_fn_transfer(recipient, amt), &U::ZERO, u64::MAX) {
-            (true, _) => Some(()),
-            _ => None,
+        if safe_call_bool(addr, &make_fn_transfer(recipient, amt), &U::ZERO, u64::MAX) {
+            Some(())
+        } else {
+            None
         }
     }
 }

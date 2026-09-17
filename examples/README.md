@@ -19,4 +19,4 @@ Note that stylus-sdk accidentally bundles the std with its built code.
 | Counter  | 18015              | 7056        | A simple counter app that does basic manipulation of storage.  |
 | Muldiv   | 21623              | 6156        | A muldiv implementation, compared to the version in 9lives.    |
 | Camelot  | 45360              | 4527        | Acts as an intermediary for Camelot swapping using its router. |
-| Bozo     | N/A                | 28494       | The contract code powering (https://ripbozo.lol)[Ripbozo].     |
+| Bozo     | N/A                | 26320       | The contract code powering a dumb app for bidding on things.   |

@@ -3,15 +3,14 @@ use proptest::prelude::*;
 use bobcat_sdk::{
     entry::{contract_address, entry_host, msg_sender},
     maths::{
-        mul_div_round_up,
+        U, mul_div_round_up,
         strategies::{strat_addr_not_empty, strat_small_u},
-        U,
     },
     storage::storage_host,
 };
 
 use crate::{
-    eip20, get_min_deposit, pick_epoch, ADDR_OPERATOR, FEE_DAO, FEE_OWNER, SCALING_FACTOR,
+    ADDR_OPERATOR, FEE_DAO, FEE_OWNER, SCALING_FACTOR, eip20, get_min_deposit, pick_epoch,
 };
 
 type Address = [u8; 20];

@@ -1,5 +1,7 @@
 #!/bin/sh -u
 
+f=$(mktemp --suffix .wasm1)
+
 wasm-opt \
 	--dce \
 	--rse \
@@ -9,5 +11,9 @@ wasm-opt \
 	--strip-producers \
 	--strip \
 	-Oz \
-	-o $2 \
-	$1
+	-o "$f" \
+	"$1"
+
+wasm2wat "$f" > "$f.wat"
+
+wat2wasm "$f.wat" -o "$2"

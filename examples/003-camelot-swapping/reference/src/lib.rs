@@ -1,8 +1,7 @@
 use stylus_sdk::{
     alloy_primitives::*,
-    alloy_sol_types::{sol, SolCall},
+    alloy_sol_types::{SolCall, sol},
     prelude::*,
-    stylus_core::calls::context::Call,
 };
 
 extern crate alloc;
@@ -56,29 +55,28 @@ impl Swapper {
         let sender = self.vm().msg_sender();
         let contract_addr = self.vm().contract_address();
         let deadline = self.vm().block_timestamp() + 1;
-        token_in.transfer_from(&mut *self, sender, contract_addr, amount_in)?;
-        let c = self
-            .vm()
-            .call(
-                &Call::new(),
-                SWAP_ROUTER,
-                &ICamelotSwapRouter::exactInputSingleCall {
-                    params: ICamelotSwapRouter::ExactInputSingleParams {
-                        tokenIn: *token_in,
-                        tokenOut: *token_out,
-                        recipient: self.vm().msg_sender(),
-                        deadline: U256::from(deadline),
-                        amountIn: amount_in,
-                        amountOutMinimum: amount_out_min,
-                        limitSqrtPrice: U160::MAX,
-                    },
-                }
-                .abi_encode(),
-            )
-            .unwrap();
-        let amount_out = ICamelotSwapRouter::exactInputSingleCall::abi_decode_returns(&c, true)
-            .unwrap()
-            .amountOut;
+        let transfer = Call::new_mutating(self);
+        token_in.transfer_from(self.vm(), transfer, sender, contract_addr, amount_in)?;
+        let swap = Call::new_mutating(self);
+        let c = call(
+            self.vm(),
+            swap,
+            SWAP_ROUTER,
+            &ICamelotSwapRouter::exactInputSingleCall {
+                params: ICamelotSwapRouter::ExactInputSingleParams {
+                    tokenIn: *token_in,
+                    tokenOut: *token_out,
+                    recipient: self.vm().msg_sender(),
+                    deadline: U256::from(deadline),
+                    amountIn: amount_in,
+                    amountOutMinimum: amount_out_min,
+                    limitSqrtPrice: U160::MAX,
+                },
+            }
+            .abi_encode(),
+        )
+        .unwrap();
+        let amount_out = ICamelotSwapRouter::exactInputSingleCall::abi_decode_returns(&c).unwrap();
         Ok(amount_out)
     }
 }

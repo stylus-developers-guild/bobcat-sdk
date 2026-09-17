@@ -6,4 +6,4 @@
 
 [wasm-opt]
 version = "131"
-flags = ["-Oz"]
+flags = ["-Oz", "--enable-bulk-memory-opt"]

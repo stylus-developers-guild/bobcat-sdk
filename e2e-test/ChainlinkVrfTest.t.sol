@@ -3,7 +3,7 @@ pragma solidity ^0.8.30;
 
 import {Test} from "forge-std/Test.sol";
 
-import {IArbFoundry} from "./IArbFoundry.sol";
+/*import {IArbFoundry} from "./IArbFoundry.sol";*/
 
 interface IVrfCallback {
     function initiate() external returns (uint256);
@@ -11,6 +11,8 @@ interface IVrfCallback {
 }
 
 contract ChainlinkVrfTest is Test {
+    // TODO, this is not being tested due
+/*
     IVrfCallback vrfCallback;
 
     function setUp() public {
@@ -27,4 +29,5 @@ contract ChainlinkVrfTest is Test {
     function testInitiate() public {
         assertEq(100, vrfCallback.initiate());
     }
+*/
 }

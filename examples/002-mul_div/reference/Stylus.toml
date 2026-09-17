@@ -1,0 +1,9 @@
+[workspace]
+
+[workspace.networks]
+
+[contract]
+
+[wasm-opt]
+version = "131"
+flags = ["-Oz"]

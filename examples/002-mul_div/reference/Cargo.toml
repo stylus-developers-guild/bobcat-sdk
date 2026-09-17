@@ -6,9 +6,7 @@ version = "0.1.11"
 edition = "2024"
 
 [dependencies]
-alloy-primitives = { version = "=0.8.20", default-features = false, features = ["native-keccak"] }
-ruint = { version = "=1.12.3", default-features = false }
-stylus-sdk = { version = "0.9.2" }
+stylus-sdk = { version = "0.10.9" }
 
 [lib]
 name = "libreference"
@@ -17,6 +15,10 @@ crate-type = ["lib", "cdylib"]
 [[bin]]
 name = "reference"
 path = "src/main.rs"
+
+[features]
+export-abi = []
+contract-client-gen = []
 
 [profile.release]
 codegen-units = 1

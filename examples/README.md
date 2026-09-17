@@ -10,11 +10,13 @@ unification.
 For a more complete illustration of what the SDK offers, check the end-to-end tests. Build
 each example from its own project directory.
 
-## Codesize comparison (in bytes)
+Note that stylus-sdk accidentally bundles the std with its built code.
 
-|   Name   | stylus-sdk (0.9.2) | bobcat-sdk |                          Description                           |
-|----------|--------------------|------------|----------------------------------------------------------------|
-| Counter  | 16807              | 7056       | A simple counter app that does basic manipulation of storage.  |
-| Muldiv   | 19332              | 6156       | A muldiv implementation, compared to the version in 9lives.    |
-| Camelot  | 45360              | 4527       | Acts as an intermediary for Camelot swapping using its router. |
-| Bozo     | N/A                | 28494      | The contract code powering (https://ripbozo.lol)[Ripbozo].     |
+## Codesize comparison, with wasm-opt turned on with Stylus.toml (in bytes)
+
+|   Name   | stylus-sdk (0.10.9) | bobcat-sdk |                          Description                           |
+|----------|--------------------|-------------|----------------------------------------------------------------|
+| Counter  | 18015              | 7056        | A simple counter app that does basic manipulation of storage.  |
+| Muldiv   | 21623              | 6156        | A muldiv implementation, compared to the version in 9lives.    |
+| Camelot  | 45360              | 4527        | Acts as an intermediary for Camelot swapping using its router. |
+| Bozo     | N/A                | 28494       | The contract code powering (https://ripbozo.lol)[Ripbozo].     |

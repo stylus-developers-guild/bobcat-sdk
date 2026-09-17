@@ -20,6 +20,11 @@ usage() {
 [ -z "$private_key" ] && usage
 [ -z "$wasm_file" ] && usage
 
+if ! [ -e "$wasm_file" ]; then
+	>&2 echo $wasm_file does not exist
+	exit 1
+fi
+
 if [ -z "$BC_CONTRACT" ]; then
 	compressed="eff00000$(brotli -cq 11 $wasm_file | xxd -p -c0)"
 

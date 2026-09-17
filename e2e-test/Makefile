@@ -49,7 +49,6 @@ wasm: \
 	panic-trace.wasm \
 	shadow.wasm \
 	features.wasm \
-	math-example.wasm \
 	slot-key.wasm
 
 chainlink-vrf-test.wasm: ${BUILT}

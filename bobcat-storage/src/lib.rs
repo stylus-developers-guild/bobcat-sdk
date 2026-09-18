@@ -12,6 +12,10 @@ pub use bobcat_host as host;
 
 pub use bobcat_maths as maths;
 
+mod capabilities;
+
+pub use capabilities::*;
+
 macro_rules! storage_ops {
     ($($prefix:ident),* $(,)?) => {
         $(

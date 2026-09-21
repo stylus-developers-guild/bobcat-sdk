@@ -6,6 +6,9 @@ structure. It uses a phantom type based capabilities system to support programme
 building type-based restrictions for their storage accesses, and a trait to know how
 to encode values to storage based on their size.
 
+EvmBox is slightly misleading: it also functions as a RAII guard to know when to flush
+storage access for std/host users.
+
 ```rust
 
 pub struct Version<C: Cap> {

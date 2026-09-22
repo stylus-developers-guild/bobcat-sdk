@@ -51,6 +51,7 @@ bobcat-precompiles = { version = "0.10.5", path = "../bobcat-precompiles", defau
 bobcat-features = { version = "0.10.5", path = "../bobcat-features", default-features = false }
 bobcat-host = { version = "0.10.5", path = "../bobcat-host", default-features = false }
 bobcat-alloc = { version = "0.10.5", path = "../bobcat-alloc", optional = true, default-features = false }
+bobcat-trace-derive = { version = "0.10.5", path = "../bobcat-trace-derive", optional = true }
 
 [features]
 default = ["derive"]
@@ -107,6 +108,6 @@ wasm-bindgen-wasi = ["bobcat-maths/wasm-bindgen-wasi"]
 ed25519-dalek = ["bobcat-precompiles/ed25519-dalek"]
 shadow = ["bobcat-events/shadow"]
 mutex = ["bobcat-storage/mutex"]
-derive = ["bobcat-cd/derive"]
+derive = ["bobcat-cd/derive", "dep:bobcat-trace-derive"]
 detailed-errors = ["bobcat-call/detailed-errors"]
 sha512 = ["bobcat-precompiles/sha512"]

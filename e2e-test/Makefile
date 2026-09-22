@@ -24,7 +24,8 @@ PROJECTS := \
 	shadow \
 	features \
 	zeroise-check \
-	slot-key
+	slot-key \
+	derive-trace
 
 all: wasm
 
@@ -52,7 +53,8 @@ wasm: \
 	shadow.wasm \
 	features.wasm \
 	zeroise-check.wasm \
-	slot-key.wasm
+	slot-key.wasm \
+	derive-trace.wasm
 
 chainlink-vrf-test.wasm: ${BUILT}
 	@./wasm-post.sh ${RELEASE}/chainlink-vrf-test.wasm chainlink-vrf-test.wasm
@@ -112,8 +114,10 @@ zeroise-check.wasm: ${BUILT}
 	@./wasm-post.sh ${RELEASE}/zeroise-check.wasm zeroise-check.wasm
 
 slot-key.wasm: ${BUILT}
-
 	@./wasm-post.sh ${RELEASE}/slot-key.wasm slot-key.wasm
+
+derive-trace.wasm: ${BUILT}
+	@./wasm-post.sh ${RELEASE}/derive-trace.wasm derive-trace.wasm
 
 clean:
 	@rm -rf \
@@ -136,4 +140,5 @@ clean:
 		shadow.wasm \
 		features.wasm \
 		zeroise-check.wasm \
-		slot-key.wasm
+		slot-key.wasm \
+		derive-trace.wasm

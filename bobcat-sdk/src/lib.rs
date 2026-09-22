@@ -1,5 +1,21 @@
 #![no_std]
 
+#[doc(hidden)]
+#[cfg(feature = "console")]
+#[macro_export]
+macro_rules! __bobcat_trace_statement {
+    ($source:expr) => {{
+        $crate::console::console!($source);
+    }};
+}
+
+#[doc(hidden)]
+#[cfg(not(feature = "console"))]
+#[macro_export]
+macro_rules! __bobcat_trace_statement {
+    ($source:expr) => {{}};
+}
+
 pub mod prelude {
     pub use super::{
         call::*, cd::*, create::*, entry::*, events::*, features::*, host, maths::*, proxy::*,
@@ -15,6 +31,9 @@ pub mod prelude {
     #[cfg(feature = "console")]
     pub use super::console::*;
 
+    #[cfg(feature = "derive")]
+    pub use super::bobcat_trace;
+
     #[cfg(feature = "alloc")]
     pub use super::alloc::*;
 }
@@ -26,11 +45,14 @@ pub use bobcat_entry as entry;
 pub use bobcat_events as events;
 pub use bobcat_features as features;
 pub use bobcat_host as host;
+
 pub use bobcat_interfaces as interfaces;
 pub use bobcat_maths as maths;
 pub use bobcat_precompiles as precompiles;
 pub use bobcat_proxy as proxy;
 pub use bobcat_storage as storage;
+#[cfg(feature = "derive")]
+pub use bobcat_trace_derive::bobcat_trace;
 
 #[cfg(any(
     feature = "panic",

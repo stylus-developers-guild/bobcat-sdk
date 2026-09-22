@@ -25,7 +25,7 @@ cfg-if = ">=1.0.3"
 const-hex.workspace = true
 paste.workspace = true
 array-concat.workspace = true
-serde = { version = ">=1.0.0", default-features = false, features = ["derive"], optional = true }
+serde = { version = ">=1.0.0", default-features = false, optional = true }
 bobcat-panic = { version = "0.10.5", path = "../bobcat-panic", default-features = false }
 clap = { version = ">=4.0.0", optional = true }
 wasm-bindgen = { version = ">=0.2.0", optional = true, default-features = false }

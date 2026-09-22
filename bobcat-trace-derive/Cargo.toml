@@ -1,0 +1,20 @@
+[package]
+name = "bobcat-trace-derive"
+version = "0.10.5"
+edition = "2024"
+license = "MIT"
+description = "Statement tracing attribute macro for bobcat-sdk."
+homepage = "https://stylusup.sh"
+repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro-crate = "3"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full", "visit-mut"] }

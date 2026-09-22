@@ -24,7 +24,13 @@ use num_traits::{One, Zero};
 use borsh::{BorshDeserialize, BorshSerialize};
 
 #[cfg(feature = "serde")]
-use serde::{Deserialize as SerdeDeserialize, Serialize as SerdeSerialize};
+use serde::{
+    Deserialize as SerdeDeserialize,
+    Deserializer as SerdeDeserializer,
+    Serialize as SerdeSerialize,
+    Serializer as SerdeSerializer,
+};
+
 
 #[cfg(feature = "proptest")]
 pub mod strategies;
@@ -122,15 +128,33 @@ use alloy::*;
 #[cfg_attr(feature = "proptest", derive(proptest_derive::Arbitrary))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "borsh", derive(BorshDeserialize, BorshSerialize))]
-#[cfg_attr(feature = "serde", derive(SerdeSerialize, SerdeDeserialize))]
 #[repr(transparent)]
 pub struct U(pub [u8; 32]);
+
+#[cfg(feature = "serde")]
+impl SerdeSerialize for U {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: SerdeSerializer,
+    {
+        self.0.serialize(s)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> SerdeDeserialize<'de> for U {
+    fn deserialize<D>(d: D) -> Result<Self, D::Error>
+    where
+        D: SerdeDeserializer<'de>,
+    {
+        Ok(Self(<[u8; 32]>::deserialize(d)?))
+    }
+}
 
 #[derive(Copy, Clone, PartialEq, Hash, Debug)]
 #[cfg_attr(feature = "proptest", derive(proptest_derive::Arbitrary))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "borsh", derive(BorshDeserialize, BorshSerialize))]
-#[cfg_attr(feature = "serde", derive(SerdeSerialize, SerdeDeserialize))]
 #[repr(transparent)]
 pub struct I(pub [u8; 32]);
 
@@ -1966,6 +1990,10 @@ mod test {
         #[test]
         fn array_truncate(x in any::<[u8; 20]>()) {
             assert_eq!(x, U::from(x).const_addr());
+        }
+
+        #[test]
+        fn test_encode_serde(x in any::<U>()) {
         }
     }
 }

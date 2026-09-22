@@ -16,7 +16,7 @@ members = [
 	"bobcat-features",
 	"bobcat-host",
 	"bobcat-alloc"
-, "bobcat-cd-derive", "bobcat-storage-derive"]
+, "bobcat-cd-derive", "bobcat-storage-derive", "bobcat-trace-derive"]
 exclude = ["fuzz"]
 
 [workspace.dependencies]

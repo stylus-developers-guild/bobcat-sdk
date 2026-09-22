@@ -230,6 +230,7 @@ dependencies = [
  "bobcat-precompiles",
  "bobcat-proxy",
  "bobcat-storage",
+ "bobcat-trace-derive",
 ]
 
 [[package]]
@@ -241,6 +242,16 @@ dependencies = [
  "bobcat-maths",
  "keccak-const",
  "paste",
+]
+
+[[package]]
+name = "bobcat-trace-derive"
+version = "0.10.5"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -352,6 +363,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "derive-trace"
+version = "0.1.0"
+dependencies = [
+ "bobcat-sdk",
+ "bobcat-trace-derive",
+ "mini-alloc",
 ]
 
 [[package]]

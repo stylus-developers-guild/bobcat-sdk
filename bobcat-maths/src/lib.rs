@@ -137,7 +137,7 @@ impl SerdeSerialize for U {
     where
         S: SerdeSerializer,
     {
-        self.0.serialize(s)
+        SerdeSerialize::serialize(&self.0, s)
     }
 }
 
@@ -147,7 +147,7 @@ impl<'de> SerdeDeserialize<'de> for U {
     where
         D: SerdeDeserializer<'de>,
     {
-        Ok(Self(<[u8; 32]>::deserialize(d)?))
+        Ok(Self(<[u8; 32] as SerdeDeserialize>::deserialize(d)?))
     }
 }
 

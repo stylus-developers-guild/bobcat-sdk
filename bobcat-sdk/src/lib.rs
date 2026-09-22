@@ -31,7 +31,7 @@ pub mod prelude {
     #[cfg(feature = "console")]
     pub use super::console::*;
 
-    #[cfg(feature = "derive")]
+    #[cfg(feature = "derive-trace")]
     pub use super::bobcat_trace;
 
     #[cfg(feature = "alloc")]
@@ -51,7 +51,7 @@ pub use bobcat_maths as maths;
 pub use bobcat_precompiles as precompiles;
 pub use bobcat_proxy as proxy;
 pub use bobcat_storage as storage;
-#[cfg(feature = "derive")]
+#[cfg(feature = "derive-trace")]
 pub use bobcat_trace_derive::bobcat_trace;
 
 #[cfg(any(

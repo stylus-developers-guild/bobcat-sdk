@@ -1,6 +1,6 @@
 [package]
 name = "bobcat-console"
-version = "0.11.1"
+version = "0.11.2"
 edition = "2024"
 license = "MIT"
 description = "bobcat-sdk console makes printing easy with Arbitrum Stylus, using a macro."
@@ -11,4 +11,4 @@ repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
 all-features = true
 
 [dependencies]
-bobcat-host = { version = "0.11.1", path = "../bobcat-host", features = ["console"], default-features = false }
+bobcat-host = { version = "0.11.2", path = "../bobcat-host", features = ["console"], default-features = false }

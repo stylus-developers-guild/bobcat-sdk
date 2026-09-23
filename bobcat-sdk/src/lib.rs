@@ -32,7 +32,7 @@ pub mod prelude {
     pub use super::console::*;
 
     #[cfg(feature = "derive-trace")]
-    pub use super::bobcat_trace;
+    pub use super::trace;
 
     #[cfg(feature = "alloc")]
     pub use super::alloc::*;
@@ -52,7 +52,7 @@ pub use bobcat_precompiles as precompiles;
 pub use bobcat_proxy as proxy;
 pub use bobcat_storage as storage;
 #[cfg(feature = "derive-trace")]
-pub use bobcat_trace_derive::bobcat_trace;
+pub use bobcat_trace_derive::bobcat_trace as trace;
 
 #[cfg(any(
     feature = "panic",

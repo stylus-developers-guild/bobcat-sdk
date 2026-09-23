@@ -1991,9 +1991,5 @@ mod test {
         fn array_truncate(x in any::<[u8; 20]>()) {
             assert_eq!(x, U::from(x).const_addr());
         }
-
-        #[test]
-        fn test_encode_serde(x in any::<U>()) {
-        }
     }
 }

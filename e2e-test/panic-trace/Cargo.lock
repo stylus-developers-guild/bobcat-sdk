@@ -16,7 +16,7 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "bobcat-call"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "bobcat-entry",
  "bobcat-host",
@@ -28,7 +28,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-cd"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-maths",
@@ -38,7 +38,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-create"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -49,7 +49,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-entry"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-cd",
@@ -61,7 +61,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-events"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -70,7 +70,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-features"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "bobcat-call",
  "bobcat-entry",
@@ -82,7 +82,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-host"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "const-hex",
  "keccak-const",
@@ -90,7 +90,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-interfaces"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-cd",
@@ -101,7 +101,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -115,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-panic"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "bobcat-host",
  "const-hex",
@@ -124,7 +124,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-precompiles"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-call",
@@ -136,7 +136,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-proxy"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-interfaces",
@@ -146,7 +146,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-sdk"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "bobcat-call",
  "bobcat-cd",
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-storage"
-version = "0.10.5"
+version = "0.11.1"
 dependencies = [
  "array-concat",
  "bobcat-host",

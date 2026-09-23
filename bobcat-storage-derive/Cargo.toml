@@ -6,5 +6,6 @@ license = "MIT"
 description = "bobcat-storage-derive is a derive macro that backs a structure's values with EVM storage."
 homepage = "https://stylusup.sh"
 repository = "https://github.com/stylus-developers-guild/bobcat-sdk"
+publish = false
 
 [dependencies]

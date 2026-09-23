@@ -1,4 +1,9 @@
 
+# 0.11.0
+
+We've added a new crate, `bobcat-trace-derive`. It can be used to annotate each line in a
+function when a crate's `console` feature is enabled. It makes line by line debugging easier!
+
 # 0.10.0
 
 The first of many changelog updates since our change frequency has increased!

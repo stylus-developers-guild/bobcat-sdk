@@ -16,6 +16,14 @@ testing items, and a discussion of the methodology.
 If you've never worked with Arbitrum Stylus before, this SDK is not for you. Check out the
 official stylus-sdk repository first.
 
+### AI notice
+
+Parts of this codebase is AI written. The two offenders are `bobcat-cd-derive`,
+`bobcat-trace-derive` and `bobcat-cd`. We don't understand the code very well (both are proc-macros that
+manipulate the AST with derive), but it seeems to work with some testing and use
+internally. The stakes are very low with `bobcat-trace-derive`, it annotates everything in
+a function with a trace.
+
 ## Usage (with standard EVM calldata)
 
 This is a zero allocation example coming in at 8k:
@@ -210,24 +218,6 @@ pub fn get_ed25519_count() -> U {
     storage_load(const_slot_off_curve("superposition.passport.ed25519_count"))
 }
 ```
-
-## Philosophy
-
-This SDK strives to be like the bobcat: nimble, stalking its prey in winter, and
-conserving its energy. It is tiny, focused, and conservative, with the ability to opt out
-of parts of the library. Once this SDK is finished, there will be no new features except
-for adopting new wasm features or supporting ArbOS upgrades. If you want shiny new things,
-use the mainstream SDK or add the features yourself.
-
-## Why make this?
-
-At Superposition, we often run up against codesize restrictions. We are opinionated with
-our development practices, including developing contracts that use a Solana-style decoding
-method instead of the classic EVM calldata format. The feature-rich SDK hinders our
-development practices when we go off the beaten path (which happens a lot). We are also
-frequently victims of code rot in the main SDK. We wanted something small and versatile
-that lets us lean on ArbOS-Foundry for end-to-end contract testing, with only the features
-we truly need.
 
 ## Quick start with `bobcat-new`
 

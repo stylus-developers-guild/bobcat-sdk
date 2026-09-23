@@ -9,7 +9,10 @@ use quote::{ToTokens, format_ident, quote};
 use syn::parse::Parser;
 use syn::spanned::Spanned;
 use syn::visit_mut::{self, VisitMut};
-use syn::{Arm, Attribute, Expr, ExprClosure, ItemFn, Path, Stmt, parse_macro_input, parse_quote};
+use syn::{
+    Arm, Attribute, Expr, ExprClosure, ItemFn, Path, Stmt, parse_macro_input, parse_quote,
+    parse_quote_spanned,
+};
 
 #[proc_macro_attribute]
 pub fn bobcat_trace(attr: TokenStream, input: TokenStream) -> TokenStream {
@@ -57,14 +60,12 @@ impl StatementTracer {
         tokens: &impl ToTokens,
         conditional_attrs: Vec<Attribute>,
     ) -> Stmt {
-        let source = span
-            .source_text()
-            .unwrap_or_else(|| tokens.to_token_stream().to_string());
+        let source = tokens.to_token_stream().to_string();
         let sdk = &self.sdk;
 
-        parse_quote! {
+        parse_quote_spanned! {span=>
             #(#conditional_attrs)*
-            #sdk::__bobcat_trace_statement!(#source);
+            #sdk::__bobcat_trace_statement!(file!(), line!(), #source);
         }
     }
 
@@ -249,6 +250,19 @@ mod tests {
 
         assert!(output.contains("bobcat_sdk :: __bobcat_trace_statement !"));
         assert!(!output.contains("cfg (feature = \"console\")"));
+    }
+
+    #[test]
+    fn generated_traces_capture_the_statement_location_and_full_source() {
+        let output = expanded(parse_quote! {
+            fn example(value: u64) {
+                let next = value + 1;
+            }
+        });
+
+        assert!(output.contains(
+            "__bobcat_trace_statement ! (file ! () , line ! () , \"let next = value + 1 ;\")"
+        ));
     }
 
     #[test]

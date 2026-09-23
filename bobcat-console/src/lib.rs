@@ -8,6 +8,11 @@ pub use bobcat_host::log_txt;
 
 #[macro_export]
 macro_rules! console {
+    (@trace $file:expr, $line:expr, $source:expr) => {{
+        let source = $source;
+        let msg = $crate::format!("[{}:{}] {}\n", $file, $line, source);
+        unsafe { $crate::log_txt(msg.as_ptr(), msg.len()) };
+    }};
     ($val:expr) => {
     {
         let tmp = $val;

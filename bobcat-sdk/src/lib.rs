@@ -4,8 +4,8 @@
 #[cfg(feature = "console")]
 #[macro_export]
 macro_rules! __bobcat_trace_statement {
-    ($source:expr) => {{
-        $crate::console::console!($source);
+    ($file:expr, $line:expr, $source:expr) => {{
+        $crate::console::console!(@trace $file, $line, $source);
     }};
 }
 
@@ -13,7 +13,7 @@ macro_rules! __bobcat_trace_statement {
 #[cfg(not(feature = "console"))]
 #[macro_export]
 macro_rules! __bobcat_trace_statement {
-    ($source:expr) => {{}};
+    ($file:expr, $line:expr, $source:expr) => {{}};
 }
 
 pub mod prelude {

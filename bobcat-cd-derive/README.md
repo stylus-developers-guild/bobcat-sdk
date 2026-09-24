@@ -37,11 +37,30 @@ enum DogsHotelCalifornia {
 
 For an `evm_entrypoint` enum:
 
-- the Rust variant name is converted to lower camel case;
+- the Rust variant name is converted to lower camel case unless the variant has
+  an explicit `#[evm_selector("function(type,...)")]` signature;
 - its field types provide their canonical Solidity ABI type names;
 - the first four bytes of `keccak256("name(type,...)")` are written first;
 - deserialisation reads those four bytes and uses them to select the variant;
 - variant fields use Solidity ABI head/tail layout.
+
+Use `#[evm_selector("...")]` when the external ABI name cannot be inferred from
+the Rust variant name. The string is the complete, case-sensitive Solidity
+function signature and is hashed to a four-byte literal during macro expansion:
+
+```rust
+#[derive(EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
+enum Entry {
+    #[evm_selector("NUMBER()")]
+    Number,
+    SetNumber(U),
+}
+```
+
+Here `Number` uses `keccak256("NUMBER()")[..4]`, while `SetNumber(U)` retains its
+inferred `setNumber(uint256)` selector. The override changes only selector
+selection; the variant fields still determine calldata encoding and decoding.
 
 For example, `EnrollDogInHotel(EvmCdString<0, 100>)` uses the selector for
 `enrollDogInHotel(string)`. Entrypoint enum variants may carry fields but may

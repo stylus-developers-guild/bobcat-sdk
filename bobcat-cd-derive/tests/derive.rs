@@ -30,6 +30,15 @@ enum Message {
     Named { value: u32 },
 }
 
+#[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
+#[evm_entrypoint]
+enum CustomSelector {
+    #[evm_selector("NUMBER()")]
+    Number,
+    #[evm_selector("store(uint32)")]
+    SetNumber(u32),
+}
+
 type Name = EvmCdString<0, 32>;
 
 #[derive(Debug, PartialEq, Eq, EvmCdSerialise, EvmCdDeserialise)]
@@ -381,6 +390,20 @@ fn preserves_generics_and_where_clauses() {
         writer: 7u8,
         reader: 9u16,
     });
+}
+
+#[test]
+fn evm_entrypoint_variants_can_override_their_selector_signature() {
+    let cases = [CustomSelector::Number, CustomSelector::SetNumber(7)];
+    let signatures: [&[u8]; 2] = [b"NUMBER()", b"store(uint32)"];
+
+    for (value, signature) in cases.into_iter().zip(signatures) {
+        let mut encoded = Vec::new();
+        value.serialise(&mut encoded).unwrap();
+
+        assert_eq!(&encoded[..4], &const_keccak_sel(signature));
+        assert_eq!(CustomSelector::deserialise(&encoded).unwrap(), value);
+    }
 }
 
 #[test]

@@ -9,7 +9,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use syn::{Data, DataEnum, DataStruct, DeriveInput, Fields, Generics, Type, parse_macro_input};
 
-#[proc_macro_derive(EvmCdSerialise, attributes(evm_values, evm_entrypoint))]
+#[proc_macro_derive(EvmCdSerialise, attributes(evm_values, evm_entrypoint, evm_selector))]
 pub fn derive_evm_cd_serialise(input: TokenStream) -> TokenStream {
     expand(
         parse_macro_input!(input as DeriveInput),
@@ -19,7 +19,7 @@ pub fn derive_evm_cd_serialise(input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(EvmCdDeserialise, attributes(evm_values, evm_entrypoint))]
+#[proc_macro_derive(EvmCdDeserialise, attributes(evm_values, evm_entrypoint, evm_selector))]
 pub fn derive_evm_cd_deserialise(input: TokenStream) -> TokenStream {
     expand(
         parse_macro_input!(input as DeriveInput),
@@ -693,18 +693,46 @@ fn selector_literal(signature: &[u8]) -> [u8; 4] {
     [digest[0], digest[1], digest[2], digest[3]]
 }
 
+fn selector_override(variant: &syn::Variant) -> syn::Result<Option<Vec<u8>>> {
+    let mut attributes = variant
+        .attrs
+        .iter()
+        .filter(|attribute| attribute.path().is_ident("evm_selector"));
+    let Some(attribute) = attributes.next() else {
+        return Ok(None);
+    };
+    let signature = attribute.parse_args::<syn::LitStr>().map_err(|_| {
+        syn::Error::new_spanned(
+            attribute,
+            "`evm_selector` expects one string literal containing the complete function signature",
+        )
+    })?;
+    if let Some(duplicate) = attributes.next() {
+        return Err(syn::Error::new_spanned(
+            duplicate,
+            "duplicate `evm_selector` attribute",
+        ));
+    }
+    Ok(Some(signature.value().into_bytes()))
+}
+
 fn selector_expr(
     variant: &syn::Variant,
     trait_path: &TokenStream2,
     cd: &TokenStream2,
-) -> TokenStream2 {
+) -> syn::Result<TokenStream2> {
+    if let Some(signature) = selector_override(variant)? {
+        let [a, b, c, d] = selector_literal(&signature);
+        return Ok(quote!([#a, #b, #c, #d]));
+    }
+
     let function_name = variant.ident.to_string().to_lower_camel_case();
 
     // Preferred path: precompute the 4-byte selector at macro-expansion time so
     // no keccak code is emitted into (or linked by) the contract wasm.
     if let Some(signature) = try_selector_signature(variant, &function_name) {
         let [a, b, c, d] = selector_literal(&signature);
-        return quote!([#a, #b, #c, #d]);
+        return Ok(quote!([#a, #b, #c, #d]));
     }
 
     // Fallback: runtime trait-based hashing for types the derive can't resolve
@@ -718,7 +746,7 @@ fn selector_expr(
         quote!(#cd::serialisation::SelectorHasher::new().update(#prefix)),
         b")",
     );
-    quote!({ { #hasher }.selector() })
+    Ok(quote!({ { #hasher }.selector() }))
 }
 
 fn serialise_tuple(fields: &Fields, cd: &TokenStream2) -> TokenStream2 {
@@ -870,37 +898,40 @@ fn serialise_enum(
         .variants
         .iter()
         .map(|variant| selector_expr(variant, &trait_path, cd))
-        .collect();
-    let arms = data.variants.iter().map(|variant| {
-        let (pattern, bindings) = variant_pattern(name, variant);
-        let selector = selector_expr(variant, &trait_path, cd);
-        let types: Vec<_> = variant.fields.iter().map(|field| &field.ty).collect();
-        let head_sizes = types.iter().map(
-            |ty| quote!(<#ty as #trait_path>::abi_head_size()),
-        );
-        let heads = bindings.iter().zip(types.iter()).map(|(binding, ty)| quote! {
-            <#ty as #trait_path>::serialise_abi_head(#binding, tail_offset, writer)?;
-            tail_offset = tail_offset
-                .checked_add(<#ty as #trait_path>::abi_tail_size(#binding))
-                .ok_or_else(#cd::serialisation::invalid_data)?;
-        });
-        let tails = bindings.iter().zip(types.iter()).map(|(binding, ty)| quote! {
-            <#ty as #trait_path>::serialise_abi_tail(#binding, writer)?;
-        });
-        quote! {
-            #pattern => {
-                let selector = #selector;
-                let selector_matches = 0usize #(+ (selector == #selectors) as usize)*;
-                if selector_matches != 1 {
-                    return ::core::result::Result::Err(#cd::serialisation::invalid_data());
+        .collect::<syn::Result<_>>()?;
+    let arms = data
+        .variants
+        .iter()
+        .zip(selectors.iter())
+        .map(|(variant, selector)| {
+            let (pattern, bindings) = variant_pattern(name, variant);
+            let types: Vec<_> = variant.fields.iter().map(|field| &field.ty).collect();
+            let head_sizes = types.iter().map(
+                |ty| quote!(<#ty as #trait_path>::abi_head_size()),
+            );
+            let heads = bindings.iter().zip(types.iter()).map(|(binding, ty)| quote! {
+                <#ty as #trait_path>::serialise_abi_head(#binding, tail_offset, writer)?;
+                tail_offset = tail_offset
+                    .checked_add(<#ty as #trait_path>::abi_tail_size(#binding))
+                    .ok_or_else(#cd::serialisation::invalid_data)?;
+            });
+            let tails = bindings.iter().zip(types.iter()).map(|(binding, ty)| quote! {
+                <#ty as #trait_path>::serialise_abi_tail(#binding, writer)?;
+            });
+            quote! {
+                #pattern => {
+                    let selector = #selector;
+                    let selector_matches = 0usize #(+ (selector == #selectors) as usize)*;
+                    if selector_matches != 1 {
+                        return ::core::result::Result::Err(#cd::serialisation::invalid_data());
+                    }
+                    writer.write_all(&selector)?;
+                    let mut tail_offset = 0usize #(.checked_add(#head_sizes).ok_or_else(#cd::serialisation::invalid_data)?)*;
+                    #(#heads)*
+                    #(#tails)*
                 }
-                writer.write_all(&selector)?;
-                let mut tail_offset = 0usize #(.checked_add(#head_sizes).ok_or_else(#cd::serialisation::invalid_data)?)*;
-                #(#heads)*
-                #(#tails)*
             }
-        }
-    });
+        });
     Ok(quote! {
         match self { #(#arms),* }
         ::core::result::Result::Ok(())
@@ -992,52 +1023,55 @@ fn deserialise_enum(
         .variants
         .iter()
         .map(|variant| selector_expr(variant, &trait_path, cd))
-        .collect();
-    let branches = data.variants.iter().map(|variant| {
-        let selector = selector_expr(variant, &trait_path, cd);
-        let variant_name = &variant.ident;
-        let types: Vec<_> = variant.fields.iter().map(|field| &field.ty).collect();
-        let heads: Vec<_> = (0..types.len())
-            .map(|index| format_ident!("__evm_cd_head_{index}"))
-            .collect();
-        let values: Vec<_> = (0..types.len())
-            .map(|index| format_ident!("__evm_cd_value_{index}"))
-            .collect();
-        let read_heads = heads.iter().zip(types.iter()).map(|(head, ty)| quote! {
-            let #head = <#ty as #trait_path>::deserialise_abi_head(reader)?;
+        .collect::<syn::Result<_>>()?;
+    let branches = data
+        .variants
+        .iter()
+        .zip(selectors.iter())
+        .map(|(variant, selector)| {
+            let variant_name = &variant.ident;
+            let types: Vec<_> = variant.fields.iter().map(|field| &field.ty).collect();
+            let heads: Vec<_> = (0..types.len())
+                .map(|index| format_ident!("__evm_cd_head_{index}"))
+                .collect();
+            let values: Vec<_> = (0..types.len())
+                .map(|index| format_ident!("__evm_cd_value_{index}"))
+                .collect();
+            let read_heads = heads.iter().zip(types.iter()).map(|(head, ty)| quote! {
+                let #head = <#ty as #trait_path>::deserialise_abi_head(reader)?;
+            });
+            let head_sizes = types.iter().map(
+                |ty| quote!(<#ty as #trait_path>::abi_head_size()),
+            );
+            let finish = values.iter().zip(heads.iter()).zip(types.iter()).map(
+                |((value, head), ty)| quote! {
+                    let #value = <#ty as #trait_path>::deserialise_abi_finish(
+                        #head,
+                        tail_offset,
+                        reader,
+                    )?;
+                    tail_offset = tail_offset
+                        .checked_add(<#ty as #trait_path>::abi_tail_size(&#value))
+                        .ok_or_else(#cd::serialisation::invalid_data)?;
+                },
+            );
+            let construct = match &variant.fields {
+                Fields::Unit => quote!(#name::#variant_name),
+                Fields::Unnamed(_) => quote!(#name::#variant_name(#(#values),*)),
+                Fields::Named(fields) => {
+                    let names = fields.named.iter().map(|field| field.ident.as_ref().unwrap());
+                    quote!(#name::#variant_name { #(#names: #values),* })
+                }
+            };
+            quote! {
+                if selector == #selector {
+                    #(#read_heads)*
+                    let mut tail_offset = 0usize #(.checked_add(#head_sizes).ok_or_else(#cd::serialisation::invalid_data)?)*;
+                    #(#finish)*
+                    return ::core::result::Result::Ok(#construct);
+                }
+            }
         });
-        let head_sizes = types.iter().map(
-            |ty| quote!(<#ty as #trait_path>::abi_head_size()),
-        );
-        let finish = values.iter().zip(heads.iter()).zip(types.iter()).map(
-            |((value, head), ty)| quote! {
-                let #value = <#ty as #trait_path>::deserialise_abi_finish(
-                    #head,
-                    tail_offset,
-                    reader,
-                )?;
-                tail_offset = tail_offset
-                    .checked_add(<#ty as #trait_path>::abi_tail_size(&#value))
-                    .ok_or_else(#cd::serialisation::invalid_data)?;
-            },
-        );
-        let construct = match &variant.fields {
-            Fields::Unit => quote!(#name::#variant_name),
-            Fields::Unnamed(_) => quote!(#name::#variant_name(#(#values),*)),
-            Fields::Named(fields) => {
-                let names = fields.named.iter().map(|field| field.ident.as_ref().unwrap());
-                quote!(#name::#variant_name { #(#names: #values),* })
-            }
-        };
-        quote! {
-            if selector == #selector {
-                #(#read_heads)*
-                let mut tail_offset = 0usize #(.checked_add(#head_sizes).ok_or_else(#cd::serialisation::invalid_data)?)*;
-                #(#finish)*
-                return ::core::result::Result::Ok(#construct);
-            }
-        }
-    });
     Ok(quote! {
         let mut selector = [0u8; 4];
         reader.read_exact(&mut selector)?;

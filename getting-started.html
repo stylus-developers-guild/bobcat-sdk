@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Getting started &#8212; The Bobcat-sdk Book  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="The Bobcat-sdk Book" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
+<p>Bobcat-sdk can be started with quickly by either using a sh-based script that can be
+pasted (<cite>bobcat-up</cite>), simply adding to an existing Rust project, or a scaffolding script.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<p>We can get started with Bobcat-sdk quickly using a setup script piped. This script creates a directory
+and adds Bobcat-sdk. It creates the entrypoint function and a basic entrypoint type.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">stylus</span><span class="o">-</span><span class="n">developers</span><span class="o">-</span><span class="n">guild</span><span class="o">/</span><span class="n">bobcat</span><span class="o">-</span><span class="n">sdk</span><span class="o">/</span><span class="n">refs</span><span class="o">/</span><span class="n">heads</span><span class="o">/</span><span class="n">trunk</span><span class="o">/</span><span class="n">bobcat</span><span class="o">-</span><span class="n">quickstart</span><span class="o">.</span><span class="n">sh</span> <span class="o">|</span> <span class="n">sh</span>
+</pre></div>
+</div>
+<section id="cargo-add">
+<h3>Cargo-add<a class="headerlink" href="#cargo-add" title="Link to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">b</span> <span class="o">%</span> <span class="n">cargo</span> <span class="n">add</span> <span class="n">bobcat</span><span class="o">-</span><span class="n">sdk</span>
+    <span class="n">Updating</span> <span class="n">crates</span><span class="o">.</span><span class="n">io</span> <span class="n">index</span>
+      <span class="n">Adding</span> <span class="n">bobcat</span><span class="o">-</span><span class="n">sdk</span> <span class="n">v0</span><span class="mf">.11.2</span> <span class="n">to</span> <span class="n">dependencies</span>
+      <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="bobcat-new">
+<h3>Bobcat-new<a class="headerlink" href="#bobcat-new" title="Link to this heading">¶</a></h3>
+<p><cite>bobcat-new.sh</cite>: This script quickly scaffolds a Stylus bobcat-sdk project, including a
+Git repo and some helpers to get started quickly with testing.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>b % git clone https://github.com/stylus-developers-guild/bobcat-sdk
+b % cd bobcat-sdk
+b % cp bobcat-new.sh $HOME/.bin
+b % cd $HOME/Downloads &amp;&amp; bobcat-new.sh example-repo
+</pre></div>
+</div>
+</section>
+</section>
+<section id="hello-world">
+<h2>Hello world<a class="headerlink" href="#hello-world" title="Link to this heading">¶</a></h2>
+<p>This is a simple contract that writes “Hello, world!” back to the caller when invoked:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="n">src</span><span class="o">/</span><span class="n">main</span><span class="o">.</span><span class="n">rs</span>
+
+<span class="n">use</span> <span class="n">bobcat_sdk</span><span class="p">::</span><span class="n">prelude</span><span class="p">::</span><span class="o">*</span><span class="p">;</span>
+
+<span class="c1">#[unsafe(no_mangle)]</span>
+<span class="n">fn</span> <span class="n">user_entrypoint</span><span class="p">(</span><span class="nb">len</span><span class="p">:</span> <span class="n">usize</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">usize</span> <span class="p">{</span>
+    <span class="n">write_str</span><span class="p">(</span><span class="s2">"Hello, world!"</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This smart contract simply writes “Hello, world!” as a string when it’s invoked.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">The Bobcat-sdk Book</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hello-world">Hello world</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">The Bobcat-sdk Book</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Bayge.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/getting-started.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

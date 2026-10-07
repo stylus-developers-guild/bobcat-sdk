@@ -3,14 +3,17 @@
 The Bobcat-sdk Book
 ===================
 
-.. image:: ../logo.svg
-   :width: 100px
-
-The Bobcat-sdk Book is a guide on developing with `bobcat-sdk`, a Rust SDK for building
+The Bobcat-sdk Book is a guide to developing with `bobcat-sdk`, a Rust SDK for building
 Arbitrum-based Web3 dApps. It assumes familiarity with Rust and Solidity.
 
 .. toctree::
+   :maxdepth: 1
+   :caption: News
+
+   towards-1-0-0
+
+.. toctree::
    :maxdepth: 2
-   :caption: Introduction
+   :caption: Getting started
 
    getting-started

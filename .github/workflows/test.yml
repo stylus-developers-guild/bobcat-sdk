@@ -28,6 +28,7 @@ jobs:
       - name: Initialize submodules
         run: |
           git submodule update --init --depth 1 forge-libs/forge-std
+          git submodule update --init --depth 1 forge-libs/solady
           git submodule update --init --depth 1 e2e-test/superposition-precompiles
 
       - name: Install Rust

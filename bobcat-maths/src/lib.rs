@@ -1534,7 +1534,8 @@ macro_rules! from_slices {
                 }
 
                 impl U {
-                    pub const fn [<const_ $n _slice>](self) -> [u8; $n] {
+                    /// Convert U to the slice, ignoring any excess amounts in the slice.
+                    pub const fn [<const_ $n _unsafe_slice>](self) -> [u8; $n] {
                         let mut b = [0u8; $n];
                         let mut i = 0;
                         while i < $n {
@@ -1543,10 +1544,46 @@ macro_rules! from_slices {
                         }
                         b
                     }
+
+                    /// Convert U to the slice, returning None on an unsafe conversion to
+                    /// the other slice (there is leftmost data in the slice).
+                    pub const fn [<const_ $n _safe_slice>](self) -> Option<[u8; $n]> {
+                        let mut i = 0;
+                        while i < 32 - $n {
+                            if self.0[i] != 0 {
+                                return None;
+                            }
+                            i += 1;
+                        }
+                        Some(self.[<const_ $n _unsafe_slice>]())
+                    }
+
+                    /// Convert U to the slice, panicking with debug assertions if U is too
+                    /// large to convert to the slice given.
+                    pub const fn [<const_ $n _slice>](self) -> [u8; $n] {
+                        cfg_if::cfg_if! {
+                            if #[cfg(debug_assertions)] {
+                                self.[<const_ $n _safe_slice>]().expect("Slice too large")
+                            } else {
+                                self.[<const_ $n _unsafe_slice>]()
+                            }
+                        }
+                    }
                 }
 
                 impl From<U> for [u8; $n] {
+                    /// Convert from U into [u8; $n], panicking during debug if U is too
+                    /// large to trim safely.
                     fn from(x: U) -> Self {
+                        cfg_if::cfg_if! {
+                            if #[cfg(debug_assertions)] {
+                                if 32 > $n {
+                                    for i in 0..32 - $n {
+                                        assert_eq!(0, x.0[i], "unsafe slice conversion to slice size {} at {i}, {x:x}", $n)
+                                    }
+                                }
+                            }
+                        }
                         unsafe { *(x.as_ptr().add(32 - $n) as *const [u8; $n]) }
                     }
                 }
@@ -2050,7 +2087,10 @@ mod test {
 
         #[test]
         fn test_u_conv_to_and_from_u8(x in any::<u8>()) {
-            assert_eq!(x.wrapping_add(1), U::from(x).wrapping_add(&U::ONE).into());
+            if let Some(exp) = x.checked_add(1) {
+                let cmp = U::from(x).wrapping_add(&U::ONE);
+                assert_eq!(exp, cmp.into(), "exp: {exp} ne {cmp}");
+            }
         }
 
         #[test]

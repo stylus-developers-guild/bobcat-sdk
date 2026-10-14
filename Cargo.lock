@@ -680,18 +680,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bobcat-features"
-version = "0.11.9"
-dependencies = [
- "bobcat-call",
- "bobcat-entry",
- "bobcat-host",
- "bobcat-interfaces",
- "bobcat-storage",
- "paste",
-]
-
-[[package]]
 name = "bobcat-host"
 version = "0.11.9"
 dependencies = [
@@ -788,7 +776,6 @@ dependencies = [
  "bobcat-create",
  "bobcat-entry",
  "bobcat-events",
- "bobcat-features",
  "bobcat-host",
  "bobcat-interfaces",
  "bobcat-maths",

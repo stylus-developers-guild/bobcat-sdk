@@ -49,7 +49,6 @@ bobcat-call = { version = "0.11.9", path = "../bobcat-call", default-features = 
 bobcat-console = { version = "0.11.9", path = "../bobcat-console", optional = true, default-features = false }
 bobcat-events = { version = "0.11.9", path = "../bobcat-events", default-features = false }
 bobcat-precompiles = { version = "0.11.9", path = "../bobcat-precompiles", default-features = false }
-bobcat-features = { version = "0.11.9", path = "../bobcat-features", default-features = false }
 bobcat-host = { version = "0.11.9", path = "../bobcat-host", default-features = false }
 bobcat-alloc = { version = "0.11.9", path = "../bobcat-alloc", optional = true, default-features = false }
 bobcat-trace-derive = { version = "0.11.9", path = "../bobcat-trace-derive", optional = true }
@@ -94,15 +93,13 @@ panic-trace = ["panic", "bobcat-panic/panic-trace"]
 dont-define-symbols = [
 	"bobcat-entry/dont-define-symbols",
 	"bobcat-call/dont-define-symbols",
-	"bobcat-features/dont-define-symbols",
 	"bobcat-precompiles/dont-define-symbols"
 ]
 ruint-enabled = ["bobcat-maths/ruint-enabled"]
 msg-on-sdk-err = [
 	"bobcat-panic/msg-on-sdk-err",
 	"bobcat-maths/msg-on-sdk-err",
-	"bobcat-call/msg-on-sdk-err",
-	"bobcat-features/msg-on-sdk-err"
+	"bobcat-call/msg-on-sdk-err"
 ]
 wasm-bindgen = ["bobcat-maths/wasm-bindgen"]
 wasm-bindgen-wasi = ["bobcat-maths/wasm-bindgen-wasi"]

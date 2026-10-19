@@ -15,7 +15,6 @@ members = [
 	"slot-map",
 	"safe-erc20",
 	"tracing-counter",
-	"features",
 	"zeroise-check",
 	"slot-key",
 	"derive-trace",

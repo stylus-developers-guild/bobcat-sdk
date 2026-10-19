@@ -22,7 +22,6 @@ PROJECTS := \
 	tracing-counter \
 	panic-trace \
 	shadow \
-	features \
 	zeroise-check \
 	slot-key \
 	derive-trace \
@@ -52,7 +51,6 @@ wasm: \
 	tracing-counter.wasm \
 	panic-trace.wasm \
 	shadow.wasm \
-	features.wasm \
 	zeroise-check.wasm \
 	slot-key.wasm \
 	derive-trace.wasm \
@@ -108,10 +106,6 @@ shadow.wasm: $(shell find shadow/src -type f)
 	@cd shadow && cargo build --release --target wasm32-unknown-unknown
 	@./wasm-post.sh shadow/target/wasm32-unknown-unknown/release/shadow.wasm shadow.wasm
 
-features.wasm: ${BUILT}
-	@# We don't post process features since wat2wasm hangs due to some kind of bug:
-	@cp ${RELEASE}/features.wasm features.wasm
-
 zeroise-check.wasm: ${BUILT}
 	@./wasm-post.sh ${RELEASE}/zeroise-check.wasm zeroise-check.wasm
 
@@ -143,7 +137,6 @@ clean:
 		tracing-counter.wasm \
 		panic-trace.wasm \
 		shadow.wasm \
-		features.wasm \
 		zeroise-check.wasm \
 		slot-key.wasm \
 		derive-trace.wasm \

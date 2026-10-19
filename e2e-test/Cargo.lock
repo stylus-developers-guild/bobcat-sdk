@@ -55,14 +55,14 @@ dependencies = [
 
 [[package]]
 name = "bobcat-alloc"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "mini-alloc",
 ]
 
 [[package]]
 name = "bobcat-call"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "bobcat-entry",
  "bobcat-host",
@@ -74,7 +74,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-cd"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-cd-derive",
@@ -85,7 +85,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-cd-derive"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "heck",
  "keccak-const",
@@ -97,14 +97,14 @@ dependencies = [
 
 [[package]]
 name = "bobcat-console"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "bobcat-host",
 ]
 
 [[package]]
 name = "bobcat-create"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -115,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-entry"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-cd",
@@ -127,7 +127,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-events"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -135,20 +135,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "bobcat-features"
-version = "0.11.8"
-dependencies = [
- "bobcat-call",
- "bobcat-entry",
- "bobcat-host",
- "bobcat-interfaces",
- "bobcat-storage",
- "paste",
-]
-
-[[package]]
 name = "bobcat-host"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "const-hex",
  "keccak-const",
@@ -156,7 +144,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-interfaces"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-cd",
@@ -167,7 +155,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-maths"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "alloy-primitives",
  "array-concat",
@@ -182,7 +170,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-panic"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "bobcat-host",
  "const-hex",
@@ -191,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-precompiles"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-call",
@@ -203,7 +191,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-proxy"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-interfaces",
@@ -213,7 +201,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-sdk"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "bobcat-alloc",
  "bobcat-call",
@@ -222,7 +210,6 @@ dependencies = [
  "bobcat-create",
  "bobcat-entry",
  "bobcat-events",
- "bobcat-features",
  "bobcat-host",
  "bobcat-interfaces",
  "bobcat-maths",
@@ -234,7 +221,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-storage"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "array-concat",
  "bobcat-host",
@@ -245,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "bobcat-trace-derive"
-version = "0.11.8"
+version = "0.11.10"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -441,14 +428,6 @@ name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
-
-[[package]]
-name = "features"
-version = "0.1.0"
-dependencies = [
- "bobcat-sdk",
- "mini-alloc",
-]
 
 [[package]]
 name = "fiat-crypto"

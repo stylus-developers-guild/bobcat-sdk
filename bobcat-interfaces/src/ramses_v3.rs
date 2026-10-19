@@ -248,7 +248,7 @@ pub fn make_fn_exact_output_vec(params: ExactOutputParamsVec) -> Vec<u8> {
 mod tests {
     use super::*;
     use alloy_primitives::{
-        aliases::I24 as AlloyI24, Address as AlloyAddress, U160 as AlloyU160, U256,
+        Address as AlloyAddress, U160 as AlloyU160, U256, aliases::I24 as AlloyI24,
     };
     use alloy_sol_macro::sol;
     use alloy_sol_types::SolCall;
@@ -298,151 +298,184 @@ mod tests {
         function exactOutput(AlloyExactOutputParams params) external payable returns (uint256 amountIn);
     }
 
-    fn word(value: u64) -> U {
-        U::from_u64(value)
+    use proptest::prelude::*;
+
+    fn alloy_i24(bytes: [u8; 3]) -> AlloyI24 {
+        let sign = if bytes[0] & 0x80 == 0 { 0 } else { 0xff };
+        AlloyI24::unchecked_from(i32::from_be_bytes([sign, bytes[0], bytes[1], bytes[2]]))
     }
 
-    #[test]
-    fn exact_input_single_matches_ramses_abi() {
-        let params = ExactInputSingleParams {
-            token_in: EvmCdAddress::new([0x11; 20]),
-            token_out: EvmCdAddress::new([0x22; 20]),
-            tick_spacing: EvmCdI24::new([0xff, 0xff, 0xc4]),
-            recipient: EvmCdAddress::new([0x33; 20]),
-            deadline: word(1),
-            amount_in: word(2),
-            amount_out_minimum: word(3),
-            sqrt_price_limit_x96: EvmCdU160::new([0x44; 20]),
-        };
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(128))]
 
-        let actual = make_fn_exact_input_single(params);
-        let expected = exactInputSingleCall {
-            params: AlloyExactInputSingleParams {
-                tokenIn: AlloyAddress::from(params.token_in.into_array()),
-                tokenOut: AlloyAddress::from(params.token_out.into_array()),
-                tickSpacing: AlloyI24::unchecked_from(-60),
-                recipient: AlloyAddress::from(params.recipient.into_array()),
-                deadline: U256::from_be_bytes(*params.deadline),
-                amountIn: U256::from_be_bytes(*params.amount_in),
-                amountOutMinimum: U256::from_be_bytes(*params.amount_out_minimum),
-                sqrtPriceLimitX96: AlloyU160::from_be_bytes(
-                    params.sqrt_price_limit_x96.into_array(),
-                ),
-            },
+        #[test]
+        fn exact_input_single_matches_ramses_abi(
+            token_in in any::<[u8; 20]>(),
+            token_out in any::<[u8; 20]>(),
+            tick_spacing in any::<[u8; 3]>(),
+            recipient in any::<[u8; 20]>(),
+            deadline in any::<U>(),
+            amount_in in any::<U>(),
+            amount_out_minimum in any::<U>(),
+            sqrt_price_limit_x96 in any::<[u8; 20]>(),
+        ) {
+            let params = ExactInputSingleParams {
+                token_in: EvmCdAddress::new(token_in),
+                token_out: EvmCdAddress::new(token_out),
+                tick_spacing: EvmCdI24::new(tick_spacing),
+                recipient: EvmCdAddress::new(recipient),
+                deadline,
+                amount_in,
+                amount_out_minimum,
+                sqrt_price_limit_x96: EvmCdU160::new(sqrt_price_limit_x96),
+            };
+
+            let actual = make_fn_exact_input_single(params);
+            let expected = exactInputSingleCall {
+                params: AlloyExactInputSingleParams {
+                    tokenIn: AlloyAddress::from(token_in),
+                    tokenOut: AlloyAddress::from(token_out),
+                    tickSpacing: alloy_i24(tick_spacing),
+                    recipient: AlloyAddress::from(recipient),
+                    deadline: U256::from_be_bytes(*deadline),
+                    amountIn: U256::from_be_bytes(*amount_in),
+                    amountOutMinimum: U256::from_be_bytes(*amount_out_minimum),
+                    sqrtPriceLimitX96: AlloyU160::from_be_bytes(sqrt_price_limit_x96),
+                },
+            }
+            .abi_encode();
+
+            prop_assert_eq!(actual.as_slice(), expected.as_slice());
         }
-        .abi_encode();
 
-        assert_eq!(actual.as_slice(), expected);
-    }
+        #[test]
+        fn exact_output_single_matches_ramses_abi(
+            token_in in any::<[u8; 20]>(),
+            token_out in any::<[u8; 20]>(),
+            tick_spacing in any::<[u8; 3]>(),
+            recipient in any::<[u8; 20]>(),
+            deadline in any::<U>(),
+            amount_out in any::<U>(),
+            amount_in_maximum in any::<U>(),
+            sqrt_price_limit_x96 in any::<[u8; 20]>(),
+        ) {
+            let params = ExactOutputSingleParams {
+                token_in: EvmCdAddress::new(token_in),
+                token_out: EvmCdAddress::new(token_out),
+                tick_spacing: EvmCdI24::new(tick_spacing),
+                recipient: EvmCdAddress::new(recipient),
+                deadline,
+                amount_out,
+                amount_in_maximum,
+                sqrt_price_limit_x96: EvmCdU160::new(sqrt_price_limit_x96),
+            };
 
-    #[test]
-    fn exact_output_single_matches_ramses_abi() {
-        let params = ExactOutputSingleParams {
-            token_in: EvmCdAddress::new([0x11; 20]),
-            token_out: EvmCdAddress::new([0x22; 20]),
-            tick_spacing: EvmCdI24::new([0x00, 0x00, 0x01]),
-            recipient: EvmCdAddress::new([0x33; 20]),
-            deadline: word(4),
-            amount_out: word(5),
-            amount_in_maximum: word(6),
-            sqrt_price_limit_x96: EvmCdU160::new([0x44; 20]),
-        };
+            let actual = make_fn_exact_output_single(params);
+            let expected = exactOutputSingleCall {
+                params: AlloyExactOutputSingleParams {
+                    tokenIn: AlloyAddress::from(token_in),
+                    tokenOut: AlloyAddress::from(token_out),
+                    tickSpacing: alloy_i24(tick_spacing),
+                    recipient: AlloyAddress::from(recipient),
+                    deadline: U256::from_be_bytes(*deadline),
+                    amountOut: U256::from_be_bytes(*amount_out),
+                    amountInMaximum: U256::from_be_bytes(*amount_in_maximum),
+                    sqrtPriceLimitX96: AlloyU160::from_be_bytes(sqrt_price_limit_x96),
+                },
+            }
+            .abi_encode();
 
-        let actual = make_fn_exact_output_single(params);
-        let expected = exactOutputSingleCall {
-            params: AlloyExactOutputSingleParams {
-                tokenIn: AlloyAddress::from(params.token_in.into_array()),
-                tokenOut: AlloyAddress::from(params.token_out.into_array()),
-                tickSpacing: AlloyI24::unchecked_from(1),
-                recipient: AlloyAddress::from(params.recipient.into_array()),
-                deadline: U256::from_be_bytes(*params.deadline),
-                amountOut: U256::from_be_bytes(*params.amount_out),
-                amountInMaximum: U256::from_be_bytes(*params.amount_in_maximum),
-                sqrtPriceLimitX96: AlloyU160::from_be_bytes(
-                    params.sqrt_price_limit_x96.into_array(),
-                ),
-            },
+            prop_assert_eq!(actual.as_slice(), expected.as_slice());
         }
-        .abi_encode();
 
-        assert_eq!(actual.as_slice(), expected);
-    }
+        #[test]
+        fn exact_input_path_matches_ramses_abi_without_allocating(
+            path in any::<[u8; 43]>(),
+            recipient in any::<[u8; 20]>(),
+            deadline in any::<U>(),
+            amount_in in any::<U>(),
+            amount_out_minimum in any::<U>(),
+        ) {
+            const PATH_LEN: usize = 43;
+            const CALLDATA_LEN: usize = exact_path_calldata_len(PATH_LEN);
+            let params = ExactInputParamsSlice {
+                path,
+                recipient: EvmCdAddress::new(recipient),
+                deadline,
+                amount_in,
+                amount_out_minimum,
+            };
 
-    #[test]
-    fn exact_input_path_matches_ramses_abi_without_allocating() {
-        const PATH_LEN: usize = 43;
-        const CALLDATA_LEN: usize = exact_path_calldata_len(PATH_LEN);
-        let params = ExactInputParamsSlice {
-            path: [0x55; PATH_LEN],
-            recipient: EvmCdAddress::new([0x66; 20]),
-            deadline: word(7),
-            amount_in: word(8),
-            amount_out_minimum: word(9),
-        };
+            let actual: [u8; CALLDATA_LEN] = make_fn_exact_input_slice(params);
+            let expected = exactInputCall {
+                params: AlloyExactInputParams {
+                    path: path.into(),
+                    recipient: AlloyAddress::from(recipient),
+                    deadline: U256::from_be_bytes(*deadline),
+                    amountIn: U256::from_be_bytes(*amount_in),
+                    amountOutMinimum: U256::from_be_bytes(*amount_out_minimum),
+                },
+            }
+            .abi_encode();
 
-        let actual: [u8; CALLDATA_LEN] = make_fn_exact_input_slice(params);
-        let expected = exactInputCall {
-            params: AlloyExactInputParams {
-                path: params.path.into(),
-                recipient: AlloyAddress::from(params.recipient.into_array()),
-                deadline: U256::from_be_bytes(*params.deadline),
-                amountIn: U256::from_be_bytes(*params.amount_in),
-                amountOutMinimum: U256::from_be_bytes(*params.amount_out_minimum),
-            },
+            prop_assert_eq!(actual.as_slice(), expected.as_slice());
+
+            #[cfg(feature = "alloc")]
+            {
+                let actual_vec = make_fn_exact_input_vec(ExactInputParamsVec {
+                    path: path.to_vec(),
+                    recipient: EvmCdAddress::new(recipient),
+                    deadline,
+                    amount_in,
+                    amount_out_minimum,
+                });
+                prop_assert_eq!(actual_vec.as_slice(), expected.as_slice());
+            }
         }
-        .abi_encode();
 
-        assert_eq!(actual.as_slice(), expected);
+        #[test]
+        fn exact_output_path_matches_ramses_abi_without_allocating(
+            path in any::<[u8; 44]>(),
+            recipient in any::<[u8; 20]>(),
+            deadline in any::<U>(),
+            amount_out in any::<U>(),
+            amount_in_maximum in any::<U>(),
+        ) {
+            const PATH_LEN: usize = 44;
+            const CALLDATA_LEN: usize = exact_path_calldata_len(PATH_LEN);
+            let params = ExactOutputParamsSlice {
+                path,
+                recipient: EvmCdAddress::new(recipient),
+                deadline,
+                amount_out,
+                amount_in_maximum,
+            };
 
-        #[cfg(feature = "alloc")]
-        {
-            let actual_vec = make_fn_exact_input_vec(ExactInputParamsVec {
-                path: params.path.to_vec(),
-                recipient: params.recipient,
-                deadline: params.deadline,
-                amount_in: params.amount_in,
-                amount_out_minimum: params.amount_out_minimum,
-            });
-            assert_eq!(actual_vec, expected);
-        }
-    }
+            let actual: [u8; CALLDATA_LEN] = make_fn_exact_output_slice(params);
+            let expected = exactOutputCall {
+                params: AlloyExactOutputParams {
+                    path: path.into(),
+                    recipient: AlloyAddress::from(recipient),
+                    deadline: U256::from_be_bytes(*deadline),
+                    amountOut: U256::from_be_bytes(*amount_out),
+                    amountInMaximum: U256::from_be_bytes(*amount_in_maximum),
+                },
+            }
+            .abi_encode();
 
-    #[test]
-    fn exact_output_path_matches_ramses_abi_without_allocating() {
-        const PATH_LEN: usize = 44;
-        const CALLDATA_LEN: usize = exact_path_calldata_len(PATH_LEN);
-        let params = ExactOutputParamsSlice {
-            path: [0x77; PATH_LEN],
-            recipient: EvmCdAddress::new([0x88; 20]),
-            deadline: word(10),
-            amount_out: word(11),
-            amount_in_maximum: word(12),
-        };
+            prop_assert_eq!(actual.as_slice(), expected.as_slice());
 
-        let actual: [u8; CALLDATA_LEN] = make_fn_exact_output_slice(params);
-        let expected = exactOutputCall {
-            params: AlloyExactOutputParams {
-                path: params.path.into(),
-                recipient: AlloyAddress::from(params.recipient.into_array()),
-                deadline: U256::from_be_bytes(*params.deadline),
-                amountOut: U256::from_be_bytes(*params.amount_out),
-                amountInMaximum: U256::from_be_bytes(*params.amount_in_maximum),
-            },
-        }
-        .abi_encode();
-
-        assert_eq!(actual.as_slice(), expected);
-
-        #[cfg(feature = "alloc")]
-        {
-            let actual_vec = make_fn_exact_output_vec(ExactOutputParamsVec {
-                path: params.path.to_vec(),
-                recipient: params.recipient,
-                deadline: params.deadline,
-                amount_out: params.amount_out,
-                amount_in_maximum: params.amount_in_maximum,
-            });
-            assert_eq!(actual_vec, expected);
+            #[cfg(feature = "alloc")]
+            {
+                let actual_vec = make_fn_exact_output_vec(ExactOutputParamsVec {
+                    path: path.to_vec(),
+                    recipient: EvmCdAddress::new(recipient),
+                    deadline,
+                    amount_out,
+                    amount_in_maximum,
+                });
+                prop_assert_eq!(actual_vec.as_slice(), expected.as_slice());
+            }
         }
     }
 }

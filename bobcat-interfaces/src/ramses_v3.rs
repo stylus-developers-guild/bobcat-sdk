@@ -5,20 +5,15 @@ extern crate alloc;
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-use bobcat_cd::{address, EvmCdAddress, EvmCdBytes, EvmCdI24, EvmCdSerialise, EvmCdU160};
+use bobcat_cd::{EvmCdAddress, EvmCdBytes, EvmCdI24, EvmCdSerialise, EvmCdU160};
 use bobcat_maths::U;
-
-pub type Address = [u8; 20];
-
-/// Ramses V3's SwapRouter on Robinhood Chain.
-pub const ROBINHOOD_SWAP_ROUTER: Address = address!(b"fcBBE2AF83f94E7E2A9C35a535b3A04719aFd2AE");
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ExactInputSingleParams {
-    pub token_in: Address,
-    pub token_out: Address,
+    pub token_in: EvmCdAddress,
+    pub token_out: EvmCdAddress,
     pub tick_spacing: EvmCdI24,
-    pub recipient: Address,
+    pub recipient: EvmCdAddress,
     pub deadline: U,
     pub amount_in: U,
     pub amount_out_minimum: U,
@@ -27,10 +22,10 @@ pub struct ExactInputSingleParams {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ExactOutputSingleParams {
-    pub token_in: Address,
-    pub token_out: Address,
+    pub token_in: EvmCdAddress,
+    pub token_out: EvmCdAddress,
     pub tick_spacing: EvmCdI24,
-    pub recipient: Address,
+    pub recipient: EvmCdAddress,
     pub deadline: U,
     pub amount_out: U,
     pub amount_in_maximum: U,
@@ -40,7 +35,7 @@ pub struct ExactOutputSingleParams {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ExactInputParamsSlice<const PATH_LEN: usize> {
     pub path: [u8; PATH_LEN],
-    pub recipient: Address,
+    pub recipient: EvmCdAddress,
     pub deadline: U,
     pub amount_in: U,
     pub amount_out_minimum: U,
@@ -50,7 +45,7 @@ pub struct ExactInputParamsSlice<const PATH_LEN: usize> {
 pub struct ExactOutputParamsSlice<const PATH_LEN: usize> {
     /// Exact-output paths are encoded in reverse order by the Ramses router.
     pub path: [u8; PATH_LEN],
-    pub recipient: Address,
+    pub recipient: EvmCdAddress,
     pub deadline: U,
     pub amount_out: U,
     pub amount_in_maximum: U,
@@ -60,7 +55,7 @@ pub struct ExactOutputParamsSlice<const PATH_LEN: usize> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExactInputParamsVec {
     pub path: Vec<u8>,
-    pub recipient: Address,
+    pub recipient: EvmCdAddress,
     pub deadline: U,
     pub amount_in: U,
     pub amount_out_minimum: U,
@@ -71,34 +66,10 @@ pub struct ExactInputParamsVec {
 pub struct ExactOutputParamsVec {
     /// Exact-output paths are encoded in reverse order by the Ramses router.
     pub path: Vec<u8>,
-    pub recipient: Address,
+    pub recipient: EvmCdAddress,
     pub deadline: U,
     pub amount_out: U,
     pub amount_in_maximum: U,
-}
-
-#[derive(EvmCdSerialise)]
-struct DerivedExactInputSingleParams {
-    token_in: EvmCdAddress,
-    token_out: EvmCdAddress,
-    tick_spacing: EvmCdI24,
-    recipient: EvmCdAddress,
-    deadline: U,
-    amount_in: U,
-    amount_out_minimum: U,
-    sqrt_price_limit_x96: EvmCdU160,
-}
-
-#[derive(EvmCdSerialise)]
-struct DerivedExactOutputSingleParams {
-    token_in: EvmCdAddress,
-    token_out: EvmCdAddress,
-    tick_spacing: EvmCdI24,
-    recipient: EvmCdAddress,
-    deadline: U,
-    amount_out: U,
-    amount_in_maximum: U,
-    sqrt_price_limit_x96: EvmCdU160,
 }
 
 #[derive(EvmCdSerialise)]
@@ -125,11 +96,29 @@ enum DerivedSingleCall {
     #[evm_selector(
         "exactInputSingle((address,address,int24,address,uint256,uint256,uint256,uint160))"
     )]
-    ExactInputSingle(DerivedExactInputSingleParams),
+    ExactInputSingle {
+        token_in: EvmCdAddress,
+        token_out: EvmCdAddress,
+        tick_spacing: EvmCdI24,
+        recipient: EvmCdAddress,
+        deadline: U,
+        amount_in: U,
+        amount_out_minimum: U,
+        sqrt_price_limit_x96: EvmCdU160,
+    },
     #[evm_selector(
         "exactOutputSingle((address,address,int24,address,uint256,uint256,uint256,uint160))"
     )]
-    ExactOutputSingle(DerivedExactOutputSingleParams),
+    ExactOutputSingle {
+        token_in: EvmCdAddress,
+        token_out: EvmCdAddress,
+        tick_spacing: EvmCdI24,
+        recipient: EvmCdAddress,
+        deadline: U,
+        amount_out: U,
+        amount_in_maximum: U,
+        sqrt_price_limit_x96: EvmCdU160,
+    },
 }
 
 #[derive(EvmCdSerialise)]
@@ -160,31 +149,31 @@ pub const fn exact_path_calldata_len(path_len: usize) -> usize {
 }
 
 pub fn make_fn_exact_input_single(params: ExactInputSingleParams) -> [u8; SINGLE_CALLDATA_LEN] {
-    DerivedSingleCall::ExactInputSingle(DerivedExactInputSingleParams {
-        token_in: EvmCdAddress::new(params.token_in),
-        token_out: EvmCdAddress::new(params.token_out),
+    DerivedSingleCall::ExactInputSingle {
+        token_in: params.token_in,
+        token_out: params.token_out,
         tick_spacing: params.tick_spacing,
-        recipient: EvmCdAddress::new(params.recipient),
+        recipient: params.recipient,
         deadline: params.deadline,
         amount_in: params.amount_in,
         amount_out_minimum: params.amount_out_minimum,
         sqrt_price_limit_x96: params.sqrt_price_limit_x96,
-    })
+    }
     .to_evm_array()
     .expect("Ramses V3 exactInputSingle calldata has a fixed 260-byte encoding")
 }
 
 pub fn make_fn_exact_output_single(params: ExactOutputSingleParams) -> [u8; SINGLE_CALLDATA_LEN] {
-    DerivedSingleCall::ExactOutputSingle(DerivedExactOutputSingleParams {
-        token_in: EvmCdAddress::new(params.token_in),
-        token_out: EvmCdAddress::new(params.token_out),
+    DerivedSingleCall::ExactOutputSingle {
+        token_in: params.token_in,
+        token_out: params.token_out,
         tick_spacing: params.tick_spacing,
-        recipient: EvmCdAddress::new(params.recipient),
+        recipient: params.recipient,
         deadline: params.deadline,
         amount_out: params.amount_out,
         amount_in_maximum: params.amount_in_maximum,
         sqrt_price_limit_x96: params.sqrt_price_limit_x96,
-    })
+    }
     .to_evm_array()
     .expect("Ramses V3 exactOutputSingle calldata has a fixed 260-byte encoding")
 }
@@ -199,7 +188,7 @@ pub fn make_fn_exact_input_slice<const PATH_LEN: usize, const ALL: usize>(
     );
     DerivedPathCall::ExactInput(DerivedExactInputParams {
         path: EvmCdBytes::<PATH_LEN>::from(params.path),
-        recipient: EvmCdAddress::new(params.recipient),
+        recipient: params.recipient,
         deadline: params.deadline,
         amount_in: params.amount_in,
         amount_out_minimum: params.amount_out_minimum,
@@ -218,7 +207,7 @@ pub fn make_fn_exact_output_slice<const PATH_LEN: usize, const ALL: usize>(
     );
     DerivedPathCall::ExactOutput(DerivedExactOutputParams {
         path: EvmCdBytes::<PATH_LEN>::from(params.path),
-        recipient: EvmCdAddress::new(params.recipient),
+        recipient: params.recipient,
         deadline: params.deadline,
         amount_out: params.amount_out,
         amount_in_maximum: params.amount_in_maximum,
@@ -232,7 +221,7 @@ pub fn make_fn_exact_input_vec(params: ExactInputParamsVec) -> Vec<u8> {
     exact_path_calldata_len(params.path.len());
     DerivedPathCall::ExactInput(DerivedExactInputParams {
         path: params.path,
-        recipient: EvmCdAddress::new(params.recipient),
+        recipient: params.recipient,
         deadline: params.deadline,
         amount_in: params.amount_in,
         amount_out_minimum: params.amount_out_minimum,
@@ -246,7 +235,7 @@ pub fn make_fn_exact_output_vec(params: ExactOutputParamsVec) -> Vec<u8> {
     exact_path_calldata_len(params.path.len());
     DerivedPathCall::ExactOutput(DerivedExactOutputParams {
         path: params.path,
-        recipient: EvmCdAddress::new(params.recipient),
+        recipient: params.recipient,
         deadline: params.deadline,
         amount_out: params.amount_out,
         amount_in_maximum: params.amount_in_maximum,
@@ -316,10 +305,10 @@ mod tests {
     #[test]
     fn exact_input_single_matches_ramses_abi() {
         let params = ExactInputSingleParams {
-            token_in: [0x11; 20],
-            token_out: [0x22; 20],
+            token_in: EvmCdAddress::new([0x11; 20]),
+            token_out: EvmCdAddress::new([0x22; 20]),
             tick_spacing: EvmCdI24::new([0xff, 0xff, 0xc4]),
-            recipient: [0x33; 20],
+            recipient: EvmCdAddress::new([0x33; 20]),
             deadline: word(1),
             amount_in: word(2),
             amount_out_minimum: word(3),
@@ -329,10 +318,10 @@ mod tests {
         let actual = make_fn_exact_input_single(params);
         let expected = exactInputSingleCall {
             params: AlloyExactInputSingleParams {
-                tokenIn: AlloyAddress::from(params.token_in),
-                tokenOut: AlloyAddress::from(params.token_out),
+                tokenIn: AlloyAddress::from(params.token_in.into_array()),
+                tokenOut: AlloyAddress::from(params.token_out.into_array()),
                 tickSpacing: AlloyI24::unchecked_from(-60),
-                recipient: AlloyAddress::from(params.recipient),
+                recipient: AlloyAddress::from(params.recipient.into_array()),
                 deadline: U256::from_be_bytes(*params.deadline),
                 amountIn: U256::from_be_bytes(*params.amount_in),
                 amountOutMinimum: U256::from_be_bytes(*params.amount_out_minimum),
@@ -349,10 +338,10 @@ mod tests {
     #[test]
     fn exact_output_single_matches_ramses_abi() {
         let params = ExactOutputSingleParams {
-            token_in: [0x11; 20],
-            token_out: [0x22; 20],
+            token_in: EvmCdAddress::new([0x11; 20]),
+            token_out: EvmCdAddress::new([0x22; 20]),
             tick_spacing: EvmCdI24::new([0x00, 0x00, 0x01]),
-            recipient: [0x33; 20],
+            recipient: EvmCdAddress::new([0x33; 20]),
             deadline: word(4),
             amount_out: word(5),
             amount_in_maximum: word(6),
@@ -362,10 +351,10 @@ mod tests {
         let actual = make_fn_exact_output_single(params);
         let expected = exactOutputSingleCall {
             params: AlloyExactOutputSingleParams {
-                tokenIn: AlloyAddress::from(params.token_in),
-                tokenOut: AlloyAddress::from(params.token_out),
+                tokenIn: AlloyAddress::from(params.token_in.into_array()),
+                tokenOut: AlloyAddress::from(params.token_out.into_array()),
                 tickSpacing: AlloyI24::unchecked_from(1),
-                recipient: AlloyAddress::from(params.recipient),
+                recipient: AlloyAddress::from(params.recipient.into_array()),
                 deadline: U256::from_be_bytes(*params.deadline),
                 amountOut: U256::from_be_bytes(*params.amount_out),
                 amountInMaximum: U256::from_be_bytes(*params.amount_in_maximum),
@@ -385,7 +374,7 @@ mod tests {
         const CALLDATA_LEN: usize = exact_path_calldata_len(PATH_LEN);
         let params = ExactInputParamsSlice {
             path: [0x55; PATH_LEN],
-            recipient: [0x66; 20],
+            recipient: EvmCdAddress::new([0x66; 20]),
             deadline: word(7),
             amount_in: word(8),
             amount_out_minimum: word(9),
@@ -395,7 +384,7 @@ mod tests {
         let expected = exactInputCall {
             params: AlloyExactInputParams {
                 path: params.path.into(),
-                recipient: AlloyAddress::from(params.recipient),
+                recipient: AlloyAddress::from(params.recipient.into_array()),
                 deadline: U256::from_be_bytes(*params.deadline),
                 amountIn: U256::from_be_bytes(*params.amount_in),
                 amountOutMinimum: U256::from_be_bytes(*params.amount_out_minimum),
@@ -424,7 +413,7 @@ mod tests {
         const CALLDATA_LEN: usize = exact_path_calldata_len(PATH_LEN);
         let params = ExactOutputParamsSlice {
             path: [0x77; PATH_LEN],
-            recipient: [0x88; 20],
+            recipient: EvmCdAddress::new([0x88; 20]),
             deadline: word(10),
             amount_out: word(11),
             amount_in_maximum: word(12),
@@ -434,7 +423,7 @@ mod tests {
         let expected = exactOutputCall {
             params: AlloyExactOutputParams {
                 path: params.path.into(),
-                recipient: AlloyAddress::from(params.recipient),
+                recipient: AlloyAddress::from(params.recipient.into_array()),
                 deadline: U256::from_be_bytes(*params.deadline),
                 amountOut: U256::from_be_bytes(*params.amount_out),
                 amountInMaximum: U256::from_be_bytes(*params.amount_in_maximum),

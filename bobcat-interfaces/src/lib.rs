@@ -12,6 +12,7 @@ pub mod compound_v3;
 pub mod gmx_v2;
 pub mod morpho;
 pub mod pendle;
+pub mod ramses_v3;
 pub mod robinhood_stock_tokens;
 pub mod uniswap_v2;
 pub mod uniswap_v3;
